@@ -202,7 +202,7 @@
             </div>
             <div class="actions">
                 <button type="button" class="primary" id="saveAllBtn">Save All SHGs – All Months</button>
-                <button type="button" class="warning" id="monthlyPdfBtn">Monthly DCB PDF – 12 Pages</button>
+                <button type="button" class="warning" id="monthlyPdfBtn">Monthly DCB PDF – Max 25 Rows/Page</button>
                 <button type="button" class="warning" id="ledgerPdfBtn">Loan Ledger PDF – All SHGs</button>
                 <button type="button" class="secondary" id="backupBtn">Export Backup</button>
                 <button type="button" class="secondary" id="importBtn">Import Backup</button>
@@ -708,7 +708,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Gidugu&display=swap" rel="stylesheet">
 <style>
 @page{
-  size: letter landscape;
+  size: A4 landscape;
   margin: 0;
 }
 html,body{
@@ -935,7 +935,8 @@ html,body{
 .telugu{font-family:"Gidugu",Arial,sans-serif}
 
 /* ---------------- DCB ---------------- */
-/* DCB uses A4 landscape only.  Loan Ledger remains unchanged. */
+/* DCB uses A4 landscape. Monthly DCB allows max 25 DATA rows/page.
+   Empty rows are never added to the PDF. */
 @page dcb{
   size:A4 landscape;
   margin:0;
@@ -1209,44 +1210,32 @@ html,body{
 
     function getDCBPageLayout(v){
       const result=getDCBDataColumnWidths(v);
-      const totalWidth=result.totalWidth;
       const A4_WIDTH=841.89;
-      const originalLeft=40.08;
-      const originalRight=21.36;
-      const minMargin=4;
+      const MIN_MARGIN=4;
 
       /*
-       * Preserve the old margins while possible.  First reduce the old
-       * right margin, then the left margin.  Thus a normal report keeps
-       * the original DCB position; only an expanded table consumes margin.
+       * First determine the width required by the DATA CELLS.
+       * Then center the COMPLETE DCB block horizontally on A4.
+       *
+       * Therefore the remaining left and right margins are equal.
+       * If the data needs more width, the table grows into the margins;
+       * if it needs less, the unused space is shared equally.
        */
-      let left=originalLeft;
-      let right=originalRight;
-      let requiredExtra=Math.max(0,totalWidth-730.56);
+      const totalWidth=Math.min(
+        result.totalWidth,
+        A4_WIDTH-(MIN_MARGIN*2)
+      );
 
-      const reduceRight=Math.min(requiredExtra,Math.max(0,originalRight-minMargin));
-      right-=reduceRight;
-      requiredExtra-=reduceRight;
-
-      if(requiredExtra>0){
-        const reduceLeft=Math.min(requiredExtra,Math.max(0,originalLeft-minMargin));
-        left-=reduceLeft;
-        requiredExtra-=reduceLeft;
-      }
-
-      /* Final safety centering if the calculated width ever reaches the
-         A4 physical limit. */
-      if(left+totalWidth+right>A4_WIDTH){
-        const available=A4_WIDTH-totalWidth;
-        left=Math.max(minMargin,available/2);
-        right=Math.max(minMargin,A4_WIDTH-totalWidth-left);
-      }
+      const sideMargin=Math.max(
+        MIN_MARGIN,
+        (A4_WIDTH-totalWidth)/2
+      );
 
       return {
         widths:result.widths,
-        totalWidth:result.totalWidth,
-        left:left,
-        right:right
+        totalWidth:totalWidth,
+        left:sideMargin,
+        right:sideMargin
       };
     }
 
@@ -1305,12 +1294,20 @@ html,body{
           `);
         });
 
+        /*
+         * Monthly DCB pagination:
+         * maximum 25 real SHG data rows on each A4 landscape page.
+         */
+        const MAX_DCB_DATA_ROWS_PER_PAGE=25;
         const chunks=[];
+
         if(allRows.length===0){
           chunks.push([]);
         }else{
-          for(let i=0;i<allRows.length;i+=9){
-            chunks.push(allRows.slice(i,i+9));
+          for(let i=0;i<allRows.length;i+=MAX_DCB_DATA_ROWS_PER_PAGE){
+            chunks.push(
+              allRows.slice(i,i+MAX_DCB_DATA_ROWS_PER_PAGE)
+            );
           }
         }
 
@@ -1323,15 +1320,19 @@ html,body{
 
         chunks.forEach((chunk,chunkIndex)=>{
           const isLastPage=chunkIndex===chunks.length-1;
-          const blankCount=Math.max(0,9-chunk.length);
-          const blankRows=Array.from({length:blankCount},()=>`
-            <tr class="blank-row">
-              <td></td><td></td>${Array.from({length:15},()=>"<td></td>").join("")}
-            </tr>`).join("");
+          /*
+           * Do NOT pad the table with empty rows.
+           * Only real SHG records are rendered.
+           * MAX_DCB_DATA_ROWS_PER_PAGE controls pagination only:
+           * 25 real rows maximum on each page.
+           */
+          const blankRows="";
 
           out+=`
             <section class="page dcb-page" style="${dcbPageStyle}">
               <div class="dcb-frame">
+                <!-- Blank/tab-space row at the top of every DCB page. -->
+                <div class="dcb-top-blank"></div>
                 <div class="dcb-head">
                   <div class="dcb-head-left telugu">
                     VO: ${esc(v.name)} &nbsp; , గ్రామం : ${esc(v.village||"")} &nbsp; , మండలం: ${esc(v.mandal||"")}
