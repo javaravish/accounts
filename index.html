@@ -999,6 +999,76 @@
       }
     }
 
+    /*
+     * FINAL DCB HEADER/TABLE ALIGNMENT
+     * --------------------------------
+     * The PDF fitting engine may resize the table (including a final
+     * proportional scale).  The title header must receive the EXACT same
+     * transform, otherwise it can remain wider than the table and leave
+     * a blank strip on the right.
+     *
+     * The divider inside the title header is also based on the ACTUAL
+     * fitted table column widths, not a fixed 10/17 or 8/14 ratio.
+     */
+    function syncDcbHeadersAfterFit(w){
+      try{
+        const doc=w.document;
+
+        function sync(frame,table,head,splitCount){
+          if(!frame||!table||!head)return;
+
+          /* Copy the final table transform to the matching header. */
+          const transform=table.style.transform||"";
+          const origin=table.style.transformOrigin||"left top";
+
+          head.style.transformOrigin=origin;
+          if(transform){
+            head.style.transform=transform;
+          }else{
+            head.style.removeProperty("transform");
+          }
+
+          /*
+           * The fitting engine writes the final widths into <col>.
+           * Use those widths to place the header divider at the exact
+           * same horizontal position as the table's split column.
+           */
+          const cols=Array.from(table.querySelectorAll("colgroup col"));
+          if(cols.length!==0 && splitCount>0 && splitCount<cols.length){
+            const widths=cols.map(col=>{
+              const n=parseFloat(col.style.width);
+              return Number.isFinite(n)?n:0;
+            });
+
+            const total=widths.reduce((a,b)=>a+b,0);
+            const left=widths.slice(0,splitCount).reduce((a,b)=>a+b,0);
+
+            if(total>0 && left>0 && left<total){
+              const right=total-left;
+              head.style.gridTemplateColumns=
+                `${left.toFixed(3)}pt ${right.toFixed(3)}pt`;
+            }
+          }
+        }
+
+        doc.querySelectorAll(".dcb-page").forEach(page=>{
+          const frame=page.querySelector(".dcb-frame");
+          const table=page.querySelector(".dcb-table");
+          const head=page.querySelector(".dcb-head");
+          sync(frame,table,head,10);
+        });
+
+        doc.querySelectorAll(".cumulative-dcb-page").forEach(page=>{
+          const frame=page.querySelector(".cumulative-dcb-frame");
+          const table=page.querySelector(".cumulative-dcb-table");
+          const head=page.querySelector(".cumulative-dcb-head");
+          sync(frame,table,head,8);
+        });
+      }catch(e){
+        try{ console.warn("DCB header alignment error:",e); }catch(ignore){}
+      }
+    }
+
     function printReport(title, body){
       const v=vo();
       const voNameForFile = v && v.name ? String(v.name).trim() : "VO";
@@ -1479,6 +1549,14 @@ html,body{
             fitAllPDFTablesInPrintWindow(w);
             fitMonthlyDcbCommonFontInPrintWindow(w);
             fitCumulativeDcbCommonFontInPrintWindow(w);
+
+            /*
+             * Must run LAST: all table fitting/scaling is complete now,
+             * so the DCB headers can copy the final table transform and
+             * use the final fitted column widths.
+             */
+            syncDcbHeadersAfterFit(w);
+
             w.document.title=printTitle;
           }catch(e){}
           w.print();
@@ -1508,7 +1586,7 @@ html,body{
      * performs the content-aware redistribution.
      */
     function getDCBPageLayout(v){
-      const A4_WIDTH=841.89;
+      const A4_WIDTH=842.500;
       const MIN_MARGIN=4;
       const totalWidth=A4_WIDTH-(MIN_MARGIN*2);
       const columnCount=17;
@@ -2242,7 +2320,7 @@ html,body{
       const widths=Array(14).fill(totalWidth/14);
       const colStyle=widths.map(w=>`<col style="width:${w.toFixed(3)}pt">`).join("");
       const pageStyle=
-        `--cumulative-dcb-width:${totalWidth.toFixed(3)}pt;`+
+        `--cumulative-dcb-width:834.500pt;`+
         `--cumulative-dcb-left:${MARGIN.toFixed(3)}pt;`+
         `--cumulative-dcb-right:${MARGIN.toFixed(3)}pt;`;
 
