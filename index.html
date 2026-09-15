@@ -11,8 +11,8 @@
         main{max-width:1500px;margin:18px auto;padding:0 14px}.card{background:#fff;border:1px solid #d5dce4;border-radius:9px;padding:18px;margin-bottom:16px}
         h2{margin:0 0 14px}.toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:end}.field{min-width:220px;flex:1}
         /* Compact controls: use about half the page on the desktop. */
-        #voDetailsToolbar:not(.show-details){max-width:50%;}
-        #shgToolbar{max-width:50%;}
+        #voDetailsToolbar:not(.show-details){max-width:40%;}
+        #shgToolbar{max-width:100%;}
         @media(max-width:900px){#voDetailsToolbar:not(.show-details),#shgToolbar{max-width:100%;}}
         label{display:block;font-size:12px;font-weight:bold;margin-bottom:5px}
 /* Keep VO Name, Village, Mandal and District hidden on the initial page. */
@@ -272,7 +272,7 @@ button > *{position:relative;z-index:1;}
     min-height:210mm!important;
     height:210mm!important;
     box-sizing:border-box!important;
-    padding:18pt!important;
+    padding:28.3465pt!important;
     margin:0!important;
   }
 
@@ -284,6 +284,66 @@ button > *{position:relative;z-index:1;}
   }
 }
 
+
+/* =========================================================
+   PDF DATA CELL FONT / SPACE RULE
+   - All PDF data cells: minimum 13pt.
+   - Long data is never reduced below 13pt.
+   - Column fitting uses the maximum available A4 safe width.
+   ========================================================= */
+.ledger-page .ledger-table tbody td,
+.dcb-page .dcb-table tbody td,
+.cumulative-dcb-page .cumulative-dcb-table tbody td,
+.ledger-page .ledger-table tbody td .pdf-cell-text,
+.dcb-page .dcb-table tbody td .pdf-cell-text,
+.cumulative-dcb-page .cumulative-dcb-table tbody td .pdf-cell-text{
+  font-size:13pt !important;
+  line-height:1 !important;
+  font-synthesis:none !important;
+  white-space:nowrap !important;
+  overflow:visible !important;
+}
+
+
+<style id="backup-buttons-inline-fix">
+  /* Keep Interest Rate + Backup buttons on one horizontal row. */
+  #shgRateInput { min-width: 0; }
+  #shgRateInput + #backupBtn,
+  #backupBtn,
+  #importBtn {
+    flex: 0 0 auto !important;
+    white-space: nowrap !important;
+  }
+  /* The toolbar containing Interest Rate and backup buttons must not wrap. */
+  #shgRateInput {
+    /* input itself remains normal; this rule is intentionally minimal */
+  }
+
+<style id="shg-toolbar-single-row-fix">
+  #shgToolbar{
+    display:flex !important;
+    flex-direction:row !important;
+    flex-wrap:nowrap !important;
+    align-items:flex-end !important;
+    gap:10px !important;
+    width:100% !important;
+    white-space:nowrap !important;
+  }
+  #shgToolbar > .field:first-child{
+    flex:1 1 auto !important;
+    min-width:220px !important;
+
+  #shgToolbar > .field:nth-of-type(2){
+    flex:0 0 180px !important;
+    width:180px !important;
+    min-width:180px !important;
+  }
+  #shgToolbar > button{
+    flex:0 0 auto !important;
+    white-space:nowrap !important;
+  }
+    </style>
+    </style>
     </style>
 </head>
 <body>
@@ -356,7 +416,8 @@ button > *{position:relative;z-index:1;}
                                                                                                   type="number" min="0"
                                                                                                   max="100" step="0.01"
                                                                                                   value="12"></div>
-
+                <button type="button" class="secondary" id="backupBtn">Export Backup</button>
+                <button type="button" class="secondary" id="importBtn">Import Backup</button>
             </div>
             <div class="months" id="monthTabs"></div>
             <div class="tablewrap">
@@ -385,12 +446,11 @@ button > *{position:relative;z-index:1;}
                 </table>
             </div>
             <div class="actions">
-                <button type="button" class="primary" id="saveAllBtn">Save All SHGs – All Months</button>
-                <button type="button" class="warning" id="monthlyPdfBtn">Monthly DCB PDF – Max 25 Rows/Page</button>
-                <button type="button" class="warning" id="ledgerPdfBtn">Loan Ledger PDF – All SHGs</button>
-                <button type="button" class="warning" id="cumulativeDcbPdfBtn">Cumulative DCB PDF – All SHGs</button>
-                <button type="button" class="secondary" id="backupBtn">Export Backup</button>
-                <button type="button" class="secondary" id="importBtn">Import Backup</button>
+                <button type="button" class="primary" id="saveAllBtn">Save All SHGs</button>
+                <button type="button" class="warning" id="monthlyPdfBtn">Monthly DCB PDF</button>
+                <button type="button" class="warning" id="ledgerPdfBtn">Loan Ledger PDF</button>
+                <button type="button" class="warning" id="cumulativeDcbPdfBtn">Cumulative DCB PDF</button>
+                <button type="button" class="primary" id="allPdfsBtn">Download VO PDF</button>
                 <input id="fileInput" type="file" accept=".json" class="hidden">
             </div>
         </div>
@@ -821,16 +881,18 @@ button > *{position:relative;z-index:1;}
      * - The actual number of rows on a page determines the data-row height so
      *   the table uses the available page height efficiently.
      */
+    const FIXED_SN_WIDTH=24.000; // fixed compact S.N column for every PDF
+
     function fitAllPDFTablesInPrintWindow(w){
       try{
         const doc=w.document;
         const A4_WIDTH=841.89;
         const A4_HEIGHT=595.28;
-        const PAGE_MARGIN=4;
-        const PAGE_AVAILABLE=A4_WIDTH-(PAGE_MARGIN*2);
+        const PAGE_MARGIN=28.3465;
+        const PAGE_AVAILABLE=A4_WIDTH-(PAGE_MARGIN*2); // fixed 10 mm safe area on all sides
 
-        const COMMON_REDUCTION_START=10;
-        const COMMON_MIN_FONT=6;
+        const COMMON_REDUCTION_START=13;
+        const COMMON_MIN_FONT=13;
         const COMMON_FONT_STEP=.25;
         const EPS=.05;
 
@@ -1048,7 +1110,12 @@ button > *{position:relative;z-index:1;}
             * adjustment.
             */
            const slNoIndex=0;
-           const slNoWidth=Math.max(.1, required[slNoIndex]);
+           /*
+            * S.N is permanently fixed to a compact width in ALL PDFs.
+            * It is not allowed to expand with the equal-column layout,
+            * font fitting, or content redistribution.
+            */
+           const slNoWidth=FIXED_SN_WIDTH;
 
            if(count===1)return [Math.min(available,slNoWidth)];
 
@@ -1222,7 +1289,7 @@ button > *{position:relative;z-index:1;}
           const cells=dataCells(table);
           const originalSizes=cells.map(td=>cellFontSizePt(td));
           const baseFont=cells.length
-            ? Math.max(...originalSizes)
+            ? Math.max(13,Math.max(...originalSizes))
             : 13;
 
           resetTableTransform(table);
@@ -1292,31 +1359,42 @@ button > *{position:relative;z-index:1;}
           void table.offsetWidth;
 
           /*
-           * 6. Final fallback: if even the minimum common font cannot fit,
-           * make the internal table exactly as wide as its measured content
-           * and proportionally scale the COMPLETE table into A4.
+           * 6. Final 13pt-safe fallback.
+           * Never scale the table below 100%, because that would make the
+           * effective data font smaller than the required 13pt minimum.
+           *
+           * At 13pt, give long-data columns their measured content width first
+           * and use the complete available A4 safe width. If the combined
+           * content is wider than the page, the table remains at 13pt rather
+           * than shrinking the text.
            */
           if(!foundFit || !allDataCellsFit(table,widths,selectedFont)){
+            /*
+             * HARD PAGE-BOUNDARY RULE:
+             * Never let Monthly DCB/Cumulative DCB grow beyond the A4 safe
+             * width.  The old fallback used the raw `required` widths when
+             * content was wider than the page; that made the table extend
+             * past the right margin (especially Monthly DCB).
+             *
+             * Keep the data font at 13pt, but force the final column widths
+             * to the available A4 width. Long text may therefore have less
+             * measured room, but the TABLE BORDER itself always ends at the
+             * fixed right margin.
+             */
             setCommonDataFont(table,COMMON_MIN_FONT);
             required=requiredByColumn(table,COMMON_MIN_FONT);
 
-            const internalTotal=required.reduce((a,b)=>a+b,0);
+            const normalized=redistribute(required,available);
+            setWidths(table,normalized);
 
-            if(internalTotal>available+EPS){
-              setWidths(table,required);
-
-              const scale=available/internalTotal;
-              table.style.transformOrigin="left top";
-              table.style.transform=`scale(${Math.min(1,scaleForTable)})`;
-              table.style.marginLeft="0";
-              table.style.marginRight="0";
-              table.style.overflow="visible";
-            }else{
-              /* Defensive retry if numerical rounding caused the first check
-                 to fail even though the measured requirements fit. */
-              const normalized=redistribute(required,available);
-              setWidths(table,normalized);
-            }
+            table.style.width=`${available.toFixed(3)}pt`;
+            table.style.maxWidth=`${available.toFixed(3)}pt`;
+            table.style.minWidth=`0pt`;
+            table.style.transformOrigin="left top";
+            table.style.transform="none";
+            table.style.marginLeft="0";
+            table.style.marginRight="0";
+            table.style.overflow="visible";
           }
 
           /* Dynamic 25-row DCB/Cumulative DCB height comes last so it sees the
@@ -1346,33 +1424,95 @@ button > *{position:relative;z-index:1;}
         function sync(frame,table,head,splitCount){
           if(!frame||!table||!head)return;
 
+          /*
+           * MONTHLY/CUMULATIVE DCB HEADER ALIGNMENT
+           * ----------------------------------------
+           * The table can become wider than its CSS width when the fitted
+           * column widths are larger because of long data. Therefore
+           * offsetWidth/var(--dcb-width) is NOT used here.
+           *
+           * We use the FINAL rendered table geometry and copy that geometry
+           * to the top header. This makes the header's left edge, right edge,
+           * and group divider line match the actual table below it.
+           */
+          const tableRect=table.getBoundingClientRect();
+          if(!tableRect || tableRect.width<=0)return;
+
           const transform=table.style.transform||"";
           const origin=table.style.transformOrigin||"left top";
+          const scaleMatch=transform.match(/scale\(\s*([-+]?\d*\.?\d+)\s*\)/);
+          const scale=scaleMatch ? (parseFloat(scaleMatch[1])||1) : 1;
 
-          head.style.transformOrigin=origin;
-          if(transform){
-            head.style.transform=transform;
-          }else{
-            head.style.removeProperty("transform");
-          }
+          /*
+           * FINAL EDGE-TO-EDGE ALIGNMENT
+           * -----------------------------
+           * The frame, top header and table are one exact 10 mm-safe-width
+           * block.  Do not derive the header width from content or from a
+           * transformed table rectangle.  The table itself is forced back to
+           * the same width first; then the header is made exactly the same
+           * width. This prevents the header's right edge from stopping short
+           * of, or extending beyond, the table's right edge.
+           */
+          const SAFE_WIDTH_PT=785.197;
+          const safeWidthPx=SAFE_WIDTH_PT*96/72;
 
+          table.style.width=`${safeWidthPx.toFixed(3)}px`;
+          table.style.maxWidth=`${safeWidthPx.toFixed(3)}px`;
+          table.style.minWidth=`${safeWidthPx.toFixed(3)}px`;
+          table.style.marginLeft="0";
+          table.style.marginRight="0";
+          table.style.boxSizing="border-box";
+
+          frame.style.width=`${safeWidthPx.toFixed(3)}px`;
+          frame.style.maxWidth=`${safeWidthPx.toFixed(3)}px`;
+          frame.style.minWidth=`${safeWidthPx.toFixed(3)}px`;
+          frame.style.marginLeft="0";
+          frame.style.marginRight="0";
+          frame.style.boxSizing="border-box";
+
+          head.style.width=`${safeWidthPx.toFixed(3)}px`;
+          head.style.maxWidth=`${safeWidthPx.toFixed(3)}px`;
+          head.style.minWidth=`${safeWidthPx.toFixed(3)}px`;
+          head.style.marginLeft="0";
+          head.style.marginRight="0";
+          head.style.boxSizing="border-box";
+          head.style.transformOrigin="left top";
+          head.style.transform="none";
+
+          /*
+           * Use the ACTUAL rendered column widths for the group divider.
+           * getBoundingClientRect() sees the final fitted widths and any
+           * transform applied by the table.
+           */
           const cols=Array.from(table.querySelectorAll("colgroup col"));
+
           if(cols.length && splitCount>0 && splitCount<cols.length){
-            const widths=cols.map(col=>{
-              const n=parseFloat(col.style.width);
-              return Number.isFinite(n)?n:0;
-            });
+            const rects=cols.map(col=>col.getBoundingClientRect());
 
-            const total=widths.reduce((a,b)=>a+b,0);
-            const left=widths.slice(0,splitCount).reduce((a,b)=>a+b,0);
+            const leftRendered=rects
+              .slice(0,splitCount)
+              .reduce((sum,r)=>sum+r.width,0);
 
-            if(total>0 && left>0 && left<total){
+            const totalRendered=rects
+              .reduce((sum,r)=>sum+r.width,0);
+
+            /* Use the exact fitted column ratio.  The header is the same
+               border-box width as the table, so this divider lands on the
+               corresponding table column boundary even when the table uses
+               border-collapse. */
+            const leftRatio=totalRendered>0 ? leftRendered/totalRendered : 0;
+
+            if(leftRatio>0 && leftRatio<1){
               head.style.gridTemplateColumns=
-                `${left.toFixed(3)}pt ${(total-left).toFixed(3)}pt`;
+                `${(leftRatio*100).toFixed(6)}% ${(100-leftRatio*100).toFixed(6)}%`;
             }
           }
         }
 
+        /*
+         * Monthly DCB:
+         * columns 1-10 form the left side of the top header.
+         */
         doc.querySelectorAll(".dcb-page").forEach(page=>{
           sync(
             page.querySelector(".dcb-frame"),
@@ -1382,6 +1522,10 @@ button > *{position:relative;z-index:1;}
           );
         });
 
+        /*
+         * Cumulative DCB:
+         * columns 1-8 form the left side of the top header.
+         */
         doc.querySelectorAll(".cumulative-dcb-page").forEach(page=>{
           sync(
             page.querySelector(".cumulative-dcb-frame"),
@@ -1399,7 +1543,15 @@ button > *{position:relative;z-index:1;}
       const v=vo();
       const voNameForFile = v && v.name ? String(v.name).trim() : "VO";
       const safeVOName = voNameForFile.replace(/[\\/:*?"<>|]+/g,"_").replace(/\s+/g," ").trim() || "VO";
-      const printTitle = safeVOName + " - " + title;
+      // PDF filename is determined by the report title passed to printReport().
+      // Report functions pass: DCB, LL, Cumulative-DCB, or VO.
+      // Examples: Laxmi-VO-DCB.pdf, Laxmi-VO-LL.pdf,
+      // Laxmi-VO-Cumulative-DCB.pdf, and Laxmi-VO.pdf.
+      const reportSuffix = String(title || "VO")
+        .replace(/^\s*VOName-VO(?:-|$)/i, "")
+        .trim();
+      const printTitle = safeVOName + "-VO" +
+        (reportSuffix && !/^VO$/i.test(reportSuffix) ? "-" + reportSuffix : "");
       const w=window.open("","_blank");
       if(!w){
         alert("Allow pop-ups to print the PDF.");
@@ -1437,6 +1589,8 @@ html,body{
   width:841.89pt;
   height:595.28pt;
   position:relative;
+  box-sizing:border-box;
+  padding:28.3465pt;
   page-break-after:always;
   break-after:page;
   overflow:hidden;
@@ -1445,15 +1599,27 @@ html,body{
   page-break-after:auto;
   break-after:auto;
 }
+.combined-blank-page{
+  width:841.89pt;
+  height:595.28pt;
+  min-height:595.28pt;
+  padding:0!important;
+  margin:0!important;
+  border:0!important;
+  background:#fff!important;
+  page-break-after:always;
+  break-after:page;
+  overflow:hidden;
+}
 
 /* ---------------- LOAN LEDGER ---------------- */
 .ledger-page{
-  padding:28pt 0 0 0;
+  padding:28.3465pt;
 }
 .ledger-frame{
-  width:var(--ledger-width,654.12pt);
-  margin-left:var(--ledger-left,93.885pt);
-  margin-right:var(--ledger-right,93.885pt);
+  width:var(--ledger-width,785.197pt);
+  margin-left:0;
+  margin-right:0;
   border:1px solid #555;
 }
 .ledger-blank{
@@ -1567,7 +1733,7 @@ html,body{
   font-size:12.5pt;
 }
 .ledger-table{
-  width:var(--ledger-width,654.12pt);
+  width:var(--ledger-width,785.197pt);
   max-width:none;
   border-collapse:collapse;
   table-layout:fixed;
@@ -1576,6 +1742,7 @@ html,body{
 /* All 12 Loan Ledger columns start equal.
    Print-time fitting redistributes them according to actual content. */
 .ledger-table col{width:auto}
+.ledger-table col:first-child{width:24pt!important}
 .ledger-table th,.ledger-table td{
   border:1px solid #555;
   padding:0 2pt;
@@ -1662,20 +1829,38 @@ html,body{
   page:dcb;
   width:841.89pt;
   height:595.28pt;
-  padding:4pt 0 0 0;
+  padding:28.3465pt;
   overflow:visible;
 }
 .dcb-frame{
-  width:var(--dcb-width,833.89pt);
-  margin-left:var(--dcb-left,4pt);
-  margin-right:var(--dcb-right,4pt);
+  width:var(--dcb-width,785.197pt);
+  margin-left:0;
+  margin-right:0;
 }
 .dcb-top-blank{
   height:22pt;
  <!-- border-bottom:1px solid #555;-->
 }
+/* Fixed A4 safe-width boundary for Monthly DCB. */
+.dcb-page .dcb-frame,
+.dcb-page .dcb-head,
+.dcb-page .dcb-table{
+  width:785.197pt !important;
+  max-width:785.197pt !important;
+  box-sizing:border-box !important;
+  margin-left:0 !important;
+  margin-right:0 !important;
+}
+
+/* Final DCB header alignment: header and table share the same frame width. */
+.dcb-frame > .dcb-head,
+.cumulative-dcb-frame > .cumulative-dcb-head{
+  box-sizing:border-box;
+  margin-left:0!important;
+  margin-right:0!important;
+}
 .dcb-head{
-  width:var(--dcb-width,833.89pt);
+  width:var(--dcb-width,785.197pt);
   height:24pt;
   display:grid;
   grid-template-columns:1fr 0.73fr;
@@ -1689,7 +1874,7 @@ html,body{
   text-align:center;
   /* DCB-only: use the same font treatment as the LL PDF. */
   font-family:"Gidugu",Arial,sans-serif;
-  font-size:15.5pt;
+  font-size:18pt;
   font-weight:100;
   line-height:1;
 }
@@ -1697,7 +1882,7 @@ html,body{
   border-right:1px solid #555;
 }
 .dcb-table{
-  width:var(--dcb-width,833.89pt);
+  width:var(--dcb-width,785.197pt);
   border-collapse:collapse;
   table-layout:fixed;
 }
@@ -1706,6 +1891,7 @@ html,body{
 /* All 17 DCB columns start equal.
    Print-time fitting redistributes them according to actual content. */
 .dcb-table col{width:auto}
+.dcb-table col:first-child{width:24pt!important}
 .dcb-table th,.dcb-table td{
   border:1px solid #555;
   padding:0 1.5pt;
@@ -1771,12 +1957,12 @@ html,body{
 /* ---------------- CUMULATIVE DCB ---------------- */
 @page cumulativeDcb{size:A4 landscape;margin:0}
 .cumulative-dcb-page{
-  page:cumulativeDcb;width:841.89pt;height:595.28pt;padding:4pt 0 0 0;
+  page:cumulativeDcb;width:841.89pt;height:595.28pt;padding:28.3465pt;
   overflow:visible;
 }
 .cumulative-dcb-frame{
-  width:var(--cumulative-dcb-width,833.89pt);margin-left:var(--cumulative-dcb-left,4pt);
-  margin-right:var(--cumulative-dcb-right,4pt);
+  width:var(--cumulative-dcb-width,785.197pt);margin-left:0;
+  margin-right:0;
 }
 .cumulative-dcb-head{
   width:var(--cumulative-dcb-width);height:24pt;display:grid;
@@ -1784,7 +1970,7 @@ html,body{
 }
 .cumulative-dcb-head-left,.cumulative-dcb-head-right{
   display:flex;align-items:center;justify-content:center;text-align:center;
-  font-family:"Gidugu",Arial,sans-serif;font-size:15.5pt;font-weight:100;
+  font-family:"Gidugu",Arial,sans-serif;font-size:18pt;font-weight:100;
   line-height:1;white-space:nowrap;
 }
 .cumulative-dcb-head-left{border-right:1px solid #555}
@@ -1792,6 +1978,7 @@ html,body{
   width:var(--cumulative-dcb-width);border-collapse:collapse;table-layout:fixed;
 }
 .cumulative-dcb-table col{width:auto}
+.cumulative-dcb-table col:first-child{width:24pt!important}
 .cumulative-dcb-table th,.cumulative-dcb-table td{
   border:1px solid #555;padding:0 1.5pt;text-align:center;
   vertical-align:middle;overflow:visible;
@@ -1903,10 +2090,13 @@ html,body{
      */
     function getDCBPageLayout(v){
       const A4_WIDTH=841.89;
-      const MIN_MARGIN=4;
-      const totalWidth=A4_WIDTH-(MIN_MARGIN*2);
+      const MIN_MARGIN=28.3465;
+      const totalWidth=A4_WIDTH-(MIN_MARGIN*2); // fixed 10 mm safe area on all sides
       const columnCount=17;
-      const widths=Array(columnCount).fill(totalWidth/columnCount);
+      const widths=Array(columnCount).fill(
+        (totalWidth-FIXED_SN_WIDTH)/(columnCount-1)
+      );
+      widths[0]=FIXED_SN_WIDTH;
 
       return {
         widths,
@@ -1916,7 +2106,7 @@ html,body{
       };
     }
 
-    function monthlyPDF(){
+    function monthlyPDF(asPart=false){
       const v=vo();
       if(!v)return;
 
@@ -2070,7 +2260,8 @@ html,body{
         });
       });
 
-      printReport("Monthly DCB",out);
+      if(asPart) return out;
+      printReport("DCB",out);
     }
 
 
@@ -2093,14 +2284,14 @@ html,body{
      */
 
     /* CUMULATIVE DCB: 15-COLUMN SCREENSHOT STRUCTURE */
-    function cumulativeDcbPDF(){
+    function cumulativeDcbPDF(asPart=false){
       const v=vo();
       if(!v||!v.shgs.length){
-        alert("Select a VO with SHGs.");
-        return;
+        if(!asPart) alert("Select a VO with SHGs.");
+        return "";
       }
 
-      const A4_WIDTH=841.89, MARGIN=4;
+      const A4_WIDTH=841.89, MARGIN=28.3465;
       const totalWidth=A4_WIDTH-(MARGIN*2);
 
       /*
@@ -2329,7 +2520,8 @@ html,body{
           </section>`;
       });
 
-      printReport("Cumulative DCB 2026-27",out);
+      if(asPart) return out;
+      printReport("Cumulative-DCB",out);
     }
 
     /*
@@ -2350,8 +2542,8 @@ html,body{
      */
     function getLedgerPageLayout(s,v){
       const A4_WIDTH=841.89;
-      const MIN_MARGIN=4;
-      const totalWidth=A4_WIDTH-(MIN_MARGIN*2);
+      const MIN_MARGIN=28.3465;
+      const totalWidth=A4_WIDTH-(MIN_MARGIN*2); // fixed 10 mm safe area on all sides
       const columnCount=12;
       const widths=Array(columnCount).fill(totalWidth/columnCount);
 
@@ -2363,12 +2555,12 @@ html,body{
       };
     }
 
-    function ledgerPDF(){
+    function ledgerPDF(asPart=false){
       const v=vo();
 
       if(!v||!v.shgs.length){
-        alert("Select a VO with SHGs.");
-        return;
+        if(!asPart) alert("Select a VO with SHGs.");
+        return "";
       }
 
       let out="";
@@ -2481,7 +2673,54 @@ html,body{
           </section>`;
       });
 
-      printReport("All SHG Loan Ledgers",out);
+      if(asPart) return out;
+      printReport("LL",out);
+    }
+
+    /*
+     * ALL 3 PDFS - SINGLE PRINT/PDF DOCUMENT
+     * ----------------------------------------
+     * Builds the three existing report bodies in their normal order:
+     *   1. Monthly DCB
+     *   2. Cumulative DCB
+     *   3. Loan Ledger
+     * and sends all pages to ONE browser print document.
+     *
+     * Browser Save-as-PDF will therefore create ONE PDF containing all
+     * three reports. The document title is also used as the suggested
+     * PDF filename: dynamically uses the selected VO name, e.g. Laxmi-VO.pdf.
+     */
+    function allPdfsPDF(){
+      const v=vo();
+      if(!v||!v.shgs.length){
+        alert("Select a VO with SHGs.");
+        return;
+      }
+
+      const monthly=monthlyPDF(true)||"";
+      const ledger=ledgerPDF(true)||"";
+      const cumulative=cumulativeDcbPDF(true)||"";
+
+      /*
+       * Combined PDF order:
+       *   1. Monthly DCB
+       *   2. ONE completely blank A4 page
+       *   3. Loan Ledger
+       *   4. ONE completely blank A4 page
+       *   5. Cumulative DCB
+       *
+       * The blank pages are intentional separator sheets so each report
+       * starts as a clearly separated section in the single PDF.
+       */
+      const separator=`<section class="page combined-blank-page" aria-hidden="true"></section>`;
+      const body=monthly+separator+ledger+separator+cumulative;
+
+      if(!body.trim()){
+        alert("There is no PDF data to print.");
+        return;
+      }
+
+      printReport("VO",body);
     }
 
     document.getElementById("newVoBtn").onclick=()=>{
@@ -2500,9 +2739,22 @@ html,body{
     document.getElementById("addShgBtn").onclick=addSHG;
     document.getElementById("shgNameInput").onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();addSHG();}};
     document.getElementById("saveAllBtn").onclick=saveAll;
-    document.getElementById("monthlyPdfBtn").onclick=monthlyPDF;
-    document.getElementById("cumulativeDcbPdfBtn").onclick=cumulativeDcbPDF;
-    document.getElementById("ledgerPdfBtn").onclick=ledgerPDF;
+    /*
+     * PDF button handlers.
+     *
+     * IMPORTANT:
+     * monthlyPDF(), cumulativeDcbPDF() and ledgerPDF() accept an internal
+     * `asPart` argument for the "All 3 PDFs" combined report.
+     * Assigning the functions directly to onclick passes the browser Event
+     * object as that first argument, making `asPart` truthy and preventing
+     * the individual PDF from calling printReport().
+     *
+     * Use wrapper functions so individual buttons ALWAYS call with false.
+     */
+    document.getElementById("monthlyPdfBtn").onclick=()=>monthlyPDF(false);
+    document.getElementById("cumulativeDcbPdfBtn").onclick=()=>cumulativeDcbPDF(false);
+    document.getElementById("ledgerPdfBtn").onclick=()=>ledgerPDF(false);
+    document.getElementById("allPdfsBtn").onclick=()=>allPdfsPDF();
     document.getElementById("backupBtn").onclick=exportBackup;
     document.getElementById("importBtn").onclick=()=>document.getElementById("fileInput").click();
     document.getElementById("fileInput").onchange=e=>{if(e.target.files[0])importBackup(e.target.files[0]);};
