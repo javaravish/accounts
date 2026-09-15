@@ -288,17 +288,20 @@
         const key=MONTHS[monthIndex][0];
         const raw=getRowData(i);
         if(monthIndex>0){
-          const prev=s.months[MONTHS[monthIndex-1][0]]||blank();
-          const pc=calc(prev);
+          const prev=lastConsideredMonth(s,monthIndex);
+          const pc=prev?calc(prev.data):null;
           const aprilData=s.months[MONTHS[0][0]]||blank();
-          raw.opening=pc.totalLoanBalance;
-          raw.prevPrincipal=pc.balancePrincipal;
-          raw.prevInterest=pc.balanceInterest;
+          if(pc){
+            raw.opening=pc.totalLoanBalance;
+            raw.prevPrincipal=pc.balancePrincipal;
+            raw.prevInterest=pc.balanceInterest;
+          }
           // Principal demand repeats April's This Month Principal; interest is recalculated from this month's opening balance and the SHG rate.
           raw.demandPrincipal=aprilData.demandPrincipal;
         }
         raw.demandInterest=monthlyInterest(raw.opening,s.interestRate);
-        s.months[key]=raw;
+        if(monthIsConsidered(raw)) s.months[key]=raw;
+        else delete s.months[key];
       });
       writeDb();refreshVOSelect();markClean();document.getElementById("saveStatus").textContent="Saved";return true;
     }
@@ -317,7 +320,14 @@
     }
     window.addEventListener("beforeunload",function(e){if(dirty){e.preventDefault();e.returnValue="Unsaved changes will be lost.";}});
 
-    function blank(){return{opening:0,prevPrincipal:0,prevInterest:0,demandPrincipal:0,demandInterest:0,principalCollection:0,interestCollection:0,newLoan:0};}
+    function blank(){return{opening:0,prevPrincipal:0,prevInterest:0,demandPrincipal:0,demandInterest:0,principalCollection:"",interestCollection:"",newLoan:0};}
+    function hasValue(x){return x!==undefined&&x!==null&&String(x).trim()!=="";}
+    function monthIsConsidered(d){return !!d&&hasValue(d.principalCollection)&&hasValue(d.interestCollection);}
+    function lastConsideredMonth(shg,idx){
+      if(!shg||!shg.months)return null;
+      for(let j=idx-1;j>=0;j--){const d=shg.months[MONTHS[j][0]];if(monthIsConsidered(d))return {index:j,data:d};}
+      return null;
+    }
     function num(id){return Number(document.getElementById(id).value)||0;}
     function monthlyInterest(opening, rate){return Math.round((Number(opening)||0)*(Number(rate)||0)/100/12);}
     function fmt(n){return Number(n||0).toLocaleString("en-IN",{minimumFractionDigits:0,maximumFractionDigits:0});}
@@ -385,11 +395,13 @@
     }
 
     function getRowData(i){
-     const vals={};
-     ["opening","prevP","prevI","demandP","demandI","collectP","collectI","newLoan"].forEach(k=>{
-       const el=document.getElementById(k+"-"+i); vals[k]=el?Number(el.value)||0:0;
-     });
-     return {opening:vals.opening,prevPrincipal:vals.prevP,prevInterest:vals.prevI,demandPrincipal:vals.demandP,demandInterest:vals.demandI,principalCollection:vals.collectP,interestCollection:vals.collectI,newLoan:vals.newLoan};
+      const vals={};
+      ["opening","prevP","prevI","demandP","demandI","newLoan"].forEach(k=>{
+        const el=document.getElementById(k+"-"+i); vals[k]=el?Number(el.value)||0:0;
+      });
+      const cp=document.getElementById("collectP-"+i),ci=document.getElementById("collectI-"+i);
+      return {opening:vals.opening,prevPrincipal:vals.prevP,prevInterest:vals.prevI,demandPrincipal:vals.demandP,demandInterest:vals.demandI,
+        principalCollection:cp?String(cp.value).trim():"",interestCollection:ci?String(ci.value).trim():"",newLoan:vals.newLoan};
     }
 
     function renderRows(){
@@ -400,16 +412,19 @@
      v.shgs.forEach((s,i)=>{
       if(s.interestRate===undefined||s.interestRate===null||s.interestRate==="")s.interestRate=12;
       const key=MONTHS[monthIndex][0],saved=s.months[key],d=saved||blank();
+      if(!saved&&monthIndex===0){d.principalCollection=0;d.interestCollection=0;}
 
       // For April the user enters the starting/demand fields.
       // For May-March these are derived from the previous month's remaining balance.
       let opening=d.opening, prevP=d.prevPrincipal, prevI=d.prevInterest, demandP=d.demandPrincipal;
       if(!april){
-        const prev=s.months[MONTHS[monthIndex-1][0]]||blank();
-        const pc=calc(prev);
-        opening=pc.totalLoanBalance;
-        prevP=pc.balancePrincipal;
-        prevI=pc.balanceInterest;
+        const prev=lastConsideredMonth(s,monthIndex);
+        if(prev){
+          const pc=calc(prev.data);
+          opening=pc.totalLoanBalance;
+          prevP=pc.balancePrincipal;
+          prevI=pc.balanceInterest;
+        }
         const aprilData=s.months[MONTHS[0][0]]||blank();
         demandP=aprilData.demandPrincipal;
       }
@@ -462,7 +477,8 @@
        const aprilData=v.shgs[i].months[MONTHS[0][0]]||blank();
        demandP=aprilData.demandPrincipal;
      }
-     const opening = april ? d.opening : (safePrevMonth(v.shgs[i],monthIndex) ? calc(safePrevMonth(v.shgs[i],monthIndex)).totalLoanBalance : d.opening);
+     const prevForOpening=april?null:lastConsideredMonth(v.shgs[i],monthIndex);
+      const opening = april ? d.opening : (prevForOpening ? calc(prevForOpening.data).totalLoanBalance : d.opening);
      const demandI=monthlyInterest(opening,rate);
      const interestEl=document.getElementById("demandI-"+i);
      if(interestEl)interestEl.value=demandI;
@@ -507,7 +523,7 @@
      if(monthIndex>0){
        const prev=s.months[MONTHS[monthIndex-1][0]]||blank(),pc=calc(prev);
        const aprilData=s.months[MONTHS[0][0]]||blank();
-       raw.opening=pc.totalLoanBalance;raw.prevPrincipal=pc.balancePrincipal;raw.prevInterest=pc.balanceInterest;
+       if(pc){raw.opening=pc.totalLoanBalance;raw.prevPrincipal=pc.balancePrincipal;raw.prevInterest=pc.balanceInterest;}
        raw.demandPrincipal=aprilData.demandPrincipal;
      }
      // Always calculate this month's interest from opening loan balance and the saved SHG rate.
@@ -562,9 +578,9 @@
           const d={...blank(),...existing};
 
           if(mi>0){
-            const prev=s.months[MONTHS[mi-1][0]];
+            const prev=lastConsideredMonth(s,mi);
             if(prev){
-              const pc=calc(prev);
+              const pc=calc(prev.data);
               d.opening=pc.totalLoanBalance;
               d.prevPrincipal=pc.balancePrincipal;
               d.prevInterest=pc.balanceInterest;
@@ -577,7 +593,8 @@
           }
 
           d.demandInterest=monthlyInterest(d.opening,rate);
-          s.months[key]=d;
+          if(monthIsConsidered(d)) s.months[key]=d;
+          else delete s.months[key];
         });
       });
 
@@ -1757,13 +1774,10 @@ html,body{
         const totals=Array(15).fill(0);
 
         v.shgs.forEach((s,i)=>{
-          const d=s.months[m[0]]||blank();
+          const d=s.months[m[0]];
+          if(!monthIsConsidered(d)) return;
           let opening=d.opening;
 
-          if(!s.months[m[0]] && mi>0){
-            const p=s.months[MONTHS[mi-1][0]];
-            if(p) opening=calc(p).totalLoanBalance;
-          }
 
           const x={...d,opening};
           const c=calc(x);
@@ -1798,20 +1812,24 @@ html,body{
         });
 
         /*
+         * If this month has no completed/considered SHG records,
+         * do NOT create a DCB page at all.
+         *
+         * This prevents an empty month's DCB header from printing.
+         */
+        if(allRows.length===0) return;
+
+        /*
          * Monthly DCB pagination:
          * maximum 25 real SHG data rows on each A4 landscape page.
          */
         const MAX_DCB_DATA_ROWS_PER_PAGE=25;
         const chunks=[];
 
-        if(allRows.length===0){
-          chunks.push([]);
-        }else{
-          for(let i=0;i<allRows.length;i+=MAX_DCB_DATA_ROWS_PER_PAGE){
-            chunks.push(
-              allRows.slice(i,i+MAX_DCB_DATA_ROWS_PER_PAGE)
-            );
-          }
+        for(let i=0;i<allRows.length;i+=MAX_DCB_DATA_ROWS_PER_PAGE){
+          chunks.push(
+            allRows.slice(i,i+MAX_DCB_DATA_ROWS_PER_PAGE)
+          );
         }
 
         const totalCells=totals.map(n=>`<td>${fmt(n)}</td>`).join("");
@@ -2221,58 +2239,70 @@ html,body{
 
       const A4_WIDTH=841.89, MARGIN=4;
       const totalWidth=A4_WIDTH-(MARGIN*2);
-      const widths=Array(17).fill(totalWidth/17);
+      const widths=Array(14).fill(totalWidth/14);
       const colStyle=widths.map(w=>`<col style="width:${w.toFixed(3)}pt">`).join("");
       const pageStyle=
         `--cumulative-dcb-width:${totalWidth.toFixed(3)}pt;`+
         `--cumulative-dcb-left:${MARGIN.toFixed(3)}pt;`+
         `--cumulative-dcb-right:${MARGIN.toFixed(3)}pt;`;
 
-      const totals=Array(15).fill(0);
+      const totals=Array(12).fill(0);
       const rows=[];
 
       v.shgs.forEach((s,i)=>{
         const april=s.months[MONTHS[0][0]]||blank();
-        const march=s.months[MONTHS[MONTHS.length-1][0]]||null;
+        const marchCandidate=s.months[MONTHS[MONTHS.length-1][0]]||null;
+        const march=monthIsConsidered(marchCandidate)?marchCandidate:null;
 
-        let demandP=0,demandI=0,combinedP=0,combinedI=0;
+        let combinedP=0,combinedI=0;
         let collectP=0,collectI=0,newLoan=0;
 
-        MONTHS.forEach(m=>{
+        // Cumulative DCB demand must show the LAST ENTERED MONTH's
+        // Previous + Current values, not a sum of all months.
+        let lastEnteredMonthIndex=-1;
+        let lastEntered=null;
+
+        MONTHS.forEach((m,mi)=>{
           const d=s.months[m[0]];
-          if(!d)return;
+          if(!monthIsConsidered(d))return;
 
-          const prevP=Number(d.prevPrincipal)||0;
-          const prevI=Number(d.prevInterest)||0;
-          const dp=Number(d.demandPrincipal)||0;
-          const di=Number(d.demandInterest)||0;
+          lastEnteredMonthIndex=mi;
+          lastEntered=d;
 
-          demandP+=dp;
-          demandI+=di;
-          combinedP+=prevP+dp;
-          combinedI+=prevI+di;
           collectP+=Number(d.principalCollection)||0;
           collectI+=Number(d.interestCollection)||0;
           newLoan+=Number(d.newLoan)||0;
         });
+
+        if(lastEntered){
+          const prevP=Number(lastEntered.prevPrincipal)||0;
+          const prevI=Number(lastEntered.prevInterest)||0;
+          const dp=Number(lastEntered.demandPrincipal)||0;
+          const di=Number(lastEntered.demandInterest)||0;
+
+          combinedP=prevP+dp;
+          combinedI=prevI+di;
+        }
 
         const opening=Number(april.opening)||0;
         const previousP=Number(april.prevPrincipal)||0;
         const previousI=Number(april.prevInterest)||0;
         const marchCalc=march?calc(march):null;
 
-        const balanceP=marchCalc?marchCalc.balancePrincipal:0;
-        const balanceI=marchCalc?marchCalc.balanceInterest:0;
+        const balanceP=combinedP-collectP;
+        const balanceI=combinedI-collectI;
         const totalCollection=collectP+collectI;
         const closing=marchCalc
           ? marchCalc.totalLoanBalance
           : opening-collectP+newLoan;
 
         const vals=[
-          opening,previousP,previousI,demandP,demandI,
+          opening,
           combinedP,combinedI,combinedP+combinedI,
-          collectP,collectI,totalCollection,balanceP,balanceI,
-          newLoan,closing
+          collectP,collectI,totalCollection,
+          balanceP,balanceI,
+          newLoan,closing,
+          newLoan+closing+balanceP+balanceI
         ];
 
         vals.forEach((n,j)=>totals[j]+=Number(n)||0);
@@ -2292,7 +2322,7 @@ html,body{
       if(!chunks.length)chunks.push([]);
 
       const totalCells=totals.map(n=>`<td>${fmt(n)}</td>`).join("");
-      const nums=["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17"];
+      const nums=["1","2","3","4","5","6","7","8","9","10","11","12","13","14"];
 
       let out="";
 
@@ -2320,19 +2350,14 @@ html,body{
                     <th rowspan="2">SL No</th>
                     <th rowspan="2"><span class="telugu">SHG పేరు</span></th>
                     <th rowspan="2"><span class="telugu">ప్రారంభపు<br>అప్పు నిల్వ</span></th>
-                    <th colspan="2"><span class="telugu">గత నెల బకాయి<br>వివరాలు</span></th>
-                    <th colspan="2"><span class="telugu">ఈ నెల డిమాండ్</span></th>
-                    <th colspan="3"><span class="telugu">గతనెల బకాయి తో కలిపి ఈ నెల<br>వరకు మొత్తం డిమాండ్</span></th>
-                    <th colspan="3"><span class="telugu">ఈ నెల కలెక్షన్ వివరాలు</span></th>
-                    <th colspan="2"><span class="telugu">బకాయి</span></th>
+                    <th colspan="3"><span class="telugu">గత బకాయి తో కలిపి ఈ నెల<br>వరకు మొత్తం డిమాండ్</span></th>
+                    <th colspan="3"><span class="telugu">ఈ నెల<br>వరకు మొత్తం మొత్తం కలెక్షన్ వివరాలు</span></th>
+                    <th colspan="2"><span class="telugu">మొత్తం బకాయి</span></th>
                     <th rowspan="2"><span class="telugu">కొత్త<br>అప్పు</span></th>
-                    <th rowspan="2"><span class="telugu">మొత్తం<br>అప్పు నిల్వ</span></th>
+                    <th rowspan="2"><span class="telugu">అప్పు నిల్వ</span></th>
+                    <th rowspan="2"><span class="telugu">మొత్తం<br>బకాయి</span></th>
                   </tr>
                   <tr class="sub-head">
-                    <th><span class="telugu">అసలు</span></th>
-                    <th><span class="telugu">వడ్డీ</span></th>
-                    <th><span class="telugu">అసలు</span></th>
-                    <th><span class="telugu">వడ్డీ</span></th>
                     <th><span class="telugu">అసలు</span></th>
                     <th><span class="telugu">వడ్డీ</span></th>
                     <th><span class="telugu">మొత్తం</span></th>
@@ -2412,7 +2437,7 @@ html,body{
 
         MONTHS.forEach((m,i)=>{
           const d=s.months[m[0]];
-          if(!d)return;
+          if(!monthIsConsidered(d))return;
 
           const c=calc(d);
           const p=d.prevPrincipal+d.demandPrincipal;
@@ -2538,8 +2563,6 @@ html,body{
       const m=e.target.id&&e.target.id.match(/^(prevP|prevI|demandP)-(\d+)$/);
       if(m && typeof window.recalc==="function") window.recalc(Number(m[2]));
     });
-
-
     refresh();
     })();
 </script>
