@@ -95,7 +95,7 @@
   z-index:10;
 }
 
-.entry th,.entry td{border:1px solid #c3cad2;padding:5px;font-size:11px;text-align:right}.entry th{text-align:center;background:#edf1f5}.entry th:first-child,.entry td:first-child{width:55px;min-width:55px;max-width:55px;text-align:center}.entry th:nth-child(2),.entry td:nth-child(2){width:150px;min-width:150px}.entry th:nth-child(3),.entry td:nth-child(3){width:72px;min-width:72px;max-width:72px;text-align:center}.entry input{min-width:80px;padding:6px;font-size:11px;text-align:right}.entry .name{min-width:150px;text-align:left;font-weight:bold}input:disabled{background:#eee;color:#555;cursor:not-allowed;}
+.entry th,.entry td{border:1px solid #c3cad2;padding:5px;font-size:11px;text-align:right}.entry th{text-align:center;background:#edf1f5}.entry th:first-child,.entry td:first-child{width:55px;min-width:55px;max-width:55px;text-align:center}.entry th:nth-child(2),.entry td:nth-child(2){width:150px;min-width:150px}.entry th:nth-child(3),.entry td:nth-child(3){width:72px;min-width:72px;text-align:center}.entry input{min-width:80px;padding:6px;font-size:11px;text-align:right}.entry .name{min-width:150px;text-align:left;font-weight:bold}input:disabled{background:#eee;color:#555;cursor:not-allowed;}
         .telugu{font-family:"Gidugu",sans-serif}
         .calc{font-weight:bold}.entry input.calc{width:100%;min-width:80px;padding:6px;font-size:11px;text-align:right}
         .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.small{font-size:12px;color:#667085}.ok{color:#18864b;font-weight:bold}
@@ -226,7 +226,6 @@
                     <tr>
                         <th>S.No</th>
                         <th>SHG Name</th>
-                        <th>Delete</th>
                         <th>Opening<br>Loan Balance</th>
                         <th>Previous Due<br>Principal</th>
                         <th>Previous Due<br>Interest</th>
@@ -239,6 +238,7 @@
                         <th>New<br>Loan</th>
                         <th>Closing<br>Loan Balance</th>
                         <th>Save</th>
+                        <th>Delete</th>
                         <!-- <th>Total<br>Collection</th><th>Total Loan<br>Balance</th><th>Save</th>-->
                     </tr>
                     </thead>
@@ -424,7 +424,6 @@
       tr.innerHTML=
       '<td>'+(i+1)+'</td>'+
       '<td><input class="name" id="name-'+i+'" value="'+esc(s.name)+'"'+locked(!april)+'></td>'+
-      '<td><button type="button" class="danger shg-delete-btn" onclick="window.deleteSHG('+i+')">Delete</button></td>'+
       '<td><input type="number" id="opening-'+i+'" value="'+opening+'"'+locked(!april)+' oninput="window.recalc('+i+')"></td>'+
       '<td><input type="number" id="prevP-'+i+'" value="'+prevP+'"'+locked(!april)+' oninput="window.recalc('+i+')"></td>'+
       '<td><input type="number" id="prevI-'+i+'" value="'+prevI+'"'+locked(!april)+' oninput="window.recalc('+i+')"></td>'+
@@ -437,7 +436,8 @@
       '<td><input type="number" id="newLoan-'+i+'" value="'+d.newLoan+'" oninput="window.recalc('+i+')"></td>'+
 
       '<td class="calc" id="totalL-'+i+'">'+fmt(c.totalLoanBalance)+'</td>'+
-      '<td><button type="button" class="success" onclick="window.saveRow('+i+')">Save</button></td>';
+      '<td><button type="button" class="success" onclick="window.saveRow('+i+')">Save</button></td>'+
+      '<td><button type="button" class="danger shg-delete-btn" onclick="window.deleteSHG('+i+')">Delete</button></td>';
       body.appendChild(tr);
      });
      if(!v.shgs.length)body.innerHTML='<tr><td colspan="17" style="text-align:center;padding:22px">No SHGs. Add the first SHG above.</td></tr>';
