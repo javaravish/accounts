@@ -145,6 +145,145 @@
   overflow:visible !important;
 }
 
+
+/* =========================================================
+   HIGH-ENERGY BUTTON MICRO-INTERACTIONS
+   Applies to every current and dynamically-created button.
+   ========================================================= */
+button{
+  position:relative;
+  overflow:hidden;
+  isolation:isolate;
+  transform:translateZ(0);
+  transition:
+    transform .18s cubic-bezier(.2,.9,.3,1.25),
+    box-shadow .22s ease,
+    filter .22s ease,
+    opacity .18s ease;
+  will-change:transform,box-shadow,filter;
+}
+button::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:linear-gradient(110deg,transparent 20%,rgba(255,255,255,.28) 45%,transparent 70%);
+  transform:translateX(-130%);
+  transition:transform .5s ease;
+  pointer-events:none;
+  z-index:0;
+}
+button:hover{
+  transform:translateY(-3px) scale(1.035);
+  box-shadow:0 9px 20px rgba(23,54,93,.22),0 2px 5px rgba(0,0,0,.12);
+  filter:saturate(1.12) brightness(1.04);
+}
+button:hover::before{transform:translateX(130%);}
+button:active{
+  transform:translateY(1px) scale(.94);
+  box-shadow:0 2px 5px rgba(0,0,0,.16);
+  filter:brightness(.97);
+}
+button:focus-visible{
+  outline:3px solid rgba(23,105,170,.35);
+  outline-offset:3px;
+}
+button > *{position:relative;z-index:1;}
+
+/* Stronger pulse for important actions. */
+#newVoBtn,#saveVoBtn,#createVoBtn,#addShgBtn,#saveAllBtn,
+#monthlyPdfBtn,#ledgerPdfBtn,#cumulativeDcbPdfBtn,#backupBtn,#importBtn,#resetBtn{
+  animation:buttonFloat 3s ease-in-out infinite;
+}
+#newVoBtn:hover,#saveVoBtn:hover,#createVoBtn:hover,#addShgBtn:hover,#saveAllBtn:hover,
+#monthlyPdfBtn:hover,#ledgerPdfBtn:hover,#cumulativeDcbPdfBtn:hover,#backupBtn:hover,#importBtn:hover,#resetBtn:hover{
+  animation:none;
+}
+@keyframes buttonFloat{
+  0%,100%{filter:brightness(1);}
+  50%{filter:brightness(1.06);}
+}
+
+/* Click ripple */
+.button-ripple{
+  position:absolute;
+  width:18px;
+  height:18px;
+  border-radius:50%;
+  background:rgba(255,255,255,.6);
+  transform:translate(-50%,-50%) scale(0);
+  pointer-events:none;
+  z-index:2;
+  animation:buttonRipple .65s ease-out forwards;
+}
+@keyframes buttonRipple{
+  to{transform:translate(-50%,-50%) scale(16);opacity:0;}
+}
+
+/* Successful action feedback */
+.button-success-flash{
+  animation:buttonSuccess .55s cubic-bezier(.2,.9,.3,1.2) !important;
+}
+@keyframes buttonSuccess{
+  0%{transform:scale(1);}
+  25%{transform:scale(1.12) rotate(-1deg);}
+  50%{transform:scale(.96) rotate(1deg);}
+  75%{transform:scale(1.06);}
+  100%{transform:scale(1);}
+}
+
+/* Month tabs get a stronger selected transition. */
+.months button{
+  transition:transform .2s cubic-bezier(.2,.9,.3,1.25),box-shadow .2s ease,background .2s ease,color .2s ease;
+}
+.months button.active{
+  transform:translateY(-2px) scale(1.05);
+  box-shadow:0 6px 14px rgba(23,105,170,.28);
+}
+
+@media (prefers-reduced-motion:reduce){
+  button,button::before,.button-ripple,.button-success-flash,.months button{
+    animation:none!important;
+    transition:none!important;
+  }
+}
+
+
+/* =========================================================
+   UNIVERSAL A4 LANDSCAPE PDF SAFE AREA
+   Applies to Monthly DCB, Cumulative DCB and Loan Ledger PDFs.
+   ========================================================= */
+@page{
+  size:A4 landscape;
+  margin:0;
+}
+@media print{
+  html,body{
+    width:297mm;
+    min-height:210mm;
+    margin:0!important;
+    padding:0!important;
+  }
+
+  .page,
+  .ledger-page,
+  .dcb-page,
+  .cumulative-dcb-page{
+    width:297mm!important;
+    min-height:210mm!important;
+    height:210mm!important;
+    box-sizing:border-box!important;
+    padding:18pt!important;
+    margin:0!important;
+  }
+
+  .ledger-page > *,
+  .dcb-page > *,
+  .cumulative-dcb-page > *{
+    max-width:100%!important;
+    box-sizing:border-box!important;
+  }
+}
+
     </style>
 </head>
 <body>
@@ -332,7 +471,23 @@
     function monthlyInterest(opening, rate){return Math.round((Number(opening)||0)*(Number(rate)||0)/100/12);}
     function fmt(n){return Number(n||0).toLocaleString("en-IN",{minimumFractionDigits:0,maximumFractionDigits:0});}
     function esc(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
-    function calc(d){return{balancePrincipal:d.prevPrincipal+d.demandPrincipal-d.principalCollection,balanceInterest:d.prevInterest+d.demandInterest-d.interestCollection,totalCollection:d.principalCollection+d.interestCollection,totalLoanBalance:d.opening-d.principalCollection+d.newLoan};}
+    function calc(d){
+      const prevPrincipal = Number(d.prevPrincipal) || 0;
+      const prevInterest = Number(d.prevInterest) || 0;
+      const demandPrincipal = Number(d.demandPrincipal) || 0;
+      const demandInterest = Number(d.demandInterest) || 0;
+      const principalCollection = Number(d.principalCollection) || 0;
+      const interestCollection = Number(d.interestCollection) || 0;
+      const opening = Number(d.opening) || 0;
+      const newLoan = Number(d.newLoan) || 0;
+
+      return {
+        balancePrincipal: prevPrincipal + demandPrincipal - principalCollection,
+        balanceInterest: prevInterest + demandInterest - interestCollection,
+        totalCollection: principalCollection + interestCollection,
+        totalLoanBalance: opening - principalCollection + newLoan
+      };
+    }
 
     function refreshVOSelect(){
      const s=document.getElementById("voSelect");s.innerHTML='<option value="">-- Select existing VO --</option>';
@@ -644,34 +799,59 @@
     /*
      * UNIVERSAL PDF TABLE FITTING ENGINE
      * ----------------------------------
-     * Applies to every PDF table generated by this file.
+     * One fitting algorithm is used by EVERY PDF table in this file.
      *
      * Rules:
-     * - Every table starts with equal-width columns.
-     * - DATA cells never wrap.
-     * - Existing inline font-size values are cleared before measurement.
-     * - Long columns receive width from columns with genuine spare capacity.
-     * - Only an overflowing cell receives a font-size override.
-     * - Cell font reduction stops at 8pt.
-     * - If 8pt is still insufficient, the complete table is proportionally
-     *   scaled as the final fallback.
+     * 1. Start every column at equal width.
+     * 2. Measure the real rendered text using the loaded PDF font.
+     * 3. Give long columns more width and take spare width from columns that
+     *    genuinely have room to give.
+     * 4. Never wrap, truncate, clip, hide or omit data.
+     * 5. Never assign a different font size to individual cells.
+     * 6. If the normal font does not fit, ALL data cells are reduced together,
+     *    starting at 10pt and then in 0.25pt steps.
+     * 7. Recalculate column widths after every common-font change.
+     * 8. If the minimum common font still cannot fit, proportionally scale the
+     *    COMPLETE table as the final fallback.
+     *
+     * DCB / Cumulative DCB row rules:
+     * - Maximum 25 REAL data rows per page.
+     * - No filler rows are inserted.
+     * - Total is not counted as a data row.
+     * - The actual number of rows on a page determines the data-row height so
+     *   the table uses the available page height efficiently.
      */
     function fitAllPDFTablesInPrintWindow(w){
       try{
         const doc=w.document;
         const A4_WIDTH=841.89;
+        const A4_HEIGHT=595.28;
         const PAGE_MARGIN=4;
-        const AVAILABLE=A4_WIDTH-(PAGE_MARGIN*2);
-        const MIN_FONT=8;
+        const PAGE_AVAILABLE=A4_WIDTH-(PAGE_MARGIN*2);
+
+        const COMMON_REDUCTION_START=10;
+        const COMMON_MIN_FONT=6;
+        const COMMON_FONT_STEP=.25;
+        const EPS=.05;
 
         function cssNumber(value){
           const n=parseFloat(value);
           return Number.isFinite(n)?n:0;
         }
 
-        function fontSizePt(el){
-          const n=cssNumber(w.getComputedStyle(el).fontSize);
-          return n>0?n:13;
+        function ptFromPx(px){
+          return px*72/96;
+        }
+
+        function pxFromPt(pt){
+          return pt*96/72;
+        }
+
+        function clean(value){
+          return String(value==null?"":value)
+            .replace(/\u00a0/g," ")
+            .replace(/\s+/g," ")
+            .trim();
         }
 
         function paddingPt(el){
@@ -679,53 +859,88 @@
           return cssNumber(cs.paddingLeft)+cssNumber(cs.paddingRight);
         }
 
-        /*
-         * Measure with a real hidden DOM element. This uses the same loaded
-         * browser font as the printed table and is more reliable than a
-         * character-count estimate.
-         */
+        function borderPt(el){
+          const cs=w.getComputedStyle(el);
+          return cssNumber(cs.borderLeftWidth)+cssNumber(cs.borderRightWidth);
+        }
+
+        function cellFontSizePt(el){
+          const n=cssNumber(w.getComputedStyle(el).fontSize);
+          return n>0?n:13;
+        }
+
+        /* Real DOM ruler: same browser/font metrics as the print document. */
         const ruler=doc.createElement("span");
         ruler.style.position="absolute";
         ruler.style.left="-100000px";
         ruler.style.top="-100000px";
         ruler.style.visibility="hidden";
+        ruler.style.display="block";
         ruler.style.whiteSpace="nowrap";
-        ruler.style.width="auto";
+        ruler.style.width="max-content";
         ruler.style.height="auto";
         ruler.style.padding="0";
         ruler.style.margin="0";
         ruler.style.border="0";
         ruler.style.lineHeight="1";
+        ruler.style.boxSizing="content-box";
         doc.body.appendChild(ruler);
 
-        function measureTextPt(el,value,sizePt){
-          const s=String(value==null?"":value);
-          if(!s)return 0;
+        function measureTextPt(reference,value,sizePt){
+          const text=String(value==null?"":value);
+          if(!text)return 0;
 
-          const cs=w.getComputedStyle(el);
-
+          const cs=w.getComputedStyle(reference);
           ruler.style.fontFamily=cs.fontFamily;
           ruler.style.fontWeight=cs.fontWeight;
           ruler.style.fontStyle=cs.fontStyle;
           ruler.style.fontStretch=cs.fontStretch;
+          ruler.style.fontVariant=cs.fontVariant;
           ruler.style.letterSpacing=cs.letterSpacing;
           ruler.style.textTransform=cs.textTransform;
           ruler.style.fontSize=sizePt+"pt";
-          ruler.textContent=s;
+          ruler.textContent=text;
 
-          return ruler.getBoundingClientRect().width*72/96;
+          return ptFromPx(ruler.getBoundingClientRect().width);
         }
 
-        function cellRequired(el,sizePt){
-          return measureTextPt(el,el.textContent||"",sizePt)
-                 +paddingPt(el)+2;
+        function dataRows(table){
+          return Array.from(table.querySelectorAll("tbody tr.data-row"));
         }
 
-        function getDataCells(table){
-          return Array.from(table.querySelectorAll("tbody tr"))
-            .filter(tr=>!tr.classList.contains("total"))
-            .flatMap(tr=>Array.from(tr.children))
-            .filter(cell=>cell.tagName==="TD");
+        function dataCells(table){
+          return dataRows(table).flatMap(tr=>
+            Array.from(tr.children).filter(cell=>cell.tagName==="TD")
+          );
+        }
+
+        function columnCount(table){
+          return table.querySelectorAll("colgroup col").length;
+        }
+
+        function resetTableTransform(table){
+          table.style.removeProperty("transform");
+          table.style.removeProperty("transform-origin");
+          table.style.removeProperty("margin-left");
+          table.style.removeProperty("margin-right");
+          table.style.removeProperty("overflow");
+        }
+
+        function setCommonDataFont(table,size){
+          table.querySelectorAll(
+            "tbody tr.data-row td, tbody tr.data-row td .pdf-cell-text, "+
+            "tbody tr.total td, tbody tr.total td .pdf-cell-text"
+          ).forEach(el=>{
+            el.style.setProperty("font-family",'"Gidugu", Arial, sans-serif',"important");
+            el.style.setProperty("font-size",size+"pt","important");
+            el.style.setProperty("font-weight","400","important");
+            el.style.setProperty("font-style","normal","important");
+            el.style.setProperty("font-synthesis","none","important");
+            el.style.setProperty("white-space","nowrap","important");
+            el.style.setProperty("overflow","visible","important");
+            el.style.setProperty("text-overflow","clip","important");
+            el.style.setProperty("line-height","1","important");
+          });
         }
 
         function setWidths(table,widths){
@@ -733,31 +948,27 @@
           if(cols.length!==widths.length)return;
 
           cols.forEach((col,i)=>{
-            col.style.width=Math.max(0,widths[i]).toFixed(3)+"pt";
+            col.style.width=Math.max(.1,widths[i]).toFixed(4)+"pt";
           });
 
-          table.style.width=widths.reduce((a,b)=>a+b,0).toFixed(3)+"pt";
+          table.style.width=widths.reduce((a,b)=>a+b,0).toFixed(4)+"pt";
+          table.style.maxWidth="none";
           table.style.tableLayout="fixed";
         }
 
-        function startEqual(table){
-          const cols=Array.from(table.querySelectorAll("colgroup col"));
-          if(!cols.length)return null;
-
-          const equal=AVAILABLE/cols.length;
-          const widths=Array(cols.length).fill(equal);
-
-          setWidths(table,widths);
-          return widths;
+        function availableWidthForTable(table){
+          /* Prefer the actual print page width. This intentionally consumes the
+             small page margins efficiently, as requested. */
+          const page=table.closest(".page")||table.parentElement;
+          if(page){
+            const cs=w.getComputedStyle(page);
+            const pageWidth=cssNumber(cs.width);
+            if(pageWidth>0)return Math.min(PAGE_AVAILABLE,pageWidth-(PAGE_MARGIN*2));
+          }
+          return PAGE_AVAILABLE;
         }
 
-        /*
-         * Header minimums:
-         * Existing headers intentionally contain <br> line breaks. We therefore
-         * measure the longest visual line rather than treating the whole header
-         * as one unbreakable line.
-         */
-        function headerMinimums(table,count){
+        function headerMinimums(table,count,size){
           const mins=Array(count).fill(0);
 
           table.querySelectorAll("thead tr").forEach(tr=>{
@@ -767,12 +978,11 @@
               const span=cell.colSpan||1;
 
               if(span===1 && col<count){
-                const text=(cell.innerText||cell.textContent||"")
-                  .replace(/\r/g,"")
-                  .trim();
+                const raw=(cell.innerText||cell.textContent||"")
+                  .replace(/\r/g,"");
 
-                const lines=text.split("\n")
-                  .map(x=>x.trim())
+                const lines=raw.split("\n")
+                  .map(clean)
                   .filter(Boolean);
 
                 const longest=lines.reduce(
@@ -781,10 +991,11 @@
                 );
 
                 if(longest){
+                  const headerSize=cellFontSizePt(cell);
                   mins[col]=Math.max(
                     mins[col],
-                    measureTextPt(cell,longest,fontSizePt(cell))
-                    +paddingPt(cell)+2
+                    measureTextPt(cell,longest,headerSize)+
+                    paddingPt(cell)+borderPt(cell)+2
                   );
                 }
               }
@@ -796,202 +1007,326 @@
           return mins;
         }
 
-        function fitTable(table){
-          const cols=Array.from(table.querySelectorAll("colgroup col"));
-          if(!cols.length)return;
-
-          const count=cols.length;
-          const cells=getDataCells(table);
-
-          /*
-           * KEY FIX:
-           * Remove every old inline font-size before doing any measurement.
-           * Therefore no previously fitted row can remain larger/smaller than
-           * the other rows.
-           */
-          cells.forEach(td=>{
-            td.style.removeProperty("font-size");
-            td.style.setProperty("white-space","nowrap","important");
-            td.style.setProperty("overflow","visible","important");
-            td.style.setProperty("text-overflow","clip","important");
-            td.style.setProperty("line-height","1","important");
-            td.style.setProperty("font-synthesis","none","important");
-          });
-
-          /*
-           * 1. INITIAL STATE = EXACTLY EQUAL COLUMNS.
-           */
-          let widths=startEqual(table);
-          if(!widths)return;
-
-          const headers=headerMinimums(table,count);
-
-          /*
-           * 2. Determine the width required by the largest DATA value in
-           *    every column at its normal/base font.
-           */
+        function requiredByColumn(table,size){
+          const count=columnCount(table);
           const required=Array(count).fill(0);
 
-          cells.forEach(td=>{
+          dataCells(table).forEach(td=>{
             const col=td.cellIndex;
             if(col<0 || col>=count)return;
 
             required[col]=Math.max(
               required[col],
-              cellRequired(td,fontSizePt(td))
+              measureTextPt(td,td.textContent||"",size)+
+              paddingPt(td)+borderPt(td)+2
             );
           });
 
+          const headers=headerMinimums(table,count,size);
           for(let i=0;i<count;i++){
             required[i]=Math.max(required[i],headers[i]);
           }
 
-          /*
-           * 3. If all base-font requirements fit in A4, assign each column its
-           *    requirement and spread the remaining width equally. This keeps
-           *    columns as close to equal as possible.
-           */
-          const requiredTotal=required.reduce((a,b)=>a+b,0);
+          return required;
+        }
 
-          if(requiredTotal<=AVAILABLE+0.05){
-            const extra=(AVAILABLE-requiredTotal)/count;
-            widths=required.map(r=>r+extra);
-            setWidths(table,widths);
-          }else{
-            /*
-             * 4. Base fonts cannot all fit. Start from equal widths and
-             * redistribute spare width from short columns to long columns.
-             */
-            const equal=AVAILABLE/count;
-            widths=Array(count).fill(equal);
+        /*
+         * Redistribute while preserving equal widths as the starting point.
+         * A long column gets width from columns whose required content is
+         * smaller than the equal allocation. If that is insufficient, every
+         * donor is reduced only down to its genuine required width first.
+         */
+        function redistribute(required,available){
+           const count=required.length;
+           if(!count)return [];
 
-            const deficits=required.map(r=>Math.max(0,r-equal));
-            const donors=required.map(r=>Math.max(0,equal-r));
+           /*
+            * SL No / S.N column:
+            * Never give this column an arbitrary/equal A4 share.
+            * Its width is ONLY its measured content/header requirement.
+            * This remains true on the initial fit and after every font-size
+            * adjustment.
+            */
+           const slNoIndex=0;
+           const slNoWidth=Math.max(.1, required[slNoIndex]);
 
-            const deficitTotal=deficits.reduce((a,b)=>a+b,0);
-            const donorTotal=donors.reduce((a,b)=>a+b,0);
-            const transfer=Math.min(deficitTotal,donorTotal);
+           if(count===1)return [Math.min(available,slNoWidth)];
 
-            if(transfer>0){
-              for(let i=0;i<count;i++){
-                if(deficits[i]>0){
-                  widths[i]+=transfer*(deficits[i]/deficitTotal);
-                }
-              }
+           const remaining=Math.max(.1,available-slNoWidth);
+           const otherRequired=required.slice(1);
+           const otherCount=count-1;
+           const equal=remaining/otherCount;
 
-              for(let i=0;i<count;i++){
-                if(donors[i]>0){
-                  widths[i]-=transfer*(donors[i]/donorTotal);
-                }
-              }
-            }
+           let widths=Array(count).fill(0);
+           widths[slNoIndex]=slNoWidth;
 
-            setWidths(table,widths);
-          }
+           /*
+            * Other columns start equal, then long-content columns receive
+            * space from columns whose measured content genuinely needs less.
+            */
+           for(let i=1;i<count;i++) widths[i]=equal;
 
-          /*
-           * 5. Only cells that still overflow get an individual font-size
-           *    reduction. Minimum is 8pt.
-           */
-          let needsGlobalScale=false;
+           const need=otherRequired.map(r=>Math.max(0,r-equal));
+           const spare=otherRequired.map(r=>Math.max(0,equal-r));
+           const totalNeed=need.reduce((a,b)=>a+b,0);
+           const totalSpare=spare.reduce((a,b)=>a+b,0);
 
-          cells.forEach(td=>{
+           if(totalNeed>EPS){
+             const transfer=Math.min(totalNeed,totalSpare);
+
+             if(transfer>EPS){
+               need.forEach((n,j)=>{
+                 if(n>0)widths[j+1]+=transfer*n/totalNeed;
+               });
+               if(totalSpare>0){
+                 spare.forEach((s,j)=>{
+                   if(s>0)widths[j+1]-=transfer*s/totalSpare;
+                 });
+               }
+             }
+
+             if(totalNeed>totalSpare+EPS){
+               for(let j=0;j<otherCount;j++){
+                 if(otherRequired[j]<equal)
+                   widths[j+1]=Math.max(.1,otherRequired[j]);
+               }
+
+               let used=widths.reduce((a,b)=>a+b,0);
+               let remainingSpace=Math.max(0,available-used);
+               const needy=otherRequired
+                 .map((r,j)=>r>widths[j+1]+EPS?j:-1)
+                 .filter(j=>j>=0);
+
+               if(needy.length && remainingSpace>0){
+                 const unmet=needy.reduce(
+                   (sum,j)=>sum+Math.max(0,otherRequired[j]-widths[j+1]),0
+                 );
+                 if(unmet>0){
+                   needy.forEach(j=>{
+                     const n=Math.max(0,otherRequired[j]-widths[j+1]);
+                     widths[j+1]+=remainingSpace*n/unmet;
+                   });
+                 }else{
+                   const each=remainingSpace/needy.length;
+                   needy.forEach(j=>widths[j+1]+=each);
+                 }
+               }
+             }
+           }
+
+           /*
+            * Do NOT normalize the SL No column. Normalization would make it
+            * wider than its data requirement. Normalize ONLY the remaining
+            * columns so the complete table occupies the A4 safe width.
+            */
+           const otherSum=widths.slice(1).reduce((a,b)=>a+b,0);
+           const targetOther=Math.max(.1,available-slNoWidth);
+           if(otherSum>0){
+             const scale=targetOther/otherSum;
+             for(let i=1;i<count;i++) widths[i]*=scale;
+           }
+
+           widths[slNoIndex]=slNoWidth;
+           return widths;
+         }
+
+        function allDataCellsFit(table,widths,size){
+          let fits=true;
+
+          dataCells(table).forEach(td=>{
             const col=td.cellIndex;
-            if(col<0 || col>=count)return;
+            if(col<0 || col>=widths.length)return;
 
-            const base=fontSizePt(td);
             const available=Math.max(
               0,
-              widths[col]-paddingPt(td)-2
+              widths[col]-paddingPt(td)-borderPt(td)-2
             );
 
-            const text=td.textContent||"";
-            const normalWidth=measureTextPt(td,text,base);
-
-            if(normalWidth<=available+0.05)return;
-
-            const minWidth=measureTextPt(td,text,MIN_FONT);
-
-            if(minWidth<=available+0.05){
-              let lo=MIN_FONT;
-              let hi=base;
-
-              for(let i=0;i<24;i++){
-                const mid=(lo+hi)/2;
-
-                if(measureTextPt(td,text,mid)<=available+0.05){
-                  lo=mid;
-                }else{
-                  hi=mid;
-                }
-              }
-
-              if(lo<base-0.01){
-                td.style.setProperty(
-                  "font-size",
-                  Math.max(MIN_FONT,lo).toFixed(2)+"pt",
-                  "important"
-                );
-              }
-            }else{
-              /*
-               * Even 8pt does not fit. This cell triggers the final whole-table
-               * scale. It is NEVER reduced below 8pt.
-               */
-              td.style.setProperty(
-                "font-size",
-                MIN_FONT+"pt",
-                "important"
-              );
-
-              needsGlobalScale=true;
+            if(measureTextPt(td,td.textContent||"",size)>available+EPS){
+              fits=false;
             }
           });
 
-          if(needsGlobalScale){
-            /*
-             * 6. FINAL FALLBACK:
-             *    Recalculate the actual required width using each cell's final
-             *    font. Then scale the COMPLETE table proportionally.
-             */
-            const finalRequired=Array(count).fill(0);
+          return fits;
+        }
 
-            cells.forEach(td=>{
-              const col=td.cellIndex;
-              if(col<0 || col>=count)return;
+        function setDcbRowHeight(table){
+          const page=table.closest(".dcb-page,.cumulative-dcb-page");
+          if(!page)return;
 
-              finalRequired[col]=Math.max(
-                finalRequired[col],
-                cellRequired(td,fontSizePt(td))
-              );
+          const rows=dataRows(table);
+          if(!rows.length)return;
+
+          /* Total is deliberately excluded from the 25-row data capacity. */
+          const total=table.querySelector("tbody tr.total");
+
+          const pageHeight=A4_HEIGHT;
+          const pageCS=w.getComputedStyle(page);
+          const pagePaddingTop=cssNumber(pageCS.paddingTop);
+          const pagePaddingBottom=cssNumber(pageCS.paddingBottom);
+
+          const blank=page.querySelector(".dcb-top-blank");
+          const head=page.querySelector(
+            ".dcb-head,.cumulative-dcb-head"
+          );
+
+          const blankH=blank ? blank.getBoundingClientRect().height*72/96 : 0;
+          const headH=head ? head.getBoundingClientRect().height*72/96 : 0;
+
+          const thead=table.tHead;
+          const theadH=thead ? thead.getBoundingClientRect().height*72/96 : 0;
+          const totalH=total ? total.getBoundingClientRect().height*72/96 : 0;
+
+          /* Small safety allowance prevents the browser from pushing a row to
+             the next page because of fractional border rounding. */
+          const safety=2;
+          const usable=Math.max(
+            1,
+            pageHeight-
+            pagePaddingTop-
+            pagePaddingBottom-
+            blankH-
+            headH-
+            theadH-
+            totalH-
+            safety
+          );
+
+          /* Use 20pt as the fixed/default data-row height when there are
+             fewer rows. As the number of rows grows, shrink the rows only
+             as much as necessary to keep all real rows on the page. */
+          const FIXED_DCB_ROW_HEIGHT=20;
+          const rowHeight=Math.min(FIXED_DCB_ROW_HEIGHT,usable/rows.length);
+          const finalHeight=Math.max(12,rowHeight);
+
+          rows.forEach(row=>{
+            row.style.height=finalHeight.toFixed(3)+"pt";
+            row.style.minHeight=finalHeight.toFixed(3)+"pt";
+            row.style.maxHeight=finalHeight.toFixed(3)+"pt";
+            row.style.breakInside="avoid";
+            row.style.pageBreakInside="avoid";
+
+            Array.from(row.children).forEach(td=>{
+              td.style.height=finalHeight.toFixed(3)+"pt";
+              td.style.minHeight=finalHeight.toFixed(3)+"pt";
+              td.style.maxHeight=finalHeight.toFixed(3)+"pt";
             });
+          });
+        }
 
-            for(let i=0;i<count;i++){
-              finalRequired[i]=Math.max(
-                finalRequired[i],
-                headers[i]
-              );
+        function fitOneTable(table){
+          const count=columnCount(table);
+          if(!count)return;
+
+          const available=availableWidthForTable(table);
+          const cells=dataCells(table);
+          const originalSizes=cells.map(td=>cellFontSizePt(td));
+          const baseFont=cells.length
+            ? Math.max(...originalSizes)
+            : 13;
+
+          resetTableTransform(table);
+
+          /* Remove any old individual sizing before fitting. */
+          table.querySelectorAll(
+            "tbody td, tbody td .pdf-cell-text"
+          ).forEach(el=>{
+            el.style.removeProperty("font-size");
+            el.style.removeProperty("font-family");
+            el.style.removeProperty("font-weight");
+            el.style.removeProperty("font-style");
+          });
+
+          /* 1. Initial state: exact equal columns. */
+          let widths=Array(count).fill(available/count);
+          setWidths(table,widths);
+
+          /*
+           * First attempt: keep the table's normal/base font if possible.
+           * This preserves the existing appearance for tables that already fit.
+           */
+          setCommonDataFont(table,baseFont);
+          let required=requiredByColumn(table,baseFont);
+          widths=redistribute(required,available);
+          setWidths(table,widths);
+          void table.offsetWidth;
+
+          if(allDataCellsFit(table,widths,baseFont)){
+            setDcbRowHeight(table);
+            return;
+          }
+
+          /*
+           * 4. Uniform font reduction starts at 10pt. There is NEVER a
+           * per-cell font-size reduction.
+           */
+          let selectedFont=COMMON_REDUCTION_START;
+          let foundFit=false;
+
+          for(
+            let size=COMMON_REDUCTION_START;
+            size>=COMMON_MIN_FONT-EPS;
+            size-=COMMON_FONT_STEP
+          ){
+            size=Math.round(size*100)/100;
+            setCommonDataFont(table,size);
+
+            required=requiredByColumn(table,size);
+            widths=redistribute(required,available);
+            setWidths(table,widths);
+            void table.offsetWidth;
+
+            selectedFont=size;
+
+            if(allDataCellsFit(table,widths,size)){
+              foundFit=true;
+              break;
             }
+          }
 
-            const internalTotal=finalRequired.reduce((a,b)=>a+b,0);
+          /* Always keep the whole table at ONE common font size. */
+          setCommonDataFont(table,selectedFont);
+          required=requiredByColumn(table,selectedFont);
+          widths=redistribute(required,available);
+          setWidths(table,widths);
+          void table.offsetWidth;
 
-            if(internalTotal>AVAILABLE+0.05){
-              setWidths(table,finalRequired);
+          /*
+           * 6. Final fallback: if even the minimum common font cannot fit,
+           * make the internal table exactly as wide as its measured content
+           * and proportionally scale the COMPLETE table into A4.
+           */
+          if(!foundFit || !allDataCellsFit(table,widths,selectedFont)){
+            setCommonDataFont(table,COMMON_MIN_FONT);
+            required=requiredByColumn(table,COMMON_MIN_FONT);
 
-              const scale=AVAILABLE/internalTotal;
+            const internalTotal=required.reduce((a,b)=>a+b,0);
 
+            if(internalTotal>available+EPS){
+              setWidths(table,required);
+
+              const scale=available/internalTotal;
               table.style.transformOrigin="left top";
-              table.style.transform=`scale(${scale})`;
+              table.style.transform=`scale(${Math.min(1,scaleForTable)})`;
               table.style.marginLeft="0";
               table.style.marginRight="0";
               table.style.overflow="visible";
+            }else{
+              /* Defensive retry if numerical rounding caused the first check
+                 to fail even though the measured requirements fit. */
+              const normalized=redistribute(required,available);
+              setWidths(table,normalized);
             }
           }
+
+          /* Dynamic 25-row DCB/Cumulative DCB height comes last so it sees the
+             final header/table dimensions. */
+          setDcbRowHeight(table);
         }
 
         doc.querySelectorAll(
           ".ledger-page table, .dcb-page table, .cumulative-dcb-page table"
-        ).forEach(fitTable);
+        ).forEach(fitOneTable);
 
         ruler.remove();
       }catch(e){
@@ -1000,15 +1335,9 @@
     }
 
     /*
-     * FINAL DCB HEADER/TABLE ALIGNMENT
-     * --------------------------------
-     * The PDF fitting engine may resize the table (including a final
-     * proportional scale).  The title header must receive the EXACT same
-     * transform, otherwise it can remain wider than the table and leave
-     * a blank strip on the right.
-     *
-     * The divider inside the title header is also based on the ACTUAL
-     * fitted table column widths, not a fixed 10/17 or 8/14 ratio.
+     * DCB header/table alignment.
+     * The final table transform and fitted column split are copied to the
+     * matching DCB header so the header never remains wider than the table.
      */
     function syncDcbHeadersAfterFit(w){
       try{
@@ -1017,7 +1346,6 @@
         function sync(frame,table,head,splitCount){
           if(!frame||!table||!head)return;
 
-          /* Copy the final table transform to the matching header. */
           const transform=table.style.transform||"";
           const origin=table.style.transformOrigin||"left top";
 
@@ -1028,13 +1356,8 @@
             head.style.removeProperty("transform");
           }
 
-          /*
-           * The fitting engine writes the final widths into <col>.
-           * Use those widths to place the header divider at the exact
-           * same horizontal position as the table's split column.
-           */
           const cols=Array.from(table.querySelectorAll("colgroup col"));
-          if(cols.length!==0 && splitCount>0 && splitCount<cols.length){
+          if(cols.length && splitCount>0 && splitCount<cols.length){
             const widths=cols.map(col=>{
               const n=parseFloat(col.style.width);
               return Number.isFinite(n)?n:0;
@@ -1044,25 +1367,28 @@
             const left=widths.slice(0,splitCount).reduce((a,b)=>a+b,0);
 
             if(total>0 && left>0 && left<total){
-              const right=total-left;
               head.style.gridTemplateColumns=
-                `${left.toFixed(3)}pt ${right.toFixed(3)}pt`;
+                `${left.toFixed(3)}pt ${(total-left).toFixed(3)}pt`;
             }
           }
         }
 
         doc.querySelectorAll(".dcb-page").forEach(page=>{
-          const frame=page.querySelector(".dcb-frame");
-          const table=page.querySelector(".dcb-table");
-          const head=page.querySelector(".dcb-head");
-          sync(frame,table,head,10);
+          sync(
+            page.querySelector(".dcb-frame"),
+            page.querySelector(".dcb-table"),
+            page.querySelector(".dcb-head"),
+            10
+          );
         });
 
         doc.querySelectorAll(".cumulative-dcb-page").forEach(page=>{
-          const frame=page.querySelector(".cumulative-dcb-frame");
-          const table=page.querySelector(".cumulative-dcb-table");
-          const head=page.querySelector(".cumulative-dcb-head");
-          sync(frame,table,head,8);
+          sync(
+            page.querySelector(".cumulative-dcb-frame"),
+            page.querySelector(".cumulative-dcb-table"),
+            page.querySelector(".cumulative-dcb-head"),
+            8
+          );
         });
       }catch(e){
         try{ console.warn("DCB header alignment error:",e); }catch(ignore){}
@@ -1337,18 +1663,19 @@ html,body{
   width:841.89pt;
   height:595.28pt;
   padding:4pt 0 0 0;
+  overflow:visible;
 }
 .dcb-frame{
-  width:var(--dcb-width,730.56pt);
-  margin-left:var(--dcb-left,40.08pt);
-  margin-right:var(--dcb-right,40.08pt);
+  width:var(--dcb-width,833.89pt);
+  margin-left:var(--dcb-left,4pt);
+  margin-right:var(--dcb-right,4pt);
 }
 .dcb-top-blank{
   height:22pt;
  <!-- border-bottom:1px solid #555;-->
 }
 .dcb-head{
-  width:var(--dcb-width,730.56pt);
+  width:var(--dcb-width,833.89pt);
   height:24pt;
   display:grid;
   grid-template-columns:1fr 0.73fr;
@@ -1370,7 +1697,7 @@ html,body{
   border-right:1px solid #555;
 }
 .dcb-table{
-  width:var(--dcb-width,730.56pt);
+  width:var(--dcb-width,833.89pt);
   border-collapse:collapse;
   table-layout:fixed;
 }
@@ -1405,7 +1732,11 @@ html,body{
   line-height:1;
 }
 .dcb-table tbody tr.data-row{
-  height:18.6pt;
+  height:var(--dcb-data-row-height,18.6pt);
+  min-height:var(--dcb-data-row-height,18.6pt);
+  max-height:var(--dcb-data-row-height,18.6pt);
+  break-inside:avoid;
+  page-break-inside:avoid;
 }
 .dcb-table tbody td{
   /* One consistent base style for EVERY DCB data row. */
@@ -1441,10 +1772,11 @@ html,body{
 @page cumulativeDcb{size:A4 landscape;margin:0}
 .cumulative-dcb-page{
   page:cumulativeDcb;width:841.89pt;height:595.28pt;padding:4pt 0 0 0;
+  overflow:visible;
 }
 .cumulative-dcb-frame{
-  width:var(--cumulative-dcb-width);margin-left:var(--cumulative-dcb-left);
-  margin-right:var(--cumulative-dcb-right);
+  width:var(--cumulative-dcb-width,833.89pt);margin-left:var(--cumulative-dcb-left,4pt);
+  margin-right:var(--cumulative-dcb-right,4pt);
 }
 .cumulative-dcb-head{
   width:var(--cumulative-dcb-width);height:24pt;display:grid;
@@ -1478,9 +1810,9 @@ html,body{
  * There are no filler rows; if fewer than 25 SHGs exist, only real rows print.
  */
 .cumulative-dcb-table tbody tr.data-row{
-  height:18pt;
-  min-height:18pt;
-  max-height:18pt;
+  height:var(--cumulative-dcb-data-row-height,18pt);
+  min-height:var(--cumulative-dcb-data-row-height,18pt);
+  max-height:var(--cumulative-dcb-data-row-height,18pt);
   break-inside:avoid;
   page-break-inside:avoid;
 }
@@ -1492,8 +1824,8 @@ html,body{
   line-height:1 !important;
   white-space:nowrap !important;
   overflow:visible !important;
-  height:18pt;
-  max-height:18pt;
+  height:var(--cumulative-dcb-data-row-height,18pt);
+  max-height:var(--cumulative-dcb-data-row-height,18pt);
 }
 .cumulative-dcb-table tbody td.shg-name{
   text-align:left;padding-left:4pt;font-family:"Gidugu",Arial,sans-serif !important;
@@ -1544,11 +1876,9 @@ html,body{
         }catch(e){}
         setTimeout(()=>{
           try{
-            /* DCB-specific fitting remains, then the same final per-cell
-               fallback is applied to all PDF data tables. */
+            /* One universal fitter handles Ledger, Monthly DCB and
+               Cumulative DCB. No per-cell font fitting is used. */
             fitAllPDFTablesInPrintWindow(w);
-            fitMonthlyDcbCommonFontInPrintWindow(w);
-            fitCumulativeDcbCommonFontInPrintWindow(w);
 
             /*
              * Must run LAST: all table fitting/scaling is complete now,
@@ -1566,27 +1896,13 @@ html,body{
     }
 
     /*
-     * DCB DATA-CELL AUTO WIDTH
-     * ------------------------
-     * Columns 1-17 are measured from DATA CELLS ONLY.
-     * Header text is deliberately ignored.
-     *
-     * If a data value needs more width than its existing column:
-     *   1) that particular column is enlarged;
-     *   2) the extra width is taken from the A4 page margins;
-     *   3) the existing widths of the other columns are not reduced.
-     *
-     * The normal DCB width therefore stays exactly as before when
-     * the entered data fits.  Only columns that actually need more
-     * room grow.
-     */
-    /*
      * DCB PAGE LAYOUT
-     * All 17 columns start equal. The universal print-time fitting engine
-     * performs the content-aware redistribution.
+     * ----------------
+     * Every DCB table starts with equal columns. The universal print-time
+     * engine then expands/redistributes them according to actual data.
      */
     function getDCBPageLayout(v){
-      const A4_WIDTH=842.500;
+      const A4_WIDTH=841.89;
       const MIN_MARGIN=4;
       const totalWidth=A4_WIDTH-(MIN_MARGIN*2);
       const columnCount=17;
@@ -1598,243 +1914,6 @@ html,body{
         left:MIN_MARGIN,
         right:MIN_MARGIN
       };
-    }
-
-
-    /*
-     * MONTHLY DCB COMMON-FONT FITTING
-     *
-     * All Monthly DCB DATA cells always have exactly one common font size.
-     * No individual DCB data cell is reduced independently.
-     *
-     * Priority:
-     *   equal columns
-     *   -> redistribute spare width
-     *   -> common 13pt
-     *   -> common reduction down to 8pt
-     *   -> whole-table proportional scaling
-     *
-     * No wrapping and no clipping.
-     */
-    function fitMonthlyDcbCommonFontInPrintWindow(w){
-      try{
-        const doc=w.document;
-        const tables=doc.querySelectorAll(".dcb-page .dcb-table");
-        const A4_WIDTH=841.89;
-        const PAGE_MARGIN=4;
-        const AVAILABLE=A4_WIDTH-(PAGE_MARGIN*2);
-        const BASE_FONT=13;
-        const MIN_FONT=8;
-        const STEP=.25;
-
-        const canvas=doc.createElement("canvas");
-        const ctx=canvas.getContext("2d");
-        const ptToPx=pt=>pt*96/72;
-        const pxToPt=px=>px*72/96;
-        const clean=v=>String(v==null?"":v).replace(/\s+/g," ").trim();
-
-        function measure(text,size){
-          if(!ctx)return clean(text).length*size*.52;
-          ctx.font=`400 ${ptToPx(size)}px "Gidugu", Arial, sans-serif`;
-          return pxToPt(ctx.measureText(clean(text)).width);
-        }
-
-        function padding(el){
-          const cs=w.getComputedStyle(el);
-          return pxToPt(
-            (parseFloat(cs.paddingLeft)||0)+
-            (parseFloat(cs.paddingRight)||0)
-          );
-        }
-
-        function dataCells(table){
-          return Array.from(
-            table.querySelectorAll("tbody tr.data-row td")
-          );
-        }
-
-        function setCommonFont(table,size){
-          table.querySelectorAll(
-            "tbody tr.data-row td, tbody tr.data-row td .pdf-cell-text, "+
-            "tbody tr.total td, tbody tr.total td .pdf-cell-text"
-          ).forEach(el=>{
-            el.style.setProperty(
-              "font-family",'"Gidugu", Arial, sans-serif',"important"
-            );
-            el.style.setProperty("font-size",size+"pt","important");
-            el.style.setProperty("font-weight","400","important");
-            el.style.setProperty("font-style","normal","important");
-            el.style.setProperty("line-height","1","important");
-            el.style.setProperty("white-space","nowrap","important");
-            el.style.setProperty("overflow","visible","important");
-            el.style.setProperty("font-synthesis","none","important");
-          });
-        }
-
-        function setWidths(table,widths){
-          const cols=Array.from(table.querySelectorAll("colgroup col"));
-          if(cols.length!==widths.length)return;
-          cols.forEach((col,i)=>{
-            col.style.width=widths[i].toFixed(4)+"pt";
-          });
-          table.style.width=widths.reduce((a,b)=>a+b,0).toFixed(4)+"pt";
-        }
-
-        function requiredByColumn(table,size){
-          const count=table.querySelectorAll("colgroup col").length;
-          const req=Array(count).fill(0);
-
-          dataCells(table).forEach(td=>{
-            const c=td.cellIndex;
-            if(c<0||c>=count)return;
-            req[c]=Math.max(
-              req[c],
-              measure(td.textContent||"",size)+padding(td)+2
-            );
-          });
-
-          /* Include leaf header requirements. */
-          table.querySelectorAll("thead tr").forEach(tr=>{
-            let c=0;
-            Array.from(tr.children).forEach(th=>{
-              const span=th.colSpan||1;
-              if(span===1 && c<count){
-                const raw=th.innerText||th.textContent||"";
-                const longest=raw.split(/\r?\n/)
-                  .map(clean).filter(Boolean)
-                  .sort((a,b)=>b.length-a.length)[0]||"";
-                if(longest){
-                  req[c]=Math.max(
-                    req[c],
-                    measure(longest,size)+padding(th)+2
-                  );
-                }
-              }
-              c+=span;
-            });
-          });
-
-          return req;
-        }
-
-        function redistribute(required){
-          const count=required.length;
-          const equal=AVAILABLE/count;
-          let widths=Array(count).fill(equal);
-
-          const need=required.map(r=>Math.max(0,r-equal));
-          const spare=required.map(r=>Math.max(0,equal-r));
-          const totalNeed=need.reduce((a,b)=>a+b,0);
-          const totalSpare=spare.reduce((a,b)=>a+b,0);
-
-          if(totalNeed<=0)return widths;
-
-          const transfer=Math.min(totalNeed,totalSpare);
-
-          if(transfer>0){
-            need.forEach((n,i)=>{
-              if(n>0)widths[i]+=transfer*n/totalNeed;
-            });
-            spare.forEach((s,i)=>{
-              if(s>0)widths[i]-=transfer*s/totalSpare;
-            });
-          }
-
-          if(totalNeed>totalSpare){
-            widths=required.map(r=>r<equal?r:equal);
-            const used=widths.reduce((a,b)=>a+b,0);
-            const remaining=Math.max(0,AVAILABLE-used);
-            const needy=required.map((r,i)=>r>equal?i:-1)
-              .filter(i=>i>=0);
-
-            if(needy.length){
-              const each=remaining/needy.length;
-              needy.forEach(i=>widths[i]+=each);
-            }
-          }
-
-          const sum=widths.reduce((a,b)=>a+b,0);
-          if(sum){
-            const scale=AVAILABLE/sum;
-            widths=widths.map(x=>x*scale);
-          }
-          return widths;
-        }
-
-        function fits(table,widths,size){
-          let ok=true;
-          dataCells(table).forEach(td=>{
-            const c=td.cellIndex;
-            if(c<0||c>=widths.length)return;
-            const available=Math.max(0,widths[c]-padding(td)-2);
-            if(measure(td.textContent||"",size)>available+.05)ok=false;
-          });
-          return ok;
-        }
-
-        tables.forEach(table=>{
-          /* Remove any previous individual cell font-size decisions. */
-          table.querySelectorAll(
-            "tbody td, tbody td .pdf-cell-text"
-          ).forEach(el=>{
-            el.style.removeProperty("font-size");
-            el.style.removeProperty("font-family");
-            el.style.removeProperty("font-weight");
-          });
-
-          let selected=BASE_FONT;
-          let widths=Array(
-            table.querySelectorAll("colgroup col").length
-          ).fill(
-            AVAILABLE/table.querySelectorAll("colgroup col").length
-          );
-
-          /*
-           * Find the LARGEST common font size that fits after intelligent
-           * column redistribution. Thus normal tables remain at 13pt.
-           */
-          for(let size=BASE_FONT;size>=MIN_FONT;size-=STEP){
-            setCommonFont(table,size);
-            const req=requiredByColumn(table,size);
-            widths=redistribute(req);
-            setWidths(table,widths);
-            void table.offsetWidth;
-
-            if(fits(table,widths,size)){
-              selected=size;
-              break;
-            }
-            selected=size;
-          }
-
-          setCommonFont(table,selected);
-
-          const req=requiredByColumn(table,selected);
-          widths=redistribute(req);
-          setWidths(table,widths);
-          void table.offsetWidth;
-
-          /*
-           * At 8pt, if content still cannot fit, use the complete table
-           * proportional-scale fallback. Font size remains common 8pt.
-           */
-          if(!fits(table,widths,MIN_FONT)){
-            setCommonFont(table,MIN_FONT);
-            const finalReq=requiredByColumn(table,MIN_FONT);
-            const internalTotal=finalReq.reduce((a,b)=>a+b,0);
-
-            if(internalTotal>AVAILABLE+.05){
-              setWidths(table,finalReq);
-              const scale=AVAILABLE/internalTotal;
-              table.style.transformOrigin="left top";
-              table.style.transform=`scale(${scale})`;
-              table.style.overflow="visible";
-            }
-          }
-        });
-      }catch(e){
-        console.warn("Monthly DCB common-font fitting error:",e);
-      }
     }
 
     function monthlyPDF(){
@@ -1947,16 +2026,16 @@ html,body{
                   </colgroup>
                   <thead>
                     <tr class="group-head">
-                      <th rowspan="2">SL No</th>
+                      <th rowspan="2">S.N</th>
                       <th rowspan="2"><span class="telugu">SHG పేరు</span></th>
-                      <th rowspan="2"><span class="telugu">ప్రారంభపు<br>అప్పు నిల్వ</span></th>
+                      <th rowspan="2"><span class="telugu">ప్రారంభ<br>అప్పు నిల్వ</span></th>
                       <th colspan="2"><span class="telugu">గత నెల బకాయి<br>వివరాలు</span></th>
                       <th colspan="2"><span class="telugu">ఈ నెల డిమాండ్</span></th>
                       <th colspan="3"><span class="telugu">గతనెల బకాయి తో కలిపి ఈ నెల<br>వరకు మొత్తం డిమాండ్</span></th>
                       <th colspan="3"><span class="telugu">ఈ నెల కలెక్షన్ వివరాలు</span></th>
                       <th colspan="2"><span class="telugu">బకాయి</span></th>
                       <th rowspan="2"><span class="telugu">కొత్త<br>అప్పు</span></th>
-                      <th rowspan="2"><span class="telugu">మొత్తం<br>అప్పు నిల్వ</span></th>
+                      <th rowspan="2"><span class="telugu">ముగింపు<br>అప్పు నిల్వ</span></th>
                     </tr>
                     <tr class="sub-head">
                       <th><span class="telugu">అసలు</span></th>
@@ -2008,306 +2087,12 @@ html,body{
      * - Balance = March year-end balance when March exists.
      * - New Loan = sum of all stored monthly new loans.
      *
-     * The visual structure is the same 17-column DCB table as Monthly DCB.
+     * The visual structure follows the 15-column cumulative DCB format shown in the reference image.
      * Exactly 25 DATA rows are allocated to each page; the final page also
      * contains the Total row.  Rows are kept together and are not split.
      */
 
-    /*
-     * CUMULATIVE DCB COMMON-FONT FITTING
-     *
-     * Unlike the generic table fitter, this function NEVER assigns different
-     * font sizes to different data cells.
-     *
-     * Common font-size sequence:
-     *   13pt -> lower only when necessary -> minimum 8pt
-     *
-     * At every step, ALL cumulative DCB data cells have exactly the same
-     * font-size. If 8pt still cannot satisfy the column requirements, the
-     * whole table is proportionally scaled.
-     */
-    function fitCumulativeDcbCommonFontInPrintWindow(w){
-      try{
-        const doc=w.document;
-        const tables=doc.querySelectorAll(".cumulative-dcb-page .cumulative-dcb-table");
-        const A4_WIDTH=841.89;
-        const PAGE_MARGIN=4;
-        const AVAILABLE=A4_WIDTH-(PAGE_MARGIN*2);
-        const BASE_FONT=13;
-        const MIN_FONT=8;
-        const STEP=0.25;
-
-        const canvas=doc.createElement("canvas");
-        const ctx=canvas.getContext("2d");
-
-        const ptToPx=pt=>pt*96/72;
-        const pxToPt=px=>px*72/96;
-        const clean=v=>String(v==null?"":v).replace(/\s+/g," ").trim();
-
-        function measureText(text,fontSize){
-          if(!ctx)return clean(text).length*fontSize*0.52;
-          ctx.font=`400 ${ptToPx(fontSize)}px "Gidugu", Arial, sans-serif`;
-          return pxToPt(ctx.measureText(clean(text)).width);
-        }
-
-        function cellPadding(td){
-          const cs=w.getComputedStyle(td);
-          return pxToPt(
-            (parseFloat(cs.paddingLeft)||0)+
-            (parseFloat(cs.paddingRight)||0
-            )
-          );
-        }
-
-        function cells(table){
-          return Array.from(
-            table.querySelectorAll("tbody tr.data-row td")
-          );
-        }
-
-        function setCommonFont(table,size){
-          table.querySelectorAll(
-            "tbody tr.data-row td, tbody tr.data-row td .pdf-cell-text, "+
-            "tbody tr.total td, tbody tr.total td .pdf-cell-text"
-          ).forEach(el=>{
-            el.style.setProperty(
-              "font-family",'"Gidugu", Arial, sans-serif',"important"
-            );
-            el.style.setProperty(
-              "font-size",size+"pt","important"
-            );
-            el.style.setProperty(
-              "font-weight","400","important"
-            );
-            el.style.setProperty(
-              "font-style","normal","important"
-            );
-            el.style.setProperty(
-              "white-space","nowrap","important"
-            );
-            el.style.setProperty(
-              "font-synthesis","none","important"
-            );
-          });
-        }
-
-        function setWidths(table,widths){
-          const cols=Array.from(table.querySelectorAll("colgroup col"));
-          if(cols.length!==widths.length)return;
-          cols.forEach((col,i)=>{
-            col.style.width=widths[i].toFixed(4)+"pt";
-          });
-          table.style.width=
-            widths.reduce((a,b)=>a+b,0).toFixed(4)+"pt";
-        }
-
-        function requiredByColumn(table,size){
-          const req=Array(
-            table.querySelectorAll("colgroup col").length
-          ).fill(0);
-
-          cells(table).forEach(td=>{
-            const col=td.cellIndex;
-            if(col<0 || col>=req.length)return;
-
-            req[col]=Math.max(
-              req[col],
-              measureText(td.textContent||"",size)+
-              cellPadding(td)+2
-            );
-          });
-
-          /*
-           * Include leaf header cells too. Group headings spanning multiple
-           * columns are left as existing grouped headings.
-           */
-          table.querySelectorAll("thead tr").forEach(tr=>{
-            let col=0;
-            Array.from(tr.children).forEach(th=>{
-              const span=th.colSpan||1;
-
-              if(span===1 && col<req.length){
-                const raw=th.innerText||th.textContent||"";
-                const longest=raw.split(/\r?\n/)
-                  .map(clean)
-                  .filter(Boolean)
-                  .sort((a,b)=>b.length-a.length)[0]||"";
-
-                if(longest){
-                  req[col]=Math.max(
-                    req[col],
-                    measureText(longest,size)+cellPadding(th)+2
-                  );
-                }
-              }
-
-              col+=span;
-            });
-          });
-
-          return req;
-        }
-
-        function redistribute(required,count){
-          const equal=AVAILABLE/count;
-          let widths=Array(count).fill(equal);
-
-          const need=required.map(r=>Math.max(0,r-equal));
-          const spare=required.map(r=>Math.max(0,equal-r));
-
-          const totalNeed=need.reduce((a,b)=>a+b,0);
-          const totalSpare=spare.reduce((a,b)=>a+b,0);
-
-          if(totalNeed<=0)return widths;
-
-          const transfer=Math.min(totalNeed,totalSpare);
-
-          if(transfer>0){
-            need.forEach((n,i)=>{
-              if(n>0)widths[i]+=transfer*n/totalNeed;
-            });
-
-            spare.forEach((s,i)=>{
-              if(s>0)widths[i]-=transfer*s/totalSpare;
-            });
-          }
-
-          /*
-           * If genuine spare width is insufficient, short columns are reduced
-           * to their own required width, and the remaining width is shared
-           * by the needy columns.
-           */
-          if(totalNeed>totalSpare){
-            widths=required.map((r,i)=>r<equal?r:equal);
-
-            const used=widths.reduce((a,b)=>a+b,0);
-            const remaining=Math.max(0,AVAILABLE-used);
-            const needy=required
-              .map((r,i)=>r>equal?i:-1)
-              .filter(i=>i>=0);
-
-            if(needy.length){
-              const each=remaining/needy.length;
-              needy.forEach(i=>widths[i]+=each);
-            }
-          }
-
-          const sum=widths.reduce((a,b)=>a+b,0);
-          if(sum){
-            const scale=AVAILABLE/sum;
-            widths=widths.map(x=>x*scale);
-          }
-
-          return widths;
-        }
-
-        function everyCellFits(table,widths,size){
-          let ok=true;
-
-          cells(table).forEach(td=>{
-            const col=td.cellIndex;
-            if(col<0 || col>=widths.length)return;
-
-            const available=Math.max(
-              0,
-              widths[col]-cellPadding(td)-2
-            );
-
-            if(measureText(td.textContent||"",size)>available+0.05){
-              ok=false;
-            }
-          });
-
-          return ok;
-        }
-
-        tables.forEach(table=>{
-          /*
-           * IMPORTANT: remove any individual font-size decisions made by
-           * the generic fitter, then establish one common 13pt size.
-           */
-          table.querySelectorAll(
-            "tbody td, tbody td .pdf-cell-text"
-          ).forEach(el=>{
-            el.style.removeProperty("font-size");
-            el.style.removeProperty("font-family");
-            el.style.removeProperty("font-weight");
-          });
-
-          let commonSize=BASE_FONT;
-          let widths=Array(
-            table.querySelectorAll("colgroup col").length
-          ).fill(AVAILABLE/
-            table.querySelectorAll("colgroup col").length
-          );
-
-          /*
-           * For each common font size, redistribute columns first.
-           * No individual cell is ever changed.
-           */
-          for(
-            let size=BASE_FONT;
-            size>=MIN_FONT;
-            size-=STEP
-          ){
-            setCommonFont(table,size);
-
-            const required=requiredByColumn(table,size);
-            widths=redistribute(required,required.length);
-            setWidths(table,widths);
-
-            void table.offsetWidth;
-
-            if(everyCellFits(table,widths,size)){
-              commonSize=size;
-              break;
-            }
-
-            commonSize=size;
-          }
-
-          /*
-           * Reapply the selected COMMON size after the loop.
-           */
-          setCommonFont(table,commonSize);
-
-          /*
-           * Recalculate widths at the selected common size.
-           */
-          const required=requiredByColumn(table,commonSize);
-          widths=redistribute(required,required.length);
-          setWidths(table,widths);
-          void table.offsetWidth;
-
-          /*
-           * If even a common 8pt font cannot fit, make the internal table
-           * wide enough and scale the COMPLETE table proportionally.
-           */
-          if(!everyCellFits(table,widths,MIN_FONT)){
-            const finalRequired=requiredByColumn(table,MIN_FONT);
-
-            /*
-             * A column must be at least its measured requirement.
-             */
-            const internalTotal=finalRequired.reduce((a,b)=>a+b,0);
-
-            if(internalTotal>AVAILABLE+0.05){
-              setCommonFont(table,MIN_FONT);
-              setWidths(table,finalRequired);
-
-              const scale=AVAILABLE/internalTotal;
-              table.style.transformOrigin="left top";
-              table.style.transform=`scale(${scale})`;
-              table.style.overflow="visible";
-            }
-          }
-        });
-      }catch(e){
-        console.warn("Cumulative DCB common-font fitting error:",e);
-      }
-    }
-
-    /* CUMULATIVE DCB: 25 DATA ROWS + TOTAL ON FINAL PAGE */
+    /* CUMULATIVE DCB: 15-COLUMN SCREENSHOT STRUCTURE */
     function cumulativeDcbPDF(){
       const v=vo();
       if(!v||!v.shgs.length){
@@ -2317,14 +2102,29 @@ html,body{
 
       const A4_WIDTH=841.89, MARGIN=4;
       const totalWidth=A4_WIDTH-(MARGIN*2);
-      const widths=Array(14).fill(totalWidth/14);
+
+      /*
+       * Cumulative DCB has 15 columns:
+       * 1  S.No
+       * 2  SHG Name
+       * 3  Opening Loan Balance
+       * 4-5 Previous Due: Principal / Interest
+       * 6-8 Previous Due + Current Demand: Principal / Interest / Total
+       * 9-11 Collection: Principal / Interest / Total
+       * 12-13 Balance: Principal / Interest
+       * 14 New Loan
+       * 15 Closing Loan Balance
+       */
+      const columnCount=15;
+      const widths=Array(columnCount).fill(totalWidth/columnCount);
       const colStyle=widths.map(w=>`<col style="width:${w.toFixed(3)}pt">`).join("");
       const pageStyle=
-        `--cumulative-dcb-width:834.500pt;`+
+        `--cumulative-dcb-width:${totalWidth.toFixed(3)}pt;`+
         `--cumulative-dcb-left:${MARGIN.toFixed(3)}pt;`+
         `--cumulative-dcb-right:${MARGIN.toFixed(3)}pt;`;
 
-      const totals=Array(12).fill(0);
+      /* Numeric columns 3 through 15 = 13 columns. */
+      const totals=Array(13).fill(0);
       const rows=[];
 
       v.shgs.forEach((s,i)=>{
@@ -2332,55 +2132,91 @@ html,body{
         const marchCandidate=s.months[MONTHS[MONTHS.length-1][0]]||null;
         const march=monthIsConsidered(marchCandidate)?marchCandidate:null;
 
-        let combinedP=0,combinedI=0;
         let collectP=0,collectI=0,newLoan=0;
-
-        // Cumulative DCB demand must show the LAST ENTERED MONTH's
-        // Previous + Current values, not a sum of all months.
-        let lastEnteredMonthIndex=-1;
         let lastEntered=null;
 
-        MONTHS.forEach((m,mi)=>{
+        /*
+         * Cumulative DCB demand is represented by the latest entered month's
+         * previous due + current demand. Collections and new loans are the
+         * cumulative sums across all entered months.
+         */
+        MONTHS.forEach(m=>{
           const d=s.months[m[0]];
           if(!monthIsConsidered(d))return;
 
-          lastEnteredMonthIndex=mi;
           lastEntered=d;
-
           collectP+=Number(d.principalCollection)||0;
           collectI+=Number(d.interestCollection)||0;
           newLoan+=Number(d.newLoan)||0;
         });
 
-        if(lastEntered){
-          const prevP=Number(lastEntered.prevPrincipal)||0;
-          const prevI=Number(lastEntered.prevInterest)||0;
-          const dp=Number(lastEntered.demandPrincipal)||0;
-          const di=Number(lastEntered.demandInterest)||0;
-
-          combinedP=prevP+dp;
-          combinedI=prevI+di;
-        }
-
         const opening=Number(april.opening)||0;
+
+        /*
+         * CUMULATIVE DCB - PREVIOUS DUE
+         * --------------------------------
+         * "గత బకాయి" must ALWAYS be taken from APRIL:
+         *   Previous Due Principal -> April prevPrincipal
+         *   Previous Due Interest  -> April prevInterest
+         *
+         * Do not use the latest month's previous due for these two columns.
+         */
         const previousP=Number(april.prevPrincipal)||0;
         const previousI=Number(april.prevInterest)||0;
-        const marchCalc=march?calc(march):null;
 
-        const balanceP=combinedP-collectP;
-        const balanceI=combinedI-collectI;
-        const totalCollection=collectP+collectI;
+        /*
+         * CUMULATIVE DCB:
+         * Column 6 = Column 4 (April Previous Due Principal)
+         *             + Column 6's demand value accumulated so far.
+         *
+         * Column 7 = Column 5 (April Previous Due Interest)
+         *             + Column 7's demand value accumulated so far.
+         *
+         * In other words:
+         *   Column 6 = Previous Due Principal + cumulative Demand Principal
+         *   Column 7 = Previous Due Interest  + cumulative Demand Interest
+         *
+         * The separate Previous Due columns remain the April values.
+         */
+        let cumulativeDemandP=0;
+        let cumulativeDemandI=0;
+
+        MONTHS.forEach(m=>{
+          const d=s.months[m[0]];
+          if(!monthIsConsidered(d))return;
+
+          cumulativeDemandP += Number(d.demandPrincipal)||0;
+          cumulativeDemandI += Number(d.demandInterest)||0;
+        });
+
+        const combinedP=
+          (Number(previousP)||0) + cumulativeDemandP;
+
+        const combinedI=
+          (Number(previousI)||0) + cumulativeDemandI;
+
+        const totalDemand=
+          (Number(combinedP)||0) + (Number(combinedI)||0);
+
+        const totalCollection=
+          (Number(collectP)||0) + (Number(collectI)||0);
+        const balanceP=(Number(combinedP)||0)-(Number(collectP)||0);
+        const balanceI=(Number(combinedI)||0)-(Number(collectI)||0);
+
+        const marchCalc=march?calc(march):null;
         const closing=marchCalc
-          ? marchCalc.totalLoanBalance
+          ? Number(marchCalc.totalLoanBalance)||0
           : opening-collectP+newLoan;
 
+        /* Exactly 13 numeric cells after S.No + SHG Name. */
         const vals=[
           opening,
-          combinedP,combinedI,combinedP+combinedI,
+          previousP,previousI,
+          combinedP,combinedI,totalDemand,
           collectP,collectI,totalCollection,
           balanceP,balanceI,
-          newLoan,closing,
-          newLoan+closing+balanceP+balanceI
+          newLoan,
+          closing
         ];
 
         vals.forEach((n,j)=>totals[j]+=Number(n)||0);
@@ -2396,11 +2232,16 @@ html,body{
 
       const MAX_ROWS=25;
       const chunks=[];
-      for(let i=0;i<rows.length;i+=MAX_ROWS)chunks.push(rows.slice(i,i+MAX_ROWS));
+      for(let i=0;i<rows.length;i+=MAX_ROWS){
+        chunks.push(rows.slice(i,i+MAX_ROWS));
+      }
       if(!chunks.length)chunks.push([]);
 
       const totalCells=totals.map(n=>`<td>${fmt(n)}</td>`).join("");
-      const nums=["1","2","3","4","5","6","7","8","9","10","11","12","13","14"];
+      const nums=[
+        "1","2","3","4","5","6","7","8","9","10",
+        "11","12","13","14","15"
+      ];
 
       let out="";
 
@@ -2417,7 +2258,7 @@ html,body{
                   VO : ${esc(v.name)},&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;గ్రామం : ${esc(v.village||"")},&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;మండలం : ${esc(v.mandal||"")}
                 </div>
                 <div class="cumulative-dcb-head-right">
-                  Cumulative DCB-2026-27
+                  Cumulative DCB 2026-27
                 </div>
               </div>
 
@@ -2425,30 +2266,60 @@ html,body{
                 <colgroup>${colStyle}</colgroup>
                 <thead>
                   <tr class="group-head">
-                    <th rowspan="2">SL No</th>
+                    <th rowspan="2">S.No</th>
                     <th rowspan="2"><span class="telugu">SHG పేరు</span></th>
-                    <th rowspan="2"><span class="telugu">ప్రారంభపు<br>అప్పు నిల్వ</span></th>
-                    <th colspan="3"><span class="telugu">గత బకాయి తో కలిపి ఈ నెల<br>వరకు మొత్తం డిమాండ్</span></th>
-                    <th colspan="3"><span class="telugu">ఈ నెల<br>వరకు మొత్తం మొత్తం కలెక్షన్ వివరాలు</span></th>
-                    <th colspan="2"><span class="telugu">మొత్తం బకాయి</span></th>
-                    <th rowspan="2"><span class="telugu">కొత్త<br>అప్పు</span></th>
-                    <th rowspan="2"><span class="telugu">అప్పు నిల్వ</span></th>
-                    <th rowspan="2"><span class="telugu">మొత్తం<br>బకాయి</span></th>
+                    <th rowspan="2"><span class="telugu">ప్రారంభ<br>అప్పు నిల్వ</span></th>
+
+                    <th colspan="2">
+                      <span class="telugu">గత బకాయి</span>
+                    </th>
+
+                    <th colspan="3">
+                      <span class="telugu">గత బకాయి తో కలిపి <br>ఇప్పటి వరకు డిమాండ్</span>
+                    </th>
+
+                    <th colspan="3">
+                      <span class="telugu">కలెక్షన్</span>
+                    </th>
+
+                    <th colspan="2">
+                      <span class="telugu">బకాయి</span>
+                    </th>
+
+                    <th rowspan="2">
+                      <span class="telugu">కొత్త<br>అప్పు</span>
+                    </th>
+
+                    <th rowspan="2">
+                      <span class="telugu">ముగింపు అప్పు<br>నిల్వ</span>
+                    </th>
                   </tr>
+
                   <tr class="sub-head">
+                    <!-- Previous Due -->
+                    <th><span class="telugu">అసలు</span></th>
+                    <th><span class="telugu">వడ్డీ</span></th>
+
+                    <!-- Previous + Current Demand -->
                     <th><span class="telugu">అసలు</span></th>
                     <th><span class="telugu">వడ్డీ</span></th>
                     <th><span class="telugu">మొత్తం</span></th>
+
+                    <!-- Collection -->
                     <th><span class="telugu">అసలు</span></th>
                     <th><span class="telugu">వడ్డీ</span></th>
                     <th><span class="telugu">మొత్తం</span></th>
+
+                    <!-- Balance -->
                     <th><span class="telugu">అసలు</span></th>
                     <th><span class="telugu">వడ్డీ</span></th>
                   </tr>
+
                   <tr class="number-head">
                     ${nums.map(n=>`<td>${n}</td>`).join("")}
                   </tr>
                 </thead>
+
                 <tbody>
                   ${chunk.join("")}
                   ${last?`<tr class="total"><td></td><td>మొత్తం</td>${totalCells}</tr>`:""}
@@ -2546,7 +2417,7 @@ html,body{
               <div class="ledger-blank"></div>
 
               <div class="ledger-title-row">
-                <div class="ledger-title telugu">నాగలక్ష్మి VO - అప్పు లెడ్జర్ 2026-27</div>
+                <div class="ledger-title telugu">${esc(v.name||"")} VO - అప్పు లెడ్జర్ 2026-27</div>
                 <div class="page-label">Page No:</div>
                 <div class="page-number">${si+1}</div>
               </div>
@@ -2584,7 +2455,7 @@ html,body{
                   <tr class="group-head">
                     <th rowspan="2">S.N</th>
                     <th rowspan="2" class="telugu">తేది</th>
-                    <th rowspan="2" class="telugu">ప్రారంభపు అప్పు<br>నిల్వ</th>
+                    <th rowspan="2" class="telugu">ప్రారంభ అప్పు<br>నిల్వ</th>
                     <th colspan="2" class="telugu">గత నెల బకాయి + ఈ<br>నెల డిమాండ్</th>
                     <th colspan="3" class="telugu">ఈ నెల కలెక్షన్ వివరాలు</th>
                     <th colspan="2" class="telugu">బకాయి</th>
@@ -2641,6 +2512,28 @@ html,body{
       const m=e.target.id&&e.target.id.match(/^(prevP|prevI|demandP)-(\d+)$/);
       if(m && typeof window.recalc==="function") window.recalc(Number(m[2]));
     });
+
+
+    /* Universal button animation engine: covers static and dynamically-created buttons. */
+    document.addEventListener("click",function(e){
+      const button=e.target.closest("button");
+      if(!button || button.disabled)return;
+
+      const rect=button.getBoundingClientRect();
+      const ripple=document.createElement("span");
+      ripple.className="button-ripple";
+      ripple.style.left=(e.clientX-rect.left)+"px";
+      ripple.style.top=(e.clientY-rect.top)+"px";
+      button.appendChild(ripple);
+      ripple.addEventListener("animationend",()=>ripple.remove(),{once:true});
+
+      /* A visible click bounce for every action without changing its behavior. */
+      button.classList.remove("button-success-flash");
+      void button.offsetWidth;
+      button.classList.add("button-success-flash");
+      setTimeout(()=>button.classList.remove("button-success-flash"),600);
+    },true);
+
     refresh();
     })();
 </script>
