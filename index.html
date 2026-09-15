@@ -1,0 +1,1543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VO & SHG Accounting</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Gidugu&display=swap');
+                *{box-sizing:border-box}body{margin:0;font-family:Arial,"Noto Sans",sans-serif;background:#f4f6f8;color:#202733}
+        header{background:#17365d;color:#fff;padding:16px 22px}header h1{margin:0;font-size:22px}
+        main{max-width:1500px;margin:18px auto;padding:0 14px}.card{background:#fff;border:1px solid #d5dce4;border-radius:9px;padding:18px;margin-bottom:16px}
+        h2{margin:0 0 14px}.toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:end}.field{min-width:220px;flex:1}
+        /* Compact controls: use about half the page on the desktop. */
+        #voDetailsToolbar:not(.show-details){max-width:50%;}
+        #shgToolbar{max-width:50%;}
+        @media(max-width:900px){#voDetailsToolbar:not(.show-details),#shgToolbar{max-width:100%;}}
+        label{display:block;font-size:12px;font-weight:bold;margin-bottom:5px}
+/* Keep VO Name, Village, Mandal and District hidden on the initial page. */
+#voName,#voName + *,
+#village,#village + *,
+#mandal,#mandal + *,
+#district,#district + *{
+}
+.initial-hidden-field{display:none!important}
+#voDetailsToolbar.show-details .initial-hidden-field{display:block!important}
+        input,select{width:100%;padding:9px;border:1px solid #aeb8c4;border-radius:6px;font-size:14px;background:#fff}
+        button{padding:9px 13px;border:0;border-radius:6px;font-weight:bold;cursor:pointer}
+        .primary{background:#1769aa;color:#fff}.success{background:#18864b;color:#fff}.secondary{background:#e6ebf1;color:#263445}.danger{background:#c62828;color:#fff}.warning{background:#b87300;color:#fff}
+        .hidden{display:none!important}.notice{padding:10px;background:#fff8dd;border:1px solid #ead37d;border-radius:6px;font-size:13px;margin-bottom:12px}
+        .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.months{display:flex;gap:5px;flex-wrap:wrap;margin:10px 0}.months button{background:#e6ebf1}.months button.active{background:#1769aa;color:#fff}
+        .tablewrap{overflow:auto}.entry{border-collapse:collapse;width:100%;min-width:1450px}
+
+.entry th:nth-child(2),.entry td:nth-child(2){
+  border-left:0!important;
+}
+.shg-delete-btn{
+  white-space:nowrap;
+  padding:4px 8px!important;
+  font-size:11px!important;
+}
+
+/* Automatically freeze S.No and SHG Name while horizontally scrolling. */
+.tablewrap{position:relative;overflow:auto;max-width:100%}
+.entry th:first-child,.entry td:first-child{
+  position:sticky;
+  left:0;
+  z-index:3;
+  background:#fff;
+}
+.entry th:nth-child(2),.entry td:nth-child(2){
+  position:sticky;
+  left:55px;
+  z-index:3;
+  background:#fff;
+}
+.entry th:first-child,.entry th:nth-child(2){
+  background:#edf1f5;
+  z-index:5;
+}
+.entry td:first-child,.entry td:nth-child(2){
+  box-shadow:1px 0 0 #c3cad2;
+}
+
+/* Keep the divider between the frozen SHG Name column and Delete
+   visible even after horizontal scrolling. */
+.entry th:nth-child(2),.entry td:nth-child(2){
+  position:sticky;
+  left:55px;
+  z-index:6;
+  background:#fff;
+}
+.entry th:nth-child(2){
+  background:#edf1f5;
+}
+.entry td:nth-child(2)::before,.entry th:nth-child(2)::before{
+  content:"";
+  position:absolute;
+  top:-1px;
+  left:-1px;
+  bottom:-1px;
+  width:1px;
+  background:#c3cad2;
+  pointer-events:none;
+  z-index:10;
+}
+.entry td:nth-child(2)::after,.entry th:nth-child(2)::after{
+  content:"";
+  position:absolute;
+  top:-1px;
+  right:-1px;
+  bottom:-1px;
+  width:1px;
+  background:#c3cad2;
+  pointer-events:none;
+  z-index:10;
+}
+
+.entry th,.entry td{border:1px solid #c3cad2;padding:5px;font-size:11px;text-align:right}.entry th{text-align:center;background:#edf1f5}.entry th:first-child,.entry td:first-child{width:55px;min-width:55px;max-width:55px;text-align:center}.entry th:nth-child(2),.entry td:nth-child(2){width:150px;min-width:150px}.entry th:nth-child(3),.entry td:nth-child(3){width:72px;min-width:72px;max-width:72px;text-align:center}.entry input{min-width:80px;padding:6px;font-size:11px;text-align:right}.entry .name{min-width:150px;text-align:left;font-weight:bold}input:disabled{background:#eee;color:#555;cursor:not-allowed;}
+        .telugu{font-family:"Gidugu",sans-serif}
+        .calc{font-weight:bold}.entry input.calc{width:100%;min-width:80px;padding:6px;font-size:11px;text-align:right}
+        .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.small{font-size:12px;color:#667085}.ok{color:#18864b;font-weight:bold}
+        .remove-shg{background:#c62828;color:#fff;padding:6px 9px;font-size:11px}
+        @media(max-width:900px){.grid4{grid-template-columns:repeat(2,1fr)}}@media(max-width:600px){.grid4{grid-template-columns:1fr}}
+    </style>
+</head>
+<body>
+<header><h1>VO DCB & LL Dashboard</h1></header>
+<main>
+
+    <section class="card">
+        <h2>VO Details</h2>
+
+        <div class="toolbar" id="voDetailsToolbar">
+            <div class="field">
+                <label>Existing VO</label>
+                <select id="voSelect">
+                    <option value="">-- Select existing VO --</option>
+                </select>
+            </div>
+
+            <div class="field initial-hidden-field">
+                <label>VO Name</label>
+                <input id="voName" placeholder="VO Name">
+            </div>
+
+            <div class="field initial-hidden-field">
+                <label>Village <span style="color:#c62828">*</span></label>
+                <input id="village" placeholder="Village">
+            </div>
+
+            <div class="field initial-hidden-field">
+                <label>Mandal <span style="color:#c62828">*</span></label>
+                <input id="mandal" placeholder="Mandal">
+            </div>
+
+            <div class="field initial-hidden-field">
+                <label>District</label>
+                <input id="district" placeholder="District">
+            </div>
+        </div>
+
+        <div class="actions">
+            <button type="button" class="primary" id="newVoBtn">+ New VO</button>
+            <button type="button" class="success" id="saveVoBtn">Save VO</button>
+            <button type="button" class="danger" id="resetBtn">Reset All</button>
+            <span id="saveStatus" class="small"></span>
+        </div>
+
+        <div id="newVoForm" class="hidden" style="margin-top:14px">
+            <div class="toolbar">
+                <div class="field">
+                    <label>New VO Name</label>
+                    <input id="newVoName" placeholder="Enter new VO name">
+                </div>
+                <button type="button" class="success" id="createVoBtn">Create VO</button>
+                <button type="button" class="secondary" id="cancelVoBtn">Cancel</button>
+            </div>
+        </div>
+    </section>
+
+    <section id="dashboard" class="hidden">
+        <br>
+        <div class="card">
+            <h2>SHG Wise Monthly Collection Data</h2>
+            <div class="notice">Add SHGs here on the same dashboard. Type the name and press <b>Enter</b> or click <b>+
+                Add SHG</b>. The new SHG immediately becomes a row in the table.
+            </div>
+            <div class="toolbar" id="shgToolbar">
+                <div class="field"><label>Add SHG Name</label><input id="shgNameInput" placeholder="SHG Name"></div>
+                <button type="button" class="success" id="addShgBtn">+ Add SHG</button>
+                <div class="field" style="max-width:180px"><label>Interest Rate (%)</label><input id="shgRateInput" oninput="updateInterestRateLive()"
+                                                                                                  type="number" min="0"
+                                                                                                  max="100" step="0.01"
+                                                                                                  value="12"></div>
+
+            </div>
+            <div class="months" id="monthTabs"></div>
+            <div class="tablewrap">
+                <table class="entry">
+                    <thead>
+                    <tr>
+                        <th>S.No</th>
+                        <th>SHG Name</th>
+                        <th>Delete</th>
+                        <th>Opening<br>Loan Balance</th>
+                        <th>Previous Due<br>Principal</th>
+                        <th>Previous Due<br>Interest</th>
+                        <th>Current Month<br>Principal</th>
+                        <th>Current Month<br>Interest</th>
+                        <th>Previous + Current <br> Principal</th>
+                        <th>Previous + Current <br> Interest</th>
+                        <th>Principal<br>Collection</th>
+                        <th>Interest<br>Collection</th>
+                        <th>New<br>Loan</th>
+                        <th>Closing<br>Loan Balance</th>
+                        <th>Save</th>
+                        <!-- <th>Total<br>Collection</th><th>Total Loan<br>Balance</th><th>Save</th>-->
+                    </tr>
+                    </thead>
+                    <tbody id="entryBody"></tbody>
+                </table>
+            </div>
+            <div class="actions">
+                <button type="button" class="primary" id="saveAllBtn">Save All SHGs – All Months</button>
+                <button type="button" class="warning" id="monthlyPdfBtn">Monthly DCB PDF – 12 Pages</button>
+                <button type="button" class="warning" id="ledgerPdfBtn">Loan Ledger PDF – All SHGs</button>
+                <button type="button" class="secondary" id="backupBtn">Export Backup</button>
+                <button type="button" class="secondary" id="importBtn">Import Backup</button>
+                <input id="fileInput" type="file" accept=".json" class="hidden">
+            </div>
+        </div>
+    </section>
+</main>
+
+<script>
+    (function(){
+    "use strict";
+    const KEY="vo_shg_accounting_v18";
+    const MONTHS=[["Apr-26","April-2026"],["May-26","May-2026"],["Jun-26","June-2026"],["Jul-26","July-2026"],["Aug-26","August-2026"],["Sep-26","September-2026"],["Oct-26","October-2026"],["Nov-26","November-2026"],["Dec-26","December-2026"],["Jan-27","January-2027"],["Feb-27","February-2027"],["Mar-27","March-2027"]];
+    let db=readDb(), selectedVOId=null, monthIndex=0, dirty=false;
+
+    function readDb(){try{const x=JSON.parse(localStorage.getItem(KEY));if(x&&Array.isArray(x.vos))return x}catch(e){}return{vos:[]};}
+    function writeDb(){localStorage.setItem(KEY,JSON.stringify(db));}
+    function vo(){return db.vos.find(v=>v.id===selectedVOId)||null;}
+    function markDirty(){dirty=true;updateDirtyUI();}
+    function markClean(){dirty=false;updateDirtyUI();}
+    function updateDirtyUI(){const el=document.getElementById("saveStatus");if(el&&dirty)el.textContent="Unsaved changes";}
+    function saveCurrentScreen(){
+      const v=vo();if(!v)return false;
+      const name=document.getElementById("voName").value.trim(),village=document.getElementById("village").value.trim(),mandal=document.getElementById("mandal").value.trim();
+      if(!name){alert("VO Name is required.");document.getElementById("voName").focus();return false;}
+      if(!village){alert("Village is required.");document.getElementById("village").focus();return false;}
+      if(!mandal){alert("Mandal is required.");document.getElementById("mandal").focus();return false;}
+      v.name=name;v.village=village;v.mandal=mandal;v.district=document.getElementById("district").value.trim();
+
+      const rateInput=document.getElementById("shgRateInput");
+      const currentRate=rateInput?Number(rateInput.value):12;
+      if(!Number.isFinite(currentRate)||currentRate<0||currentRate>100){alert("Enter a valid interest rate between 0 and 100%.");if(rateInput)rateInput.focus();return false;}
+      v.interestRate=currentRate;
+      v.shgs.forEach((s,i)=>{
+        const n=document.getElementById("name-"+i);if(n&&n.value.trim())s.name=n.value.trim();
+        s.interestRate=currentRate;
+        const key=MONTHS[monthIndex][0];
+        const raw=getRowData(i);
+        if(monthIndex>0){
+          const prev=s.months[MONTHS[monthIndex-1][0]]||blank();
+          const pc=calc(prev);
+          const aprilData=s.months[MONTHS[0][0]]||blank();
+          raw.opening=pc.totalLoanBalance;
+          raw.prevPrincipal=pc.balancePrincipal;
+          raw.prevInterest=pc.balanceInterest;
+          // Principal demand repeats April's This Month Principal; interest is recalculated from this month's opening balance and the SHG rate.
+          raw.demandPrincipal=aprilData.demandPrincipal;
+        }
+        raw.demandInterest=monthlyInterest(raw.opening,s.interestRate);
+        s.months[key]=raw;
+      });
+      writeDb();refreshVOSelect();markClean();document.getElementById("saveStatus").textContent="Saved";return true;
+    }
+
+    function confirmSwitch(action){
+      if(!dirty)return true;
+      const proceed=confirm(
+        "You have unsaved changes.\n\n" +
+        "If you continue without saving, your current unsaved VO data will be LOST.\n\n"
+      );
+      if(proceed){
+        db=readDb();
+        return true;
+      }
+      return false;
+    }
+    window.addEventListener("beforeunload",function(e){if(dirty){e.preventDefault();e.returnValue="Unsaved changes will be lost.";}});
+
+    function blank(){return{opening:0,prevPrincipal:0,prevInterest:0,demandPrincipal:0,demandInterest:0,principalCollection:0,interestCollection:0,newLoan:0};}
+    function num(id){return Number(document.getElementById(id).value)||0;}
+    function monthlyInterest(opening, rate){return Math.round((Number(opening)||0)*(Number(rate)||0)/100/12);}
+    function fmt(n){return Number(n||0).toLocaleString("en-IN",{minimumFractionDigits:0,maximumFractionDigits:0});}
+    function esc(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+    function calc(d){return{balancePrincipal:d.prevPrincipal+d.demandPrincipal-d.principalCollection,balanceInterest:d.prevInterest+d.demandInterest-d.interestCollection,totalCollection:d.principalCollection+d.interestCollection,totalLoanBalance:d.opening-d.principalCollection+d.newLoan};}
+
+    function refreshVOSelect(){
+     const s=document.getElementById("voSelect");s.innerHTML='<option value="">-- Select existing VO --</option>';
+     db.vos.forEach(v=>{const o=document.createElement("option");o.value=v.id;o.textContent=v.name||"(Unnamed VO)";s.appendChild(o);});
+     s.value=selectedVOId||"";
+    }
+    function refresh(){
+     refreshVOSelect();
+     const v=vo(),dash=document.getElementById("dashboard");
+     if(v && (v.interestRate===undefined||v.interestRate===null) && v.shgs.length) v.interestRate=Number(v.shgs[0].interestRate||12);
+     dash.classList.toggle("hidden",!v);
+     if(!v)return;
+     document.getElementById("voName").value=v.name;
+     document.getElementById("village").value=v.village||"";
+     document.getElementById("mandal").value=v.mandal||"";
+     document.getElementById("district").value=v.district||"";
+     const rateInput=document.getElementById("shgRateInput");
+     if(rateInput) rateInput.value=(v.interestRate!==undefined&&v.interestRate!==null)?v.interestRate:(v.shgs[0]&&v.shgs[0].interestRate!==undefined?v.shgs[0].interestRate:12);
+     renderMonths();renderRows();
+    }
+
+    function createVO(){
+      const name=document.getElementById("newVoName").value.trim();
+      if(!name){alert("Enter a VO name.");return;}
+      if(db.vos.some(x=>String(x.name||"").trim().toLowerCase()===name.toLowerCase())){alert("A VO with this name already exists. Select it from the dropdown.");return;}
+      const v={id:"VO-"+Date.now()+"-"+Math.random().toString(36).slice(2),name:name,village:"",mandal:"",district:"",shgs:[]};
+      db.vos.push(v);selectedVOId=v.id;monthIndex=0;
+      document.getElementById("newVoName").value="";
+      document.getElementById("newVoForm").classList.add("hidden");
+      refresh();document.getElementById("voDetailsToolbar").classList.add("show-details");markDirty();
+      setTimeout(()=>document.getElementById("village").focus(),50);
+    }
+
+    function updateInterestRateLive(){
+      const v=vo(),el=document.getElementById("shgRateInput");if(!v||!el)return;
+      const rate=Number(el.value);
+      if(!Number.isFinite(rate)||rate<0||rate>100)return;
+      v.interestRate=rate;v.shgs.forEach(s=>s.interestRate=rate);
+      renderRows();markDirty();
+    }
+
+    function addSHG(){
+      const v=vo();if(!v){alert("Please create or select a VO first.");return;}
+      const input=document.getElementById("shgNameInput");
+      const rateInput=document.getElementById("shgRateInput");
+      const name=input.value.trim();
+      const rate=Number(rateInput.value);
+      if(!name){alert("Type SHG name first.");input.focus();return;}
+      if(!Number.isFinite(rate)||rate<0||rate>100){alert("Enter a valid interest rate between 0 and 100%.");rateInput.focus();return;}
+      if(v.shgs.some(s=>String(s.name||"").trim().toLowerCase()===name.toLowerCase())){alert("That SHG already exists in this VO.");input.select();return;}
+      v.shgs.push({id:"SHG-"+Date.now()+"-"+Math.random().toString(36).slice(2),name:name,interestRate:rate,months:{}});
+      input.value="";v.interestRate=rate;markDirty();renderRows();
+      document.getElementById("saveStatus").textContent="SHG added — save to keep changes";
+      input.focus();
+    }
+
+    function renderMonths(){
+     const box=document.getElementById("monthTabs");box.innerHTML="";
+     MONTHS.forEach((m,i)=>{const b=document.createElement("button");b.type="button";b.textContent=m[0];if(i===monthIndex)b.classList.add("active");b.onclick=()=>{if(dirty&&!saveCurrentScreen())return;monthIndex=i;renderMonths();renderRows();};box.appendChild(b);});
+    }
+
+    function getRowData(i){
+     const vals={};
+     ["opening","prevP","prevI","demandP","demandI","collectP","collectI","newLoan"].forEach(k=>{
+       const el=document.getElementById(k+"-"+i); vals[k]=el?Number(el.value)||0:0;
+     });
+     return {opening:vals.opening,prevPrincipal:vals.prevP,prevInterest:vals.prevI,demandPrincipal:vals.demandP,demandInterest:vals.demandI,principalCollection:vals.collectP,interestCollection:vals.collectI,newLoan:vals.newLoan};
+    }
+
+    function renderRows(){
+     const body=document.getElementById("entryBody");body.innerHTML="";
+     const v=vo();if(!v)return;
+     if(!Array.isArray(v.shgs))v.shgs=[];
+     const april=(monthIndex===0);
+     v.shgs.forEach((s,i)=>{
+      if(s.interestRate===undefined||s.interestRate===null||s.interestRate==="")s.interestRate=12;
+      const key=MONTHS[monthIndex][0],saved=s.months[key],d=saved||blank();
+
+      // For April the user enters the starting/demand fields.
+      // For May-March these are derived from the previous month's remaining balance.
+      let opening=d.opening, prevP=d.prevPrincipal, prevI=d.prevInterest, demandP=d.demandPrincipal;
+      if(!april){
+        const prev=s.months[MONTHS[monthIndex-1][0]]||blank();
+        const pc=calc(prev);
+        opening=pc.totalLoanBalance;
+        prevP=pc.balancePrincipal;
+        prevI=pc.balanceInterest;
+        const aprilData=s.months[MONTHS[0][0]]||blank();
+        demandP=aprilData.demandPrincipal;
+      }
+      // This Month Interest is always calculated from Opening Loan Balance and the SHG rate.
+      const demandI=monthlyInterest(opening,s.interestRate);
+      const c=calc({opening,prevPrincipal:prevP,prevInterest:prevI,demandPrincipal:demandP,demandInterest:demandI,principalCollection:d.principalCollection,interestCollection:d.interestCollection,newLoan:d.newLoan});
+      const totalDemandP=prevP+demandP;
+      const totalDemandI=prevI+demandI;
+
+      const locked=(x)=>x?' disabled':'';
+      const tr=document.createElement("tr");tr.id="row-"+i;
+      tr.innerHTML=
+      '<td>'+(i+1)+'</td>'+
+      '<td><input class="name" id="name-'+i+'" value="'+esc(s.name)+'"'+locked(!april)+'></td>'+
+      '<td><button type="button" class="danger shg-delete-btn" onclick="window.deleteSHG('+i+')">Delete</button></td>'+
+      '<td><input type="number" id="opening-'+i+'" value="'+opening+'"'+locked(!april)+' oninput="window.recalc('+i+')"></td>'+
+      '<td><input type="number" id="prevP-'+i+'" value="'+prevP+'"'+locked(!april)+' oninput="window.recalc('+i+')"></td>'+
+      '<td><input type="number" id="prevI-'+i+'" value="'+prevI+'"'+locked(!april)+' oninput="window.recalc('+i+')"></td>'+
+      '<td><input type="number" id="demandP-'+i+'" value="'+demandP+'"'+locked(!april)+' oninput="window.recalc('+i+')"></td>'+
+      '<td><input type="number" id="demandI-'+i+'" value="'+demandI+'" disabled></td>'+
+      '<td><input type="number" id="totalDP-'+i+'" value="'+totalDemandP+'" disabled></td>'+
+      '<td><input type="number" id="totalDI-'+i+'" value="'+totalDemandI+'" disabled></td>'+
+      '<td><input type="number" id="collectP-'+i+'" value="'+d.principalCollection+'" oninput="window.recalc('+i+')"></td>'+
+      '<td><input type="number" id="collectI-'+i+'" value="'+d.interestCollection+'" oninput="window.recalc('+i+')"></td>'+
+      '<td><input type="number" id="newLoan-'+i+'" value="'+d.newLoan+'" oninput="window.recalc('+i+')"></td>'+
+
+      '<td class="calc" id="totalL-'+i+'">'+fmt(c.totalLoanBalance)+'</td>'+
+      '<td><button type="button" class="success" onclick="window.saveRow('+i+')">Save</button></td>';
+      body.appendChild(tr);
+     });
+     if(!v.shgs.length)body.innerHTML='<tr><td colspan="17" style="text-align:center;padding:22px">No SHGs. Add the first SHG above.</td></tr>';
+    }
+
+    window.recalc=function(i){
+     const v=vo();if(!v)return;
+     const d=getRowData(i);
+     const rateEl=document.getElementById("shgRateInput");
+     const liveRate=rateEl?Number(rateEl.value):Number(v.interestRate!==undefined?v.interestRate:(v.shgs[i].interestRate||0));
+     const rate=Number.isFinite(liveRate)&&liveRate>=0?liveRate:0;
+     if(Number.isFinite(liveRate)&&liveRate>=0&&liveRate<=100){v.interestRate=liveRate;v.shgs.forEach(s=>s.interestRate=liveRate);}
+     markDirty();
+     const april=(monthIndex===0);
+     let prevP=d.prevPrincipal,prevI=d.prevInterest;
+     if(!april){
+       const prev=safePrevMonth(v.shgs[i],monthIndex);
+       if(prev){const pc=calc(prev);prevP=pc.balancePrincipal;prevI=pc.balanceInterest;}
+     }
+     let demandP=d.demandPrincipal;
+     if(!april){
+       const aprilData=v.shgs[i].months[MONTHS[0][0]]||blank();
+       demandP=aprilData.demandPrincipal;
+     }
+     const opening = april ? d.opening : (safePrevMonth(v.shgs[i],monthIndex) ? calc(safePrevMonth(v.shgs[i],monthIndex)).totalLoanBalance : d.opening);
+     const demandI=monthlyInterest(opening,rate);
+     const interestEl=document.getElementById("demandI-"+i);
+     if(interestEl)interestEl.value=demandI;
+     const totalDP=prevP+demandP,totalDI=prevI+demandI;
+     const c=calc({...d,opening,prevPrincipal:prevP,prevInterest:prevI,demandPrincipal:demandP,demandInterest:demandI});
+     const ids=[["totalDP",totalDP],["totalDI",totalDI],["balP",c.balancePrincipal],["balI",c.balanceInterest],["totalC",c.totalCollection],["totalL",c.totalLoanBalance]];
+     ids.forEach(([id,val])=>{
+        const el=document.getElementById(id+"-"+i);
+        if(el){
+          if(el.tagName==="INPUT") el.value=Number(val||0);
+          else el.textContent=fmt(val);
+        }
+      });
+    }
+    function safePrevMonth(shg,idx){
+     if(!shg||idx<=0)return null;
+     return shg.months[MONTHS[idx-1][0]]||null;
+    }
+
+
+    window.deleteSHG=function(i){
+      const v=vo();
+      if(!v||!v.shgs[i])return;
+      const name=String(v.shgs[i].name||"").trim()||("SHG "+(i+1));
+      if(!confirm("Delete "+name+"?\n\nThis will permanently remove this SHG and all of its monthly data from the current VO."))return;
+      v.shgs.splice(i,1);
+      writeDb();
+      markClean();
+      renderRows();
+      document.getElementById("saveStatus").textContent="Deleted "+name;
+    };
+
+    function saveVisibleNamesOnly(){const v=vo();if(!v)return;v.shgs.forEach((s,i)=>{const n=document.getElementById("name-"+i);if(n&&n.value.trim())s.name=n.value.trim();});writeDb();}
+    window.saveRow=function(i){
+     const v=vo();if(!v)return;
+     const s=v.shgs[i],name=document.getElementById("name-"+i).value.trim();
+     if(!name){alert("SHG name cannot be blank.");return;}
+     const rateEl=document.getElementById("shgRateInput"),rate=rateEl?Number(rateEl.value):Number(v.interestRate!==undefined?v.interestRate:(s.interestRate||0));
+     if(!Number.isFinite(rate)||rate<0||rate>100){alert("Enter a valid interest rate between 0 and 100%.");if(rateEl)rateEl.focus();return;}
+     v.interestRate=rate;v.shgs.forEach(x=>x.interestRate=rate);
+     const raw=getRowData(i);
+     if(monthIndex>0){
+       const prev=s.months[MONTHS[monthIndex-1][0]]||blank(),pc=calc(prev);
+       const aprilData=s.months[MONTHS[0][0]]||blank();
+       raw.opening=pc.totalLoanBalance;raw.prevPrincipal=pc.balancePrincipal;raw.prevInterest=pc.balanceInterest;
+       raw.demandPrincipal=aprilData.demandPrincipal;
+     }
+     // Always calculate this month's interest from opening loan balance and the saved SHG rate.
+     raw.demandInterest=monthlyInterest(raw.opening,s.interestRate);
+     s.name=name;s.months[MONTHS[monthIndex][0]]=raw;writeDb();markClean();
+     document.getElementById("saveStatus").textContent="Saved "+name+" – "+MONTHS[monthIndex][0];
+    }
+
+    window.removeSHG=function(i){
+      const v=vo();if(!v||!v.shgs[i])return;
+      const name=v.shgs[i].name||("SHG "+(i+1));
+      if(!confirm('Remove SHG "'+name+'"?\n\nAll monthly data for this SHG will be deleted from this VO.'))return;
+      v.shgs.splice(i,1);
+      writeDb();
+      markDirty();
+      renderRows();
+      document.getElementById("saveStatus").textContent="SHG removed — save to keep changes";
+    };
+
+    function saveAll(){
+      const v=vo();
+      if(!v)return;
+
+      /* First capture whatever is currently being edited on screen. */
+      if(!saveCurrentScreen())return;
+
+      const rateInput=document.getElementById("shgRateInput");
+      const rate=rateInput?Number(rateInput.value):Number(v.interestRate||12);
+      if(!Number.isFinite(rate)||rate<0||rate>100){
+        alert("Enter a valid interest rate between 0 and 100%.");
+        if(rateInput)rateInput.focus();
+        return;
+      }
+
+      v.interestRate=rate;
+
+      /*
+       * Persist/refresh every already-entered month for every SHG.
+       * Months are stored independently, while May-27 onward derived
+       * values are recalculated from the previous month's saved data.
+       * This makes Save All SHGs an actual all-month save operation.
+       */
+      v.shgs.forEach(s=>{
+        s.interestRate=rate;
+        if(!s.months)s.months={};
+
+        MONTHS.forEach((m,mi)=>{
+          const key=m[0];
+          const existing=s.months[key];
+          if(!existing)return; // Do not create empty month records.
+
+          const d={...blank(),...existing};
+
+          if(mi>0){
+            const prev=s.months[MONTHS[mi-1][0]];
+            if(prev){
+              const pc=calc(prev);
+              d.opening=pc.totalLoanBalance;
+              d.prevPrincipal=pc.balancePrincipal;
+              d.prevInterest=pc.balanceInterest;
+            }
+
+            const aprilData=s.months[MONTHS[0][0]];
+            if(aprilData){
+              d.demandPrincipal=Number(aprilData.demandPrincipal)||0;
+            }
+          }
+
+          d.demandInterest=monthlyInterest(d.opening,rate);
+          s.months[key]=d;
+        });
+      });
+
+      writeDb();
+      refreshVOSelect();
+      markClean();
+      document.getElementById("saveStatus").textContent="All 12 months saved";
+      alert("All SHGs and all entered months have been saved.");
+    }
+
+    function saveVO(){
+      const v=vo();if(!v)return;
+      const name=document.getElementById("voName").value.trim();
+      const village=document.getElementById("village").value.trim();
+      const mandal=document.getElementById("mandal").value.trim();
+      if(!name){alert("VO Name is required.");document.getElementById("voName").focus();return;}
+      if(!village){alert("Village is required.");document.getElementById("village").focus();return;}
+      if(!mandal){alert("Mandal is required.");document.getElementById("mandal").focus();return;}
+      v.name=name;v.village=village;v.mandal=mandal;v.district=document.getElementById("district").value.trim();
+      writeDb();refreshVOSelect();markClean();document.getElementById("saveStatus").textContent="VO details saved";
+    }
+
+    function exportBackup(){const blob=new Blob([JSON.stringify(db,null,2)],{type:"application/json"}),u=URL.createObjectURL(blob),a=document.createElement("a");a.href=u;a.download="vo-shg-backup.json";a.click();URL.revokeObjectURL(u);}
+    function importBackup(file){const r=new FileReader();r.onload=()=>{try{const x=JSON.parse(r.result);if(!x||!Array.isArray(x.vos))throw 0;db=x;selectedVOId=null;writeDb();refresh();document.getElementById("voDetailsToolbar").classList.remove("show-details");alert("Backup imported.");}catch(e){alert("Invalid backup file.");}};r.readAsText(file);}
+    function resetAll(){
+      const v=vo();
+      if(!v){
+        alert("Please select a VO first.");
+        return;
+      }
+
+      if(!confirmSwitch("reset the current VO"))return;
+
+      if(prompt("Type RESET to delete the currently selected VO.")==="RESET"){
+        db.vos=db.vos.filter(x=>x.id!==selectedVOId);
+        selectedVOId=null;
+        monthIndex=0;
+        writeDb();
+        markClean();
+        refresh();
+        document.getElementById("voDetailsToolbar").classList.remove("show-details");
+        alert("Current VO deleted. Other VOs are unchanged.");
+      }
+    }
+
+
+    function fitDCBDataCellsInPrintWindow(w){
+      try{
+        const doc=w.document;
+        const table=doc.querySelector(".dcb-table");
+        if(!table)return;
+
+        table.querySelectorAll("tbody td").forEach(td=>{
+          const value=(td.textContent||"").trim();
+          if(!value)return;
+
+          const cs=w.getComputedStyle(td);
+          const baseSize=parseFloat(cs.fontSize)||13;
+          const originalWhiteSpace=cs.whiteSpace;
+
+          /* Data cells are already nowrap in the DCB print CSS. */
+          td.style.whiteSpace="nowrap";
+          td.style.overflow="hidden";
+          td.style.textOverflow="clip";
+
+          const fits=()=>{
+            /* scrollWidth is the actual rendered content width, including
+               text that is hidden by overflow:hidden. */
+            return td.scrollWidth <= td.clientWidth + 0.5;
+          };
+
+          if(fits()){
+            td.style.whiteSpace=originalWhiteSpace;
+            return;
+          }
+
+          /* Only this individual cell is reduced. Start at the normal size
+             and find the largest size that fits, down to 3pt if necessary. */
+          let lo=3, hi=baseSize;
+          for(let i=0;i<20;i++){
+            const mid=(lo+hi)/2;
+            td.style.fontSize=mid.toFixed(3)+"pt";
+            if(fits()) lo=mid;
+            else hi=mid;
+          }
+
+          td.style.fontSize=lo.toFixed(2)+"pt";
+
+          /* Final safeguard: use the smallest readable size allowed here.
+             Do not let text escape the A4 page or overlap another column. */
+          if(!fits()){
+            td.style.fontSize="3pt";
+          }
+
+          td.style.whiteSpace="nowrap";
+          td.style.overflow="hidden";
+          td.style.textOverflow="clip";
+        });
+      }catch(e){}
+    }
+
+
+
+    function fitAllPDFDataCellsInPrintWindow(w){
+      try{
+        const doc=w.document;
+
+        /* Fit every table body data cell individually.
+           Headers, title rows, metadata boxes and labels are excluded. */
+        doc.querySelectorAll("table").forEach(table=>{
+          table.querySelectorAll("tbody td").forEach(td=>{
+            const value=(td.textContent||"").trim();
+            if(!value)return;
+
+            const cs=w.getComputedStyle(td);
+            const baseSize=parseFloat(cs.fontSize)||13;
+            const oldWhiteSpace=cs.whiteSpace;
+            const oldOverflow=cs.overflow;
+            const oldTextOverflow=cs.textOverflow;
+
+            /* Only measure/resize when the rendered content is actually
+               wider than the data cell. */
+            td.style.whiteSpace="nowrap";
+            td.style.overflow="hidden";
+            td.style.textOverflow="clip";
+
+            const fits=()=>td.scrollWidth <= td.clientWidth + 0.5;
+            if(fits()){
+              td.style.whiteSpace=oldWhiteSpace;
+              td.style.overflow=oldOverflow;
+              td.style.textOverflow=oldTextOverflow;
+              return;
+            }
+
+            /* Preserve the normal font whenever possible; reduce only this
+               particular data cell when necessary. */
+            let lo=3, hi=baseSize;
+            for(let i=0;i<22;i++){
+              const mid=(lo+hi)/2;
+              td.style.fontSize=mid.toFixed(3)+"pt";
+              if(fits()) lo=mid;
+              else hi=mid;
+            }
+
+            td.style.fontSize=lo.toFixed(2)+"pt";
+            td.style.whiteSpace="nowrap";
+            td.style.overflow="hidden";
+            td.style.textOverflow="clip";
+          });
+        });
+      }catch(e){}
+    }
+
+
+    function printReport(title, body){
+      const v=vo();
+      const voNameForFile = v && v.name ? String(v.name).trim() : "VO";
+      const safeVOName = voNameForFile.replace(/[\\/:*?"<>|]+/g,"_").replace(/\s+/g," ").trim() || "VO";
+      const printTitle = safeVOName + " - " + title;
+      const w=window.open("","_blank");
+      if(!w){
+        alert("Allow pop-ups to print the PDF.");
+        return;
+      }
+
+      w.document.write(`<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>${printTitle}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gidugu&display=swap" rel="stylesheet">
+<style>
+@page{
+  size: letter landscape;
+  margin: 0;
+}
+html,body{
+  margin:0!important;
+  padding:0!important;
+  background:#fff!important;
+  color:#111;
+  font-family:"Gidugu",Arial,sans-serif;
+}
+.page{
+  width:792pt;
+  height:612pt;
+  position:relative;
+  page-break-after:always;
+  break-after:page;
+  overflow:hidden;
+}
+.page:last-child{
+  page-break-after:auto;
+  break-after:auto;
+}
+
+/* ---------------- LOAN LEDGER ---------------- */
+.ledger-page{
+  padding:86.28pt 68.88pt 0 68.88pt;
+}
+.ledger-frame{
+  width:654.12pt;
+  border:1px solid #555;
+}
+.ledger-blank{
+  height:22pt;
+  border-bottom:1px solid #555;
+}
+.ledger-title-row{
+  height:28pt;
+  display:grid;
+  grid-template-columns:1fr 55pt 50pt;
+  border-bottom:1px solid #555;
+  position:relative;
+  overflow:hidden;
+}
+.ledger-title{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  font-size:17pt;
+<!--  font-weight:700;-->
+  line-height:1;
+  border-right:1px solid #555;
+  white-space:nowrap;
+}
+.page-label{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  font-family:Arial,sans-serif;
+  font-size:8pt;
+  font-weight:700;
+  border-right:0!important;
+  position:relative;
+}
+.page-number{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:17pt;
+  font-weight:100;
+}
+
+/* Page No separator: one red vertical line ONLY inside the title row.
+   It cannot continue into the metadata rows below. */
+.ledger-title-row::after{
+  content:"";
+  position:absolute;
+  top:0;
+  bottom:0;
+  right:50pt;
+  width:1px;
+  background:#c00000;
+  pointer-events:none;
+  z-index:2;
+}
+.ledger-meta{
+  display:grid;
+  grid-template-columns:143.52pt 159.96pt 350.64pt;
+  grid-template-rows:28pt 28pt 20pt;
+}
+.meta-row{
+  display:grid;
+  grid-template-columns:1.05fr 1.18fr 1.05fr 1.18fr 1.05fr 0.72fr;
+  grid-column:1/-1;
+  position:relative;
+  border-bottom:1px solid #555;
+  z-index:1;
+}
+.meta-row > div{
+  position:relative;
+  border-right:1px solid #555;
+  border-bottom:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  min-width:0;
+  overflow:hidden;
+  white-space:nowrap;
+  line-height:1;
+}
+.meta-row > div:last-child{border-right:0}
+.meta-row:last-child{border-bottom:0}
+
+.meta-key{
+  font-size:13pt;
+<!--  font-weight:700;-->
+}
+.meta-value{
+  font-size:13pt;
+  font-weight:100;
+}
+.meta-value.highlight{
+  min-height:0;
+  width:auto;
+  align-self:stretch;
+}
+
+/* SHG name: yellow background ONLY on the value cell. */
+.ledger-meta .meta-row:first-child .meta-value.highlight{
+  background:#ffff00;
+}
+.meta-value-merged{
+  grid-column:4 / 7;
+  border-right:0 !important;
+}
+.meta-empty{
+  font-size:12.5pt;
+}
+.ledger-table{
+  width:654.12pt;
+  max-width:654.12pt;
+  border-collapse:collapse;
+  table-layout:fixed;
+  margin:0;
+}
+.ledger-table col:nth-child(1){width:5.24%}
+.ledger-table col:nth-child(2){width:8.10%}
+.ledger-table col:nth-child(3){width:9.20%}
+.ledger-table col:nth-child(4){width:8.60%}
+.ledger-table col:nth-child(5){width:8.40%}
+.ledger-table col:nth-child(6){width:8.35%}
+.ledger-table col:nth-child(7){width:8.30%}
+.ledger-table col:nth-child(8){width:7.60%}
+.ledger-table col:nth-child(9){width:8.55%}
+.ledger-table col:nth-child(10){width:10.20%}
+.ledger-table col:nth-child(11){width:8.36%}
+.ledger-table col:nth-child(12){width:9.10%}
+.ledger-table th,.ledger-table td{
+  border:1px solid #555;
+  padding:0 2pt;
+  text-align:center;
+  vertical-align:middle;
+  overflow:hidden;
+}
+.ledger-table th{
+  white-space:normal;
+}
+.ledger-table tbody td{
+  white-space:nowrap;
+}
+.ledger-table thead .group-head{height:28pt}
+.ledger-table thead .sub-head{height:20pt}
+.ledger-table thead .number-head{height:15.7pt}
+.ledger-table thead th{
+  font-size:12pt;
+  font-weight:100;
+  line-height:1;
+}
+.ledger-table .number-head th{
+  background:#b3b3b3;
+  font-family:Arial,sans-serif;
+  font-size:6pt;
+  font-weight:700;
+}
+.ledger-table tbody tr{
+  height:23.17pt;
+}
+.ledger-table tbody td{
+  font-size:13pt;
+  font-weight:100;
+  line-height:1;
+}
+.ledger-table td.date,
+.ledger-table td.date *{
+  <!--font-family:Arial, Helvetica, sans-serif !important;-->
+  font-size:13pt !important;
+  font-weight:100 !important;
+  font-style:normal !important;
+}
+.ledger-table td.name{
+  text-align:left;
+  padding-left:5pt;
+}
+
+/* The frame supplies the single outer border.  Do not draw a second
+   table border on the left, right, or bottom edges. */
+.ledger-table tr > :first-child{
+  border-left:0;
+}
+.ledger-table tr > :last-child{
+  border-right:0;
+}
+.ledger-table tbody tr:last-child > td{
+  border-bottom:0;
+}
+
+/* Yellow is a cell fill only; no pseudo-elements or extra yellow rules. */
+.meta-value.highlight::before,
+.meta-value.highlight::after{
+  content:none !important;
+  display:none !important;
+}
+.telugu{font-family:"Gidugu",Arial,sans-serif}
+
+/* ---------------- DCB ---------------- */
+/* DCB uses A4 landscape only.  Loan Ledger remains unchanged. */
+@page dcb{
+  size:A4 landscape;
+  margin:0;
+}
+.dcb-page{
+  page:dcb;
+  width:841.89pt;
+  height:595.28pt;
+  padding:80.52pt 0 0 0;
+}
+.dcb-frame{
+  width:var(--dcb-width,730.56pt);
+  margin-left:var(--dcb-left,40.08pt);
+}
+.dcb-head{
+  width:var(--dcb-width,730.56pt);
+  height:24pt;
+  display:grid;
+  grid-template-columns:1fr 0.73fr;
+  border:1px solid #555;
+  border-bottom:0;
+}
+.dcb-head-left,.dcb-head-right{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  /* DCB-only: use the same font treatment as the LL PDF. */
+  font-family:"Gidugu",Arial,sans-serif;
+  font-size:15.5pt;
+  font-weight:100;
+  line-height:1;
+}
+.dcb-head-left{
+  border-right:1px solid #555;
+}
+.dcb-table{
+  width:var(--dcb-width,730.56pt);
+  border-collapse:collapse;
+  table-layout:fixed;
+}
+/* Default widths are exactly the previous DCB widths.
+   JavaScript changes ONLY the col widths when a DATA CELL needs more room. */
+.dcb-table col:nth-child(1){width:3.32%}
+.dcb-table col:nth-child(2){width:5.55%}
+.dcb-table col:nth-child(3){width:6.89%}
+.dcb-table col:nth-child(4){width:6.56%}
+.dcb-table col:nth-child(5){width:5.68%}
+.dcb-table col:nth-child(6){width:5.45%}
+.dcb-table col:nth-child(7){width:5.95%}
+.dcb-table col:nth-child(8){width:6.10%}
+.dcb-table col:nth-child(9){width:5.82%}
+.dcb-table col:nth-child(10){width:5.77%}
+.dcb-table col:nth-child(11){width:5.89%}
+.dcb-table col:nth-child(12){width:6.29%}
+.dcb-table col:nth-child(13){width:6.45%}
+.dcb-table col:nth-child(14){width:6.11%}
+.dcb-table col:nth-child(15){width:5.59%}
+.dcb-table col:nth-child(16){width:5.82%}
+.dcb-table col:nth-child(17){width:6.79%}
+.dcb-table th,.dcb-table td{
+  border:1px solid #555;
+  padding:0 1.5pt;
+  text-align:center;
+  vertical-align:middle;
+  overflow:hidden;
+}
+.dcb-table thead .group-head{height:28pt}
+.dcb-table thead .sub-head{height:20pt}
+.dcb-table thead .number-head{height:10pt}
+.dcb-table thead th{
+  /* Same as LL table headings. */
+  font-family:"Gidugu",Arial,sans-serif;
+  font-size:13pt;
+  font-weight:100;
+  line-height:1;
+}
+.dcb-table .number-head td{
+  background:#b3b3b3;
+  /* Same as LL number row. */
+  font-family:Arial,sans-serif;
+  font-size:6pt;
+  font-weight:700;
+  line-height:1;
+}
+.dcb-table tbody tr.data-row,
+.dcb-table tbody tr.blank-row{
+  height:18.6pt;
+}
+.dcb-table tbody td{
+  /* Same as LL ledger body text. */
+  font-family:"Gidugu",Arial,sans-serif;
+  font-size:13pt;
+  font-weight:100;
+  line-height:1;
+  white-space:nowrap;
+}
+.dcb-table tbody td.shg-name{
+  text-align:left;
+  padding-left:4pt;
+  /* LL body/name treatment. */
+  font-family:"Gidugu",Arial,sans-serif;
+  font-size:13pt;
+  font-weight:100;
+}
+.dcb-table tbody tr.total{
+  height:24pt;
+}
+.dcb-table tbody tr.total td{
+  font-family:"Gidugu",Arial,sans-serif;
+  font-size:13pt;
+  font-weight:100;
+}
+</style>
+</head>
+<body>${body}</body>
+</html>`);
+
+      w.document.close();
+
+      const printWhenReady=async()=>{
+        try{
+          if(w.document.fonts && w.document.fonts.load){
+            await w.document.fonts.load('700 17pt "Gidugu"');
+            await w.document.fonts.load('700 12.5pt "Gidugu"');
+            await w.document.fonts.ready;
+          }
+        }catch(e){}
+        setTimeout(()=>{
+          try{
+            /* DCB-specific fitting remains, then the same final per-cell
+               fallback is applied to all PDF data tables. */
+            fitDCBDataCellsInPrintWindow(w);
+            fitAllPDFDataCellsInPrintWindow(w);
+            w.document.title=printTitle;
+          }catch(e){}
+          w.print();
+        },200);
+      };
+      printWhenReady();
+    }
+
+    /*
+     * DCB DATA-CELL AUTO WIDTH
+     * ------------------------
+     * Columns 1-17 are measured from DATA CELLS ONLY.
+     * Header text is deliberately ignored.
+     *
+     * If a data value needs more width than its existing column:
+     *   1) that particular column is enlarged;
+     *   2) the extra width is taken from the A4 page margins;
+     *   3) the existing widths of the other columns are not reduced.
+     *
+     * The normal DCB width therefore stays exactly as before when
+     * the entered data fits.  Only columns that actually need more
+     * room grow.
+     */
+    function getDCBDataColumnWidths(v){
+      const BASE_WIDTH=730.56;
+      const A4_WIDTH=841.89;
+      const MIN_MARGIN=4;
+      const MAX_WIDTH=A4_WIDTH-(MIN_MARGIN*2);
+
+      const basePct=[
+        3.32,5.55,6.89,6.56,5.68,5.45,5.95,6.10,5.82,
+        5.77,5.89,6.29,6.45,6.11,5.59,5.82,6.79
+      ];
+      const widths=basePct.map(p=>BASE_WIDTH*p/100);
+
+      const canvas=document.createElement("canvas");
+      const ctx=canvas.getContext("2d");
+      const font='100 13pt "Gidugu",Arial,sans-serif';
+      if(ctx)ctx.font=font;
+
+      function textWidthPt(value){
+        const s=String(value==null?"":value);
+        if(!s)return 0;
+        if(ctx){
+          return ctx.measureText(s).width*0.75;
+        }
+        return s.length*6.2;
+      }
+
+      function requiredWidth(value,colIndex){
+        const extraLeft=colIndex===1?4:1.5;
+        const extraRight=1.5;
+        /* A small safety allowance prevents the last glyph from touching
+           the vertical border when the PDF is printed. */
+        return textWidthPt(value)+extraLeft+extraRight+2;
+      }
+
+      function addDataRow(values){
+        values.forEach((value,colIndex)=>{
+          widths[colIndex]=Math.max(widths[colIndex],requiredWidth(value,colIndex));
+        });
+      }
+
+      const totals=Array(15).fill(0);
+
+      MONTHS.forEach((m,mi)=>{
+        v.shgs.forEach((s,i)=>{
+          const d=s.months[m[0]]||blank();
+          let opening=d.opening;
+
+          if(!s.months[m[0]] && mi>0){
+            const p=s.months[MONTHS[mi-1][0]];
+            if(p)opening=calc(p).totalLoanBalance;
+          }
+
+          const c=calc({...d,opening});
+          const vals=[
+            opening,
+            d.prevPrincipal,
+            d.prevInterest,
+            d.demandPrincipal,
+            d.demandInterest,
+            d.prevPrincipal+d.demandPrincipal,
+            d.prevInterest+d.demandInterest,
+            d.prevPrincipal+d.demandPrincipal+d.prevInterest+d.demandInterest,
+            d.principalCollection,
+            d.interestCollection,
+            c.totalCollection,
+            c.balancePrincipal,
+            c.balanceInterest,
+            d.newLoan,
+            c.totalLoanBalance
+          ];
+
+          /* Columns 1-17 = S.No + SHG name + 15 data values. */
+          addDataRow([i+1,s.name||"",...vals]);
+
+          vals.forEach((n,j)=>totals[j]+=Number(n)||0);
+        });
+
+        /* The Total row is also DATA, so its values are included. */
+        if(v.shgs.length){
+          addDataRow(["","Total",...totals]);
+          totals.fill(0);
+        }
+      });
+
+      const baseTotal=widths.reduce((a,b)=>a+b,0);
+      if(baseTotal<=MAX_WIDTH){
+        return {widths,totalWidth:baseTotal};
+      }
+
+      /*
+       * Normally the A4 area is enough.  If exceptionally large data in
+       * several columns exceeds the physical A4 width, keep every column
+       * at least at its original size and distribute the available extra
+       * width proportionally among the columns that requested expansion.
+       */
+      const extraAvailable=MAX_WIDTH-BASE_WIDTH;
+      const requestedExtra=Math.max(0,baseTotal-BASE_WIDTH);
+
+      if(requestedExtra<=extraAvailable){
+        return {widths,totalWidth:baseTotal};
+      }
+
+      const factor=extraAvailable/requestedExtra;
+      const adjusted=widths.map((w,i)=>{
+        const extra=Math.max(0,w-basePct[i]*BASE_WIDTH/100);
+        return (basePct[i]*BASE_WIDTH/100)+(extra*factor);
+      });
+
+      return {
+        widths:adjusted,
+        totalWidth:adjusted.reduce((a,b)=>a+b,0)
+      };
+    }
+
+    function getDCBPageLayout(v){
+      const result=getDCBDataColumnWidths(v);
+      const totalWidth=result.totalWidth;
+      const A4_WIDTH=841.89;
+      const originalLeft=40.08;
+      const originalRight=21.36;
+      const minMargin=4;
+
+      /*
+       * Preserve the old margins while possible.  First reduce the old
+       * right margin, then the left margin.  Thus a normal report keeps
+       * the original DCB position; only an expanded table consumes margin.
+       */
+      let left=originalLeft;
+      let right=originalRight;
+      let requiredExtra=Math.max(0,totalWidth-730.56);
+
+      const reduceRight=Math.min(requiredExtra,Math.max(0,originalRight-minMargin));
+      right-=reduceRight;
+      requiredExtra-=reduceRight;
+
+      if(requiredExtra>0){
+        const reduceLeft=Math.min(requiredExtra,Math.max(0,originalLeft-minMargin));
+        left-=reduceLeft;
+        requiredExtra-=reduceLeft;
+      }
+
+      /* Final safety centering if the calculated width ever reaches the
+         A4 physical limit. */
+      if(left+totalWidth+right>A4_WIDTH){
+        const available=A4_WIDTH-totalWidth;
+        left=Math.max(minMargin,available/2);
+        right=Math.max(minMargin,A4_WIDTH-totalWidth-left);
+      }
+
+      return {
+        widths:result.widths,
+        totalWidth:result.totalWidth,
+        left:left,
+        right:right
+      };
+    }
+
+    function monthlyPDF(){
+      const v=vo();
+      if(!v)return;
+
+      const dcbLayout=getDCBPageLayout(v);
+      const dcbColStyle=dcbLayout.widths.map(w=>`<col style="width:${w.toFixed(3)}pt">`).join("");
+      const dcbPageStyle=`--dcb-width:${dcbLayout.totalWidth.toFixed(3)}pt;--dcb-left:${dcbLayout.left.toFixed(3)}pt;--dcb-right:${dcbLayout.right.toFixed(3)}pt;`;
+
+      let out="";
+
+      MONTHS.forEach((m,mi)=>{
+        const allRows=[];
+        const totals=Array(15).fill(0);
+
+        v.shgs.forEach((s,i)=>{
+          const d=s.months[m[0]]||blank();
+          let opening=d.opening;
+
+          if(!s.months[m[0]] && mi>0){
+            const p=s.months[MONTHS[mi-1][0]];
+            if(p) opening=calc(p).totalLoanBalance;
+          }
+
+          const x={...d,opening};
+          const c=calc(x);
+
+          const vals=[
+            opening,
+            d.prevPrincipal,
+            d.prevInterest,
+            d.demandPrincipal,
+            d.demandInterest,
+            d.prevPrincipal+d.demandPrincipal,
+            d.prevInterest+d.demandInterest,
+            d.prevPrincipal+d.demandPrincipal+d.prevInterest+d.demandInterest,
+            d.principalCollection,
+            d.interestCollection,
+            c.totalCollection,
+            c.balancePrincipal,
+            c.balanceInterest,
+            d.newLoan,
+            c.totalLoanBalance
+          ];
+
+          vals.forEach((n,j)=>totals[j]+=Number(n)||0);
+
+          allRows.push(`
+            <tr class="data-row">
+              <td>${i+1}</td>
+              <td class="shg-name telugu">${esc(s.name)}</td>
+              ${vals.map(n=>`<td>${fmt(n)}</td>`).join("")}
+            </tr>
+          `);
+        });
+
+        const chunks=[];
+        if(allRows.length===0){
+          chunks.push([]);
+        }else{
+          for(let i=0;i<allRows.length;i+=9){
+            chunks.push(allRows.slice(i,i+9));
+          }
+        }
+
+        const totalCells=totals.map(n=>`<td>${fmt(n)}</td>`).join("");
+
+        const nums=[
+          "1","2","3","4","5","6","7","8","9","10","11",
+          "12","13","14","15","16","17"
+        ];
+
+        chunks.forEach((chunk,chunkIndex)=>{
+          const isLastPage=chunkIndex===chunks.length-1;
+          const blankCount=Math.max(0,9-chunk.length);
+          const blankRows=Array.from({length:blankCount},()=>`
+            <tr class="blank-row">
+              <td></td><td></td>${Array.from({length:15},()=>"<td></td>").join("")}
+            </tr>`).join("");
+
+          out+=`
+            <section class="page dcb-page" style="${dcbPageStyle}">
+              <div class="dcb-frame">
+                <div class="dcb-head">
+                  <div class="dcb-head-left telugu">
+                    VO: ${esc(v.name)} &nbsp; , గ్రామం : ${esc(v.village||"")} &nbsp; , మండలం: ${esc(v.mandal||"")}
+                  </div>
+                  <div class="dcb-head-right">
+                    DCB-${m[0].toUpperCase()}
+                  </div>
+                </div>
+
+                <table class="dcb-table">
+                  <colgroup>
+                    ${dcbColStyle}
+                  </colgroup>
+                  <thead>
+                    <tr class="group-head">
+                      <th rowspan="2">SL No</th>
+                      <th rowspan="2"><span class="telugu">SHG పేరు</span></th>
+                      <th rowspan="2"><span class="telugu">ప్రారంభపు<br>అప్పు నిల్వ</span></th>
+                      <th colspan="2"><span class="telugu">గత నెల బకాయి<br>వివరాలు</span></th>
+                      <th colspan="2"><span class="telugu">ఈ నెల డిమాండ్</span></th>
+                      <th colspan="3"><span class="telugu">గతనెల బకాయి తో కలిపి ఈ నెల<br>వరకు మొత్తం డిమాండ్</span></th>
+                      <th colspan="3"><span class="telugu">ఈ నెల కలెక్షన్ వివరాలు</span></th>
+                      <th colspan="2"><span class="telugu">బకాయి</span></th>
+                      <th rowspan="2"><span class="telugu">కొత్త<br>అప్పు</span></th>
+                      <th rowspan="2"><span class="telugu">మొత్తం<br>అప్పు నిల్వ</span></th>
+                    </tr>
+                    <tr class="sub-head">
+                      <th><span class="telugu">అసలు</span></th>
+                      <th><span class="telugu">వడ్డీ</span></th>
+                      <th><span class="telugu">అసలు</span></th>
+                      <th><span class="telugu">వడ్డీ</span></th>
+                      <th><span class="telugu">అసలు</span></th>
+                      <th><span class="telugu">వడ్డీ</span></th>
+                      <th><span class="telugu">మొత్తం</span></th>
+                      <th><span class="telugu">అసలు</span></th>
+                      <th><span class="telugu">వడ్డీ</span></th>
+                      <th><span class="telugu">మొత్తం</span></th>
+                      <th><span class="telugu">అసలు</span></th>
+                      <th><span class="telugu">వడ్డీ</span></th>
+                    </tr>
+                    <tr class="number-head">
+                      ${nums.map(n=>`<td>${n}</td>`).join("")}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${chunk.join("")}
+                    ${blankRows}
+                    ${
+                      isLastPage
+                      ? `<tr class="total"><td></td><td class="telugu">Total</td>${totalCells}</tr>`
+                      : ""
+                    }
+                  </tbody>
+                </table>
+              </div>
+            </section>`;
+        });
+      });
+
+      printReport("Monthly DCB",out);
+    }
+
+    function ledgerPDF(){
+      const v=vo();
+
+      if(!v||!v.shgs.length){
+        alert("Select a VO with SHGs.");
+        return;
+      }
+
+      let out="";
+
+      v.shgs.forEach((s,si)=>{
+        const allRows=[];
+
+        MONTHS.forEach((m,i)=>{
+          const d=s.months[m[0]];
+          if(!d)return;
+
+          const c=calc(d);
+          const p=d.prevPrincipal+d.demandPrincipal;
+          const ii=d.prevInterest+d.demandInterest;
+
+          allRows.push(`
+            <tr>
+              <td>${i+1}</td>
+              <td class="date">${m[0]}</td>
+              <td>${fmt(d.opening)}</td>
+              <td>${fmt(p)}</td>
+              <td>${fmt(ii)}</td>
+              <td>${fmt(d.principalCollection)}</td>
+              <td>${fmt(d.interestCollection)}</td>
+              <td>${fmt(c.totalCollection)}</td>
+              <td>${fmt(p-d.principalCollection)}</td>
+              <td>${fmt(ii-d.interestCollection)}</td>
+              <td>${fmt(d.newLoan)}</td>
+              <td>${fmt(c.totalLoanBalance)}</td>
+            </tr>
+          `);
+        });
+
+        /* Reference LL has one page per SHG. */
+        out+=`
+          <section class="page ledger-page">
+            <div class="ledger-frame">
+              <div class="ledger-blank"></div>
+
+              <div class="ledger-title-row">
+                <div class="ledger-title telugu">నాగలక్ష్మి VO - అప్పు లెడ్జర్ 2026-27</div>
+                <div class="page-label">Page No:</div>
+                <div class="page-number">${si+1}</div>
+              </div>
+
+              <div class="ledger-meta">
+                <div class="meta-row">
+                  <div class="meta-key telugu">SHG పేరు :</div>
+                  <div class="meta-value highlight telugu">${esc(s.name)}</div>
+                  <div class="meta-key telugu">గ్రామం పేరు :</div>
+                  <div class="meta-value telugu meta-value-merged">${esc(v.village||"")}</div>
+                </div>
+
+                <div class="meta-row">
+                  <div class="meta-key telugu">అప్పు ఇచ్చిన తేది :</div>
+                  <div class="meta-empty"></div>
+                  <div class="meta-key telugu">అప్పు మొత్తం రూ. :</div>
+                  <div class="meta-empty"></div>
+                  <div class="meta-key telugu">వడ్డీ రేటు :</div>
+                  <div class="meta-value highlight">${fmt(s.interestRate===undefined?12:s.interestRate)}%</div>
+                </div>
+
+                <div class="meta-row">
+                  <div class="meta-key telugu">వాయిదాల సంఖ్య :</div>
+                  <div class="meta-empty"></div>
+                  <div class="meta-key telugu">వాయిదా మొత్తం రూ. :</div>
+                  <div class="meta-empty"></div>
+                  <div class="meta-key telugu">అప్పు రకం :</div>
+                  <div class="meta-value highlight">CIF</div>
+                </div>
+              </div>
+
+              <table class="ledger-table">
+                <colgroup>${Array.from({length:12},()=>"<col>").join("")}</colgroup>
+                <thead>
+                  <tr class="group-head">
+                    <th rowspan="2">S.N</th>
+                    <th rowspan="2" class="telugu">తేది</th>
+                    <th rowspan="2" class="telugu">ప్రారంభపు అప్పు<br>నిల్వ</th>
+                    <th colspan="2" class="telugu">గత నెల బకాయి + ఈ<br>నెల డిమాండ్</th>
+                    <th colspan="3" class="telugu">ఈ నెల కలెక్షన్ వివరాలు</th>
+                    <th colspan="2" class="telugu">బకాయి</th>
+                    <th rowspan="2" class="telugu">కొత్త అప్పు</th>
+                    <th rowspan="2" class="telugu">మొత్తం అప్పు నిల్వ</th>
+                  </tr>
+                  <tr class="sub-head">
+                    <th class="telugu">అసలు</th>
+                    <th class="telugu">వడ్డీ</th>
+                    <th class="telugu">అసలు</th>
+                    <th class="telugu">వడ్డీ</th>
+                    <th class="telugu">మొత్తం</th>
+                    <th class="telugu">అసలు</th>
+                    <th class="telugu">వడ్డీ</th>
+                  </tr>
+                  <tr class="number-head">
+                    <th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th><th>8</th><th>10</th><th>11</th><th>12</th><th>13</th>
+                  </tr>
+                </thead>
+                <tbody>${allRows.join("")}</tbody>
+              </table>
+            </div>
+          </section>`;
+      });
+
+      printReport("All SHG Loan Ledgers",out);
+    }
+
+    document.getElementById("newVoBtn").onclick=()=>{
+      document.getElementById("newVoForm").classList.remove("hidden");
+      document.getElementById("newVoName").focus();
+    };
+    document.getElementById("cancelVoBtn").onclick=()=>document.getElementById("newVoForm").classList.add("hidden");
+    document.getElementById("createVoBtn").onclick=createVO;
+    document.getElementById("newVoName").onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();createVO();}};
+    document.getElementById("voSelect").onchange=e=>{
+      const id=e.target.value;if(!id||id===selectedVOId)return;
+      if(!confirmSwitch("opening the selected VO")){e.target.value=selectedVOId||"";return;}
+      selectedVOId=id;monthIndex=0;refresh();document.getElementById("voDetailsToolbar").classList.add("show-details");markClean();
+    };
+    document.getElementById("saveVoBtn").onclick=saveVO;
+    document.getElementById("addShgBtn").onclick=addSHG;
+    document.getElementById("shgNameInput").onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();addSHG();}};
+    document.getElementById("saveAllBtn").onclick=saveAll;
+    document.getElementById("monthlyPdfBtn").onclick=monthlyPDF;
+    document.getElementById("ledgerPdfBtn").onclick=ledgerPDF;
+    document.getElementById("backupBtn").onclick=exportBackup;
+    document.getElementById("importBtn").onclick=()=>document.getElementById("fileInput").click();
+    document.getElementById("fileInput").onchange=e=>{if(e.target.files[0])importBackup(e.target.files[0]);};
+    document.getElementById("resetBtn").onclick=resetAll;
+    document.addEventListener("input",function(e){
+      if(e.target.matches("input,textarea") && e.target.id!=="newVoName")markDirty();
+      const m=e.target.id&&e.target.id.match(/^(prevP|prevI|demandP)-(\d+)$/);
+      if(m && typeof window.recalc==="function") window.recalc(Number(m[2]));
+    });
+
+
+    refresh();
+    })();
+</script>
+</body>
+</html>
