@@ -579,108 +579,37 @@
     }
 
 
-    function fitDCBDataCellsInPrintWindow(w){
-      try{
-        const doc=w.document;
-        const table=doc.querySelector(".dcb-table");
-        if(!table)return;
-
-        table.querySelectorAll("tbody td").forEach(td=>{
-          const value=(td.textContent||"").trim();
-          if(!value)return;
-
-          const cs=w.getComputedStyle(td);
-          const baseSize=parseFloat(cs.fontSize)||13;
-          const originalWhiteSpace=cs.whiteSpace;
-
-          /* Data cells are already nowrap in the DCB print CSS. */
-          td.style.whiteSpace="nowrap";
-          td.style.overflow="hidden";
-          td.style.textOverflow="clip";
-
-          const fits=()=>{
-            /* scrollWidth is the actual rendered content width, including
-               text that is hidden by overflow:hidden. */
-            return td.scrollWidth <= td.clientWidth + 0.5;
-          };
-
-          if(fits()){
-            td.style.whiteSpace=originalWhiteSpace;
-            return;
-          }
-
-          /* Only this individual cell is reduced. Start at the normal size
-             and find the largest size that fits, down to 3pt if necessary. */
-          let lo=3, hi=baseSize;
-          for(let i=0;i<20;i++){
-            const mid=(lo+hi)/2;
-            td.style.fontSize=mid.toFixed(3)+"pt";
-            if(fits()) lo=mid;
-            else hi=mid;
-          }
-
-          td.style.fontSize=lo.toFixed(2)+"pt";
-
-          /* Final safeguard: use the smallest readable size allowed here.
-             Do not let text escape the A4 page or overlap another column. */
-          if(!fits()){
-            td.style.fontSize="3pt";
-          }
-
-          td.style.whiteSpace="nowrap";
-          td.style.overflow="hidden";
-          td.style.textOverflow="clip";
-        });
-      }catch(e){}
-    }
-
-
-
+    /*
+     * Final safeguard only.
+     * Column widths are calculated before rendering. Text is not shrunk merely
+     * because another column contains a long value. Font reduction happens
+     * only if browser/font metrics still leave an individual cell overflowing
+     * after the final physical A4 width has been respected.
+     */
     function fitAllPDFDataCellsInPrintWindow(w){
       try{
         const doc=w.document;
-
-        /* Fit every table body data cell individually.
-           Headers, title rows, metadata boxes and labels are excluded. */
-        doc.querySelectorAll("table").forEach(table=>{
+        doc.querySelectorAll(".ledger-page table").forEach(table=>{
           table.querySelectorAll("tbody td").forEach(td=>{
             const value=(td.textContent||"").trim();
             if(!value)return;
 
             const cs=w.getComputedStyle(td);
             const baseSize=parseFloat(cs.fontSize)||13;
-            const oldWhiteSpace=cs.whiteSpace;
-            const oldOverflow=cs.overflow;
-            const oldTextOverflow=cs.textOverflow;
-
-            /* Only measure/resize when the rendered content is actually
-               wider than the data cell. */
             td.style.whiteSpace="nowrap";
             td.style.overflow="hidden";
             td.style.textOverflow="clip";
 
-            const fits=()=>td.scrollWidth <= td.clientWidth + 0.5;
-            if(fits()){
-              td.style.whiteSpace=oldWhiteSpace;
-              td.style.overflow=oldOverflow;
-              td.style.textOverflow=oldTextOverflow;
-              return;
-            }
+            if(td.scrollWidth<=td.clientWidth+0.5)return;
 
-            /* Preserve the normal font whenever possible; reduce only this
-               particular data cell when necessary. */
-            let lo=3, hi=baseSize;
-            for(let i=0;i<22;i++){
+            let lo=3,hi=baseSize;
+            for(let i=0;i<18;i++){
               const mid=(lo+hi)/2;
               td.style.fontSize=mid.toFixed(3)+"pt";
-              if(fits()) lo=mid;
+              if(td.scrollWidth<=td.clientWidth+0.5)lo=mid;
               else hi=mid;
             }
-
             td.style.fontSize=lo.toFixed(2)+"pt";
-            td.style.whiteSpace="nowrap";
-            td.style.overflow="hidden";
-            td.style.textOverflow="clip";
           });
         });
       }catch(e){}
@@ -719,8 +648,8 @@ html,body{
   font-family:"Gidugu",Arial,sans-serif;
 }
 .page{
-  width:792pt;
-  height:612pt;
+  width:841.89pt;
+  height:595.28pt;
   position:relative;
   page-break-after:always;
   break-after:page;
@@ -733,10 +662,12 @@ html,body{
 
 /* ---------------- LOAN LEDGER ---------------- */
 .ledger-page{
-  padding:86.28pt 68.88pt 0 68.88pt;
+  padding:28pt 0 0 0;
 }
 .ledger-frame{
-  width:654.12pt;
+  width:var(--ledger-width,654.12pt);
+  margin-left:var(--ledger-left,93.885pt);
+  margin-right:var(--ledger-right,93.885pt);
   border:1px solid #555;
 }
 .ledger-blank{
@@ -796,7 +727,8 @@ html,body{
 }
 .ledger-meta{
   display:grid;
-  grid-template-columns:143.52pt 159.96pt 350.64pt;
+  width:100%;
+  grid-template-columns:22% 24.45% 53.55%;
   grid-template-rows:28pt 28pt 20pt;
 }
 .meta-row{
@@ -849,8 +781,8 @@ html,body{
   font-size:12.5pt;
 }
 .ledger-table{
-  width:654.12pt;
-  max-width:654.12pt;
+  width:var(--ledger-width,654.12pt);
+  max-width:none;
   border-collapse:collapse;
   table-layout:fixed;
   margin:0;
@@ -945,11 +877,16 @@ html,body{
   page:dcb;
   width:841.89pt;
   height:595.28pt;
-  padding:80.52pt 0 0 0;
+  padding:4pt 0 0 0;
 }
 .dcb-frame{
   width:var(--dcb-width,730.56pt);
   margin-left:var(--dcb-left,40.08pt);
+  margin-right:var(--dcb-right,40.08pt);
+}
+.dcb-top-blank{
+  height:22pt;
+ <!-- border-bottom:1px solid #555;-->
 }
 .dcb-head{
   width:var(--dcb-width,730.56pt);
@@ -1022,8 +959,7 @@ html,body{
   font-weight:700;
   line-height:1;
 }
-.dcb-table tbody tr.data-row,
-.dcb-table tbody tr.blank-row{
+.dcb-table tbody tr.data-row{
   height:18.6pt;
 }
 .dcb-table tbody td{
@@ -1069,7 +1005,6 @@ html,body{
           try{
             /* DCB-specific fitting remains, then the same final per-cell
                fallback is applied to all PDF data tables. */
-            fitDCBDataCellsInPrintWindow(w);
             fitAllPDFDataCellsInPrintWindow(w);
             w.document.title=printTitle;
           }catch(e){}
@@ -1395,6 +1330,111 @@ html,body{
       printReport("Monthly DCB",out);
     }
 
+    /*
+     * LOAN LEDGER DATA-DRIVEN WIDTH ENGINE
+     * ------------------------------------
+     * 1. Start with the normal/reference LL widths.
+     * 2. Inspect actual data cells for every month on this SHG's ledger.
+     * 3. Expand only columns whose data needs more room.
+     * 4. Use unused A4 margin space first.
+     * 5. Never shrink base columns while margin space remains.
+     * 6. Only constrain requested expansion when physical A4 width is exceeded.
+     * 7. Center the final complete content block horizontally.
+     */
+    function getLedgerPageLayout(s,v){
+      const BASE_WIDTH=654.12;
+      const A4_WIDTH=841.89;
+      // Use HALF of the original unused left/right A4 margin to enlarge
+      // the complete LL structure. The remaining half stays as a clean
+      // outer margin. Text is reduced only if actual data still cannot fit.
+      const MIN_MARGIN=(A4_WIDTH-BASE_WIDTH)/4;
+
+      const basePct=[
+        5.24,8.10,9.20,8.60,8.40,8.35,
+        8.30,7.60,8.55,10.20,8.36,9.10
+      ];
+      const widths=basePct.map(p=>BASE_WIDTH*p/100);
+
+      const canvas=document.createElement("canvas");
+      const ctx=canvas.getContext("2d");
+      if(ctx)ctx.font='100 13pt "Gidugu",Arial,sans-serif';
+
+      function textWidthPt(value){
+        const str=String(value==null?"":value);
+        if(!str)return 0;
+        if(ctx)return ctx.measureText(str).width*0.75;
+        return str.length*6.2;
+      }
+
+      function requiredWidth(value,colIndex){
+        const left=colIndex===1?5:2;
+        return textWidthPt(value)+left+2+2;
+      }
+
+      function addDataRow(values){
+        values.forEach((value,colIndex)=>{
+          widths[colIndex]=Math.max(
+            widths[colIndex],
+            requiredWidth(value,colIndex)
+          );
+        });
+      }
+
+      MONTHS.forEach((m,i)=>{
+        const d=s.months[m[0]];
+        if(!d)return;
+
+        const c=calc(d);
+        const p=d.prevPrincipal+d.demandPrincipal;
+        const ii=d.prevInterest+d.demandInterest;
+
+        addDataRow([
+          i+1,m[0],d.opening,p,ii,
+          d.principalCollection,d.interestCollection,
+          c.totalCollection,
+          p-d.principalCollection,
+          ii-d.interestCollection,
+          d.newLoan,c.totalLoanBalance
+        ]);
+      });
+
+      const baseTotal=widths.reduce((a,b)=>a+b,0);
+      const maxWidth=A4_WIDTH-(MIN_MARGIN*2);
+
+      function centered(widths,totalWidth){
+        const side=Math.max(MIN_MARGIN,(A4_WIDTH-totalWidth)/2);
+        return {widths,totalWidth,left:side,right:side};
+      }
+
+      // Even when the data fits the normal table, deliberately use the
+      // requested half-margin area so the entire LL structure is larger.
+      if(baseTotal<=maxWidth){
+        const targetWidth=maxWidth;
+        const scale=targetWidth/baseTotal;
+        const enlarged=widths.map(w=>w*scale);
+        return centered(enlarged,targetWidth);
+      }
+
+      const extraAvailable=Math.max(0,maxWidth-BASE_WIDTH);
+      const requestedExtra=Math.max(0,baseTotal-BASE_WIDTH);
+
+      if(requestedExtra<=extraAvailable){
+        // Data-driven widths fit inside the enlarged half-margin area.
+        // Do not shrink any column; keep the requested widths.
+        return centered(widths,baseTotal);
+      }
+
+      const factor=extraAvailable/requestedExtra;
+      const adjusted=widths.map((w,i)=>{
+        const base=basePct[i]*BASE_WIDTH/100;
+        const extra=Math.max(0,w-base);
+        return base+(extra*factor);
+      });
+
+      const totalWidth=adjusted.reduce((a,b)=>a+b,0);
+      return centered(adjusted,totalWidth);
+    }
+
     function ledgerPDF(){
       const v=vo();
 
@@ -1406,6 +1446,14 @@ html,body{
       let out="";
 
       v.shgs.forEach((s,si)=>{
+        const ledgerLayout=getLedgerPageLayout(s,v);
+        const ledgerColStyle=ledgerLayout.widths
+          .map(w=>`<col style="width:${w.toFixed(3)}pt">`)
+          .join("");
+        const ledgerPageStyle=
+          `--ledger-width:${ledgerLayout.totalWidth.toFixed(3)}pt;`+
+          `--ledger-left:${ledgerLayout.left.toFixed(3)}pt;`+
+          `--ledger-right:${ledgerLayout.right.toFixed(3)}pt;`;
         const allRows=[];
 
         MONTHS.forEach((m,i)=>{
@@ -1436,7 +1484,7 @@ html,body{
 
         /* Reference LL has one page per SHG. */
         out+=`
-          <section class="page ledger-page">
+          <section class="page ledger-page" style="${ledgerPageStyle}">
             <div class="ledger-frame">
               <div class="ledger-blank"></div>
 
@@ -1474,7 +1522,7 @@ html,body{
               </div>
 
               <table class="ledger-table">
-                <colgroup>${Array.from({length:12},()=>"<col>").join("")}</colgroup>
+                <colgroup>${ledgerColStyle}</colgroup>
                 <thead>
                   <tr class="group-head">
                     <th rowspan="2">S.N</th>
