@@ -1,4 +1,3 @@
-```
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1441,6 +1440,7 @@ button > *{position:relative;z-index:1;}
 
             table.querySelectorAll("tbody td").forEach(td=>{
               td.dataset.wrapShg="false";
+              td.dataset.shgFont10="false";
               td.style.removeProperty("font-size");
               td.style.removeProperty("font-family");
               td.style.removeProperty("font-weight");
@@ -1459,13 +1459,21 @@ button > *{position:relative;z-index:1;}
             });
           }
 
-          function setDcbFonts(shgSize){
+          /*
+           * DCB FONT RULE:
+           * The SHG Name column does NOT become 10pt as a whole.
+           * Only the individual SHG Name cells explicitly marked
+           * data-shg-font10="true" use 10pt. Every other SHG Name cell,
+           * and every other DATA cell, remains 13pt.
+           */
+          function setDcbFonts(){
             table.querySelectorAll(
               "tbody tr.data-row td, tbody tr.data-row td .pdf-cell-text, "+
               "tbody tr.total td, tbody tr.total td .pdf-cell-text"
             ).forEach(el=>{
               const td=el.closest("td");
-              const size=(td && td.cellIndex===SHG_COL) ? shgSize : 13;
+              const isShg=td && td.cellIndex===SHG_COL;
+              const size=(isShg && td.dataset.shgFont10==="true") ? 10 : 13;
 
               el.style.setProperty(
                 "font-family",'"Gidugu",Arial,sans-serif',"important"
@@ -1490,7 +1498,7 @@ button > *{position:relative;z-index:1;}
             });
           }
 
-          function requiredDcb(size){
+          function requiredDcb(){
             const req=Array(count).fill(0);
 
             dataCells(table).forEach(td=>{
@@ -1500,6 +1508,11 @@ button > *{position:relative;z-index:1;}
               /*
                * Only actual DATA content determines the required column width.
                * Header text is deliberately soft and may wrap.
+               *
+               * IMPORTANT:
+               * SHG Name font size is decided PER CELL, not for the entire
+               * SHG Name column. Only cells marked data-shg-font10="true"
+               * are measured at 10pt.
                */
               const text=td.textContent||"";
               if(td.dataset.wrapShg==="true" && col===SHG_COL){
@@ -1514,7 +1527,10 @@ button > *{position:relative;z-index:1;}
                 return;
               }
 
-              const cellSize=(col===SHG_COL)?size:13;
+              const cellSize=(
+                col===SHG_COL && td.dataset.shgFont10==="true"
+              ) ? 10 : 13;
+
               req[col]=Math.max(
                 req[col],
                 measureTextPt(td,text,cellSize)+paddingPt(td)+borderPt(td)+2
@@ -1554,10 +1570,10 @@ button > *{position:relative;z-index:1;}
            * required width is physically larger than the page, only then does
            * it compress the non-S.No columns proportionally.
            */
-          function applyWidths(marginPt,widthPt,size){
+          function applyWidths(marginPt,widthPt){
             setStage(marginPt,widthPt);
 
-            const required=requiredDcb(size);
+            const required=requiredDcb();
             const widths=redistribute(required,widthPt);
 
             setWidths(table,widths);
@@ -1575,8 +1591,8 @@ button > *{position:relative;z-index:1;}
              * STAGE 1
              * 10 mm left + right, ALL DATA at 13pt.
              * =========================================================== */
-            setDcbFonts(13);
-            let result=applyWidths(M10,W10,13);
+            setDcbFonts();
+            let result=applyWidths(M10,W10);
 
             if(fitsDcb(result.widths,13)){
               setDcbRowHeight(table);
@@ -1588,8 +1604,8 @@ button > *{position:relative;z-index:1;}
              * ONLY NOW reduce left + right margins to 8 mm.
              * ALL DATA remains 13pt.
              * =========================================================== */
-            setDcbFonts(13);
-            result=applyWidths(M8,W8,13);
+            setDcbFonts();
+            result=applyWidths(M8,W8);
 
             if(fitsDcb(result.widths,13)){
               setDcbRowHeight(table);
@@ -1598,21 +1614,10 @@ button > *{position:relative;z-index:1;}
 
             /* =============================================================
              * STAGE 3
-             * ONLY NOW reduce SHG NAME COLUMN DATA to 10pt.
-             * Every other DATA cell remains exactly 13pt.
-             * =========================================================== */
-            setDcbFonts(10);
-            result=applyWidths(M8,W8,10);
-
-            if(fitsDcb(result.widths,10)){
-              setDcbRowHeight(table);
-              return;
-            }
-
-            /* =============================================================
-             * STAGE 4
-             * ONLY NOW wrap ONLY the SHG Name cell(s) that still need it.
-             * No other cell is allowed to wrap.
+             * ONLY THE INDIVIDUAL SHG NAME CELL(S) THAT NEED IT become 10pt.
+             *
+             * The entire SHG Name column NEVER changes to 10pt.
+             * SHG cells that fit at 13pt stay at 13pt.
              * =========================================================== */
             dataCells(table).forEach(td=>{
               if(td.cellIndex!==SHG_COL)return;
@@ -1622,7 +1627,76 @@ button > *{position:relative;z-index:1;}
                 result.widths[SHG_COL]-paddingPt(td)-borderPt(td)-2
               );
 
-              if(measureTextPt(td,td.textContent||"",10)>room+EPS){
+              if(measureTextPt(td,td.textContent||"",13)>room+EPS){
+                td.dataset.shgFont10="true";
+              }
+            });
+
+            setDcbFonts();
+            result=applyWidths(M8,W8);
+
+            /*
+             * Re-check after the mixed 13pt/10pt allocation. If moving
+             * space between columns makes another SHG cell become the
+             * limiting cell, reduce ONLY that particular cell to 10pt.
+             */
+            let changed=true;
+            let guard=0;
+            while(changed && guard++<count){
+              changed=false;
+
+              result.widths && dataCells(table).forEach(td=>{
+                if(td.cellIndex!==SHG_COL)return;
+                if(td.dataset.wrapShg==="true")return;
+
+                const size=(td.dataset.shgFont10==="true")?10:13;
+                const room=Math.max(
+                  0,
+                  result.widths[SHG_COL]-paddingPt(td)-borderPt(td)-2
+                );
+
+                if(size===13 &&
+                   measureTextPt(td,td.textContent||"",13)>room+EPS){
+                  td.dataset.shgFont10="true";
+                  changed=true;
+                }
+              });
+
+              if(changed){
+                setDcbFonts();
+                result=applyWidths(M8,W8);
+              }
+            }
+
+            if(fitsDcb(result.widths,13)){
+              setDcbRowHeight(table);
+              return;
+            }
+
+            /*
+             * At this point only SHG cells marked above may use 10pt.
+             * All other data remains 13pt.
+             */
+            if(fitsDcb(result.widths,10)){
+              setDcbRowHeight(table);
+              return;
+            }
+
+            /* =============================================================
+             * STAGE 4
+             * ONLY NOW wrap ONLY the individual SHG Name cell(s) that still
+             * need it. No other cell is allowed to wrap.
+             * =========================================================== */
+            dataCells(table).forEach(td=>{
+              if(td.cellIndex!==SHG_COL)return;
+
+              const size=(td.dataset.shgFont10==="true")?10:13;
+              const room=Math.max(
+                0,
+                result.widths[SHG_COL]-paddingPt(td)-borderPt(td)-2
+              );
+
+              if(measureTextPt(td,td.textContent||"",size)>room+EPS){
                 td.dataset.wrapShg="true";
 
                 const row=td.closest("tr");
@@ -1631,11 +1705,13 @@ button > *{position:relative;z-index:1;}
             });
 
             /*
-             * Keep all non-SHG data at 13pt and SHG Name at 10pt.
-             * Wrapped SHG cells are the ONLY cells permitted to become
-             * multi-line.
+             * Keep the exact per-cell font decision:
+             * - SHG cells marked shgFont10 -> 10pt
+             * - all other SHG cells -> 13pt
+             * - all other data -> 13pt
+             * - only marked SHG cells may wrap.
              */
-            setDcbFonts(10);
+            setDcbFonts();
             setDcbRowHeight(table);
             return;
           }
@@ -3074,4 +3150,3 @@ html,body{
 </script>
 </body>
 </html>
-```
