@@ -285,6 +285,13 @@ button > *{position:relative;z-index:1;}
 }
 
 
+/* PDF margin fallback:
+   - Initial: 10 mm on all four sides.
+   - If horizontal content cannot fit: LEFT/RIGHT become 6 mm.
+   - TOP/BOTTOM remain 10 mm.
+   - Only DCB SHG Name may then reduce to 10 pt and finally wrap.
+*/
+
 /* =========================================================
    PDF DATA CELL FONT / SPACE RULE
    - All PDF data cells: minimum 13pt.
@@ -332,7 +339,7 @@ button > *{position:relative;z-index:1;}
   #shgToolbar > .field:first-child{
     flex:1 1 auto !important;
     min-width:220px !important;
-
+  }
   #shgToolbar > .field:nth-of-type(2){
     flex:0 0 180px !important;
     width:180px !important;
@@ -424,7 +431,7 @@ button > *{position:relative;z-index:1;}
                 <table class="entry">
                     <thead>
                     <tr>
-                        <th>S.N</th>
+                        <th>S.No</th>
                         <th>SHG Name</th>
                         <th>Opening<br>Loan Balance</th>
                         <th>Previous Due<br>Principal</th>
@@ -1073,129 +1080,181 @@ button > *{position:relative;z-index:1;}
           const count=columnCount(table);
           const required=Array(count).fill(0);
 
+          /*
+           * IMPORTANT:
+           * Column width is driven by REAL DATA first.
+           *
+           * Header text is intentionally NOT treated as a hard minimum.
+           * DCB headers are allowed to wrap, so header space can be surrendered
+           * when a data column (especially SHG Name) needs more room.
+           *
+           * Column 1 (S.No) is handled separately by redistribute() and remains
+           * fixed at FIXED_SN_WIDTH.
+           */
           dataCells(table).forEach(td=>{
             const col=td.cellIndex;
-            if(col<0 || col>=count)return;
+            if(col<0 || col>=count || col===0)return;
 
+            const text=(td.textContent||"").trim();
             required[col]=Math.max(
               required[col],
-              measureTextPt(td,td.textContent||"",size)+
+              measureTextPt(td,text,size)+
               paddingPt(td)+borderPt(td)+2
             );
           });
 
-          const headers=headerMinimums(table,count,size);
-          for(let i=0;i<count;i++){
-            required[i]=Math.max(required[i],headers[i]);
-          }
-
+          /*
+           * Do not add headerMinimums() here.
+           * Headers can wrap and therefore are a SOFT requirement.
+           * This lets unused width in header-heavy columns be transferred
+           * to columns whose actual data needs more room.
+           */
           return required;
         }
 
         /*
-         * Redistribute while preserving equal widths as the starting point.
-         * A long column gets width from columns whose required content is
-         * smaller than the equal allocation. If that is insufficient, every
-         * donor is reduced only down to its genuine required width first.
+         * SMART SPACE REDISTRIBUTION
+         * -------------------------
+         * 1. S.No (column 1) is permanently fixed and never donates space.
+         * 2. Every other column starts from an equal share of the usable width.
+         * 3. A column needing more than its equal share gets a DEFICIT.
+         * 4. EVERY other column with width above its REAL DATA requirement is a
+         *    donor. Donors give up their surplus proportionally.
+         * 5. Header width is NOT a protected floor because DCB headers may wrap.
+         * 6. If total real-data requirements fit inside the page, all data gets
+         *    its required width and any remaining space is distributed normally.
+         * 7. If total real-data requirements exceed the page, every donor is
+         *    reduced as far as its own data requirement allows; the remaining
+         *    unavoidable shortage is shared among the needy columns.
+         *
+         * This means a long SHG name can take space from columns 3,4,5,...17
+         * wherever those columns have genuine spare data capacity. It is not
+         * limited to a pre-selected donor column.
          */
         function redistribute(required,available){
-           const count=required.length;
-           if(!count)return [];
+          const count=required.length;
+          if(!count)return [];
 
-           /*
-            * SL No / S.N column:
-            * Never give this column an arbitrary/equal A4 share.
-            * Its width is ONLY its measured content/header requirement.
-            * This remains true on the initial fit and after every font-size
-            * adjustment.
-            */
-           const slNoIndex=0;
-           /*
-            * S.N is permanently fixed to a compact width in ALL PDFs.
-            * It is not allowed to expand with the equal-column layout,
-            * font fitting, or content redistribution.
-            */
-           const slNoWidth=FIXED_SN_WIDTH;
+          const slNoIndex=0;
+          const slNoWidth=Math.min(FIXED_SN_WIDTH,Math.max(.1,available));
 
-           if(count===1)return [Math.min(available,slNoWidth)];
+          if(count===1)return [slNoWidth];
 
-           const remaining=Math.max(.1,available-slNoWidth);
-           const otherRequired=required.slice(1);
-           const otherCount=count-1;
-           const equal=remaining/otherCount;
+          const remaining=Math.max(.1,available-slNoWidth);
+          const n=count-1;
+          const equal=remaining/n;
 
-           let widths=Array(count).fill(0);
-           widths[slNoIndex]=slNoWidth;
+          let widths=Array(count).fill(equal);
+          widths[slNoIndex]=slNoWidth;
 
-           /*
-            * Other columns start equal, then long-content columns receive
-            * space from columns whose measured content genuinely needs less.
-            */
-           for(let i=1;i<count;i++) widths[i]=equal;
+          const req=required.slice(1).map(r=>Math.max(.1,r));
 
-           const need=otherRequired.map(r=>Math.max(0,r-equal));
-           const spare=otherRequired.map(r=>Math.max(0,equal-r));
-           const totalNeed=need.reduce((a,b)=>a+b,0);
-           const totalSpare=spare.reduce((a,b)=>a+b,0);
+          /*
+           * First pass: start from equal columns and calculate who needs
+           * additional space and who can donate it.
+           */
+          let need=req.map((r,i)=>Math.max(0,r-equal));
+          let spare=Array(n).fill(0).map((_,i)=>Math.max(0,equal-req[i]));
 
-           if(totalNeed>EPS){
-             const transfer=Math.min(totalNeed,totalSpare);
+          let totalNeed=need.reduce((a,b)=>a+b,0);
+          let totalSpare=spare.reduce((a,b)=>a+b,0);
 
-             if(transfer>EPS){
-               need.forEach((n,j)=>{
-                 if(n>0)widths[j+1]+=transfer*n/totalNeed;
-               });
-               if(totalSpare>0){
-                 spare.forEach((s,j)=>{
-                   if(s>0)widths[j+1]-=transfer*s/totalSpare;
-                 });
-               }
-             }
+          if(totalNeed>EPS && totalSpare>EPS){
+            const transfer=Math.min(totalNeed,totalSpare);
 
-             if(totalNeed>totalSpare+EPS){
-               for(let j=0;j<otherCount;j++){
-                 if(otherRequired[j]<equal)
-                   widths[j+1]=Math.max(.1,otherRequired[j]);
-               }
+            /*
+             * Take space from ALL donor columns, proportional to each donor's
+             * available surplus, and give it to ALL needy columns, proportional
+             * to each needy column's deficit.
+             */
+            for(let i=0;i<n;i++){
+              if(totalNeed>EPS && need[i]>0)
+                widths[i+1]+=transfer*(need[i]/totalNeed);
+            }
 
-               let used=widths.reduce((a,b)=>a+b,0);
-               let remainingSpace=Math.max(0,available-used);
-               const needy=otherRequired
-                 .map((r,j)=>r>widths[j+1]+EPS?j:-1)
-                 .filter(j=>j>=0);
+            for(let i=0;i<n;i++){
+              if(totalSpare>EPS && spare[i]>0)
+                widths[i+1]-=transfer*(spare[i]/totalSpare);
+            }
+          }
 
-               if(needy.length && remainingSpace>0){
-                 const unmet=needy.reduce(
-                   (sum,j)=>sum+Math.max(0,otherRequired[j]-widths[j+1]),0
-                 );
-                 if(unmet>0){
-                   needy.forEach(j=>{
-                     const n=Math.max(0,otherRequired[j]-widths[j+1]);
-                     widths[j+1]+=remainingSpace*n/unmet;
-                   });
-                 }else{
-                   const each=remainingSpace/needy.length;
-                   needy.forEach(j=>widths[j+1]+=each);
-                 }
-               }
-             }
-           }
+          /*
+           * If the first transfer was not enough, force every donor down to
+           * its REAL DATA requirement. Headers are allowed to wrap and therefore
+           * do not block this transfer.
+           */
+          let used=widths.reduce((a,b)=>a+b,0);
+          let shortage=0;
 
-           /*
-            * Do NOT normalize the SL No column. Normalization would make it
-            * wider than its data requirement. Normalize ONLY the remaining
-            * columns so the complete table occupies the A4 safe width.
-            */
-           const otherSum=widths.slice(1).reduce((a,b)=>a+b,0);
-           const targetOther=Math.max(.1,available-slNoWidth);
-           if(otherSum>0){
-             const scale=targetOther/otherSum;
-             for(let i=1;i<count;i++) widths[i]*=scale;
-           }
+          for(let i=0;i<n;i++){
+            if(widths[i+1] < req[i]-EPS){
+              shortage += req[i]-widths[i+1];
+            }
+          }
 
-           widths[slNoIndex]=slNoWidth;
-           return widths;
-         }
+          if(shortage>EPS){
+            let donorSpace=0;
+            for(let i=0;i<n;i++){
+              donorSpace += Math.max(0,widths[i+1]-req[i]);
+            }
+
+            if(donorSpace>EPS){
+              for(let i=0;i<n;i++){
+                const donor=Math.max(0,widths[i+1]-req[i]);
+                if(donor>0)
+                  widths[i+1]-=Math.min(donor,donorSpace*shortage/donorSpace);
+              }
+            }
+
+            /*
+             * Rebuild the final allocation from data requirements if possible.
+             * This guarantees the complete table still occupies exactly the
+             * A4 safe width while never taking anything from S.No.
+             */
+            const reqSum=req.reduce((a,b)=>a+b,0);
+
+            if(reqSum<=remaining+EPS){
+              for(let i=0;i<n;i++) widths[i+1]=req[i];
+
+              let leftover=remaining-reqSum;
+
+              /*
+               * Give leftover back to the non-S.No columns. Columns with
+               * longer data receive a little more room, while all columns
+               * remain within the same total page width.
+               */
+              const weights=req.map(r=>Math.max(1,r));
+              const weightSum=weights.reduce((a,b)=>a+b,0);
+
+              for(let i=0;i<n;i++){
+                widths[i+1]+=leftover*(weights[i]/weightSum);
+              }
+            }else{
+              /*
+               * Genuine page-width shortage: keep 13pt data and use the entire
+               * available width. The unavoidable deficit is shared among all
+               * columns according to their required width. S.No remains fixed.
+               */
+              const scale=remaining/reqSum;
+              for(let i=0;i<n;i++){
+                widths[i+1]=Math.max(.1,req[i]*scale);
+              }
+            }
+          }
+
+          /*
+           * Final normalization applies ONLY to columns 2 onward.
+           * Column 1 remains exactly FIXED_SN_WIDTH.
+           */
+          const otherSum=widths.slice(1).reduce((a,b)=>a+b,0);
+          if(otherSum>0){
+            const scale=remaining/otherSum;
+            for(let i=1;i<count;i++) widths[i]*=scale;
+          }
+
+          widths[slNoIndex]=slNoWidth;
+          return widths;
+        }
 
         function allDataCellsFit(table,widths,size){
           let fits=true;
@@ -1224,28 +1283,21 @@ button > *{position:relative;z-index:1;}
           const rows=dataRows(table);
           if(!rows.length)return;
 
-          /* Total is deliberately excluded from the 25-row data capacity. */
           const total=table.querySelector("tbody tr.total");
-
           const pageHeight=A4_HEIGHT;
           const pageCS=w.getComputedStyle(page);
           const pagePaddingTop=cssNumber(pageCS.paddingTop);
           const pagePaddingBottom=cssNumber(pageCS.paddingBottom);
 
           const blank=page.querySelector(".dcb-top-blank");
-          const head=page.querySelector(
-            ".dcb-head,.cumulative-dcb-head"
-          );
+          const head=page.querySelector(".dcb-head,.cumulative-dcb-head");
 
           const blankH=blank ? blank.getBoundingClientRect().height*72/96 : 0;
           const headH=head ? head.getBoundingClientRect().height*72/96 : 0;
-
           const thead=table.tHead;
           const theadH=thead ? thead.getBoundingClientRect().height*72/96 : 0;
           const totalH=total ? total.getBoundingClientRect().height*72/96 : 0;
 
-          /* Small safety allowance prevents the browser from pushing a row to
-             the next page because of fractional border rounding. */
           const safety=2;
           const usable=Math.max(
             1,
@@ -1259,24 +1311,56 @@ button > *{position:relative;z-index:1;}
             safety
           );
 
-          /* Use 20pt as the fixed/default data-row height when there are
-             fewer rows. As the number of rows grows, shrink the rows only
-             as much as necessary to keep all real rows on the page. */
           const FIXED_DCB_ROW_HEIGHT=20;
-          const rowHeight=Math.min(FIXED_DCB_ROW_HEIGHT,usable/rows.length);
-          const finalHeight=Math.max(12,rowHeight);
 
-          rows.forEach(row=>{
-            row.style.height=finalHeight.toFixed(3)+"pt";
-            row.style.minHeight=finalHeight.toFixed(3)+"pt";
-            row.style.maxHeight=finalHeight.toFixed(3)+"pt";
+          /*
+           * Normal rows remain 20pt. A row containing a wrapped SHG Name gets
+           * the height actually required by that cell, so wrapping is a real
+           * last-resort option rather than clipped text.
+           */
+          const requested=rows.map(row=>{
+            let h=FIXED_DCB_ROW_HEIGHT;
+
+            if(row.dataset.shgWrapped==="true"){
+              Array.from(row.children).forEach(td=>{
+                if(td.dataset.wrapShg!=="true")return;
+
+                const measured=td.getBoundingClientRect().height*72/96;
+                h=Math.max(h,measured+2);
+              });
+            }
+
+            return Math.max(12,h);
+          });
+
+          const requestedSum=requested.reduce((a,b)=>a+b,0);
+
+          /*
+           * If wrapped rows make 25 rows too tall, compress the row heights
+           * proportionally, but never below 12pt. The SHG text remains wrapped
+           * and at 10pt; it is never hidden.
+           */
+          let scale=1;
+          if(requestedSum>usable){
+            scale=Math.max(
+              12/FIXED_DCB_ROW_HEIGHT,
+              usable/requestedSum
+            );
+          }
+
+          rows.forEach((row,i)=>{
+            const h=Math.max(12,requested[i]*scale);
+
+            row.style.height=h.toFixed(3)+"pt";
+            row.style.minHeight=h.toFixed(3)+"pt";
+            row.style.maxHeight=h.toFixed(3)+"pt";
             row.style.breakInside="avoid";
             row.style.pageBreakInside="avoid";
 
             Array.from(row.children).forEach(td=>{
-              td.style.height=finalHeight.toFixed(3)+"pt";
-              td.style.minHeight=finalHeight.toFixed(3)+"pt";
-              td.style.maxHeight=finalHeight.toFixed(3)+"pt";
+              td.style.height=h.toFixed(3)+"pt";
+              td.style.minHeight=h.toFixed(3)+"pt";
+              td.style.maxHeight=h.toFixed(3)+"pt";
             });
           });
         }
@@ -1285,6 +1369,272 @@ button > *{position:relative;z-index:1;}
           const count=columnCount(table);
           if(!count)return;
 
+          const isDcb=table.matches(".dcb-page table,.cumulative-dcb-page table");
+          const isLedger=table.matches(".ledger-page table");
+          const page=table.closest(".dcb-page,.cumulative-dcb-page,.ledger-page");
+
+          /*
+           * DCB FITTING ORDER:
+           * 1. 10 mm margins, all data 13pt.
+           * 2. If insufficient, 8 mm margins, all data 13pt.
+           * 3. If still insufficient, ONLY SHG Name (column 2) becomes 10pt.
+           * 4. If still insufficient, ONLY the SHG Name cell(s) that need it
+           *    are wrapped.
+           *
+           * S.No (column 1) is always fixed and never donates width.
+           */
+          /*
+           * LOAN LEDGER:
+           * Apply the same first two page-space stages:
+           *   1) 10 mm margins + 13pt data
+           *   2) if necessary, 8 mm margins + 13pt data
+           *
+           * Loan Ledger has no SHG-name DATA COLUMN (the SHG name is in the
+           * metadata block above the monthly table), so the special 10pt/wrap
+           * fallback is meaningful only for the DCB SHG-name column.
+           * The Ledger therefore keeps all table data at 13pt.
+           */
+          if(isLedger){
+            const M10=28.3465;
+            const M8=22.6772;
+            const W10=A4_WIDTH-(M10*2);
+            const W8=A4_WIDTH-(M8*2);
+
+            const setLedgerStage=(marginPt,widthPt)=>{
+              if(page){
+                page.style.setProperty("padding-left",`${marginPt.toFixed(4)}pt`,"important");
+                page.style.setProperty("padding-right",`${marginPt.toFixed(4)}pt`,"important");
+              }
+
+              const frame=page ? page.querySelector(".ledger-frame") : null;
+              if(frame){
+                frame.style.setProperty("width",`${widthPt.toFixed(4)}pt`,"important");
+                frame.style.setProperty("max-width",`${widthPt.toFixed(4)}pt`,"important");
+                frame.style.setProperty("min-width",`${widthPt.toFixed(4)}pt`,"important");
+                frame.style.marginLeft="0";
+                frame.style.marginRight="0";
+                frame.style.boxSizing="border-box";
+              }
+
+              table.style.setProperty("width",`${widthPt.toFixed(4)}pt`,"important");
+              table.style.setProperty("max-width",`${widthPt.toFixed(4)}pt`,"important");
+              table.style.setProperty("min-width",`${widthPt.toFixed(4)}pt`,"important");
+              table.style.marginLeft="0";
+              table.style.marginRight="0";
+              table.style.boxSizing="border-box";
+              table.dataset.pdfWidthPt=String(widthPt);
+              table.dataset.pdfMarginPt=String(marginPt);
+            };
+
+            setCommonDataFont(table,13);
+            resetTableTransform(table);
+
+            setLedgerStage(M10,W10);
+            let required=requiredByColumn(table,13);
+            let widths=redistribute(required,W10);
+            setWidths(table,widths);
+            void table.offsetWidth;
+
+            if(allDataCellsFit(table,widths,13)){
+              return;
+            }
+
+            /* Only if 10 mm is insufficient: reduce side margins to 8 mm. */
+            setLedgerStage(M8,W8);
+            required=requiredByColumn(table,13);
+            widths=redistribute(required,W6);
+            setWidths(table,widths);
+            void table.offsetWidth;
+
+            /*
+             * Keep 13pt and the complete 8mm-safe width even if a particular
+             * Ledger value is exceptionally long. No other PDF data is reduced
+             * below 13pt.
+             */
+            setCommonDataFont(table,13);
+            return;
+          }
+
+          if(isDcb){
+            const M10=28.3465;
+            const M8=22.6772;
+            const W10=A4_WIDTH-(M10*2);
+            const W8=A4_WIDTH-(M8*2);
+            const SHG_COL=1;
+
+            const setStage=(marginPt,widthPt)=>{
+              if(page){
+                page.style.setProperty("padding-left",`${marginPt.toFixed(4)}pt`,"important");
+                page.style.setProperty("padding-right",`${marginPt.toFixed(4)}pt`,"important");
+              }
+              table.style.setProperty("width",`${widthPt.toFixed(4)}pt`,"important");
+              table.style.setProperty("max-width",`${widthPt.toFixed(4)}pt`,"important");
+              table.style.setProperty("min-width",`${widthPt.toFixed(4)}pt`,"important");
+              table.style.marginLeft="0";
+              table.style.marginRight="0";
+              table.style.boxSizing="border-box";
+              table.dataset.pdfWidthPt=String(widthPt);
+              table.dataset.pdfMarginPt=String(marginPt);
+            };
+
+            const setMixedFont=(shgSize)=>{
+              table.querySelectorAll("tbody td,tbody td .pdf-cell-text").forEach(el=>{
+                el.style.removeProperty("font-size");
+                el.style.removeProperty("font-family");
+                el.style.removeProperty("font-weight");
+                el.style.removeProperty("font-style");
+              });
+
+              table.querySelectorAll("tbody td").forEach(td=>{
+                const size=td.cellIndex===SHG_COL ? shgSize : 13;
+                td.style.setProperty("font-size",`${size}pt`,"important");
+                td.style.setProperty("font-family",'"Gidugu",Arial,sans-serif',"important");
+                td.style.setProperty("font-weight","400","important");
+                td.style.setProperty("font-synthesis","none","important");
+                td.style.setProperty("line-height","1","important");
+
+                if(td.cellIndex===SHG_COL){
+                  td.style.setProperty("white-space","nowrap","important");
+                  td.style.setProperty("overflow","visible","important");
+                }else{
+                  td.style.setProperty("white-space","nowrap","important");
+                  td.style.setProperty("overflow","visible","important");
+                }
+              });
+            };
+
+            const requiredMixed=(shgSize)=>{
+              const req=Array(count).fill(0);
+              dataCells(table).forEach(td=>{
+                const col=td.cellIndex;
+                if(col<=0 || col>=count)return;
+                const size=col===SHG_COL ? shgSize : 13;
+                req[col]=Math.max(
+                  req[col],
+                  measureTextPt(td,td.textContent||"",size)+
+                  paddingPt(td)+borderPt(td)+2
+                );
+              });
+              return req;
+            };
+
+            const fitsMixed=(widths,shgSize)=>{
+              let fits=true;
+              dataCells(table).forEach(td=>{
+                const col=td.cellIndex;
+                if(col<0 || col>=widths.length)return;
+                if(col===SHG_COL && td.dataset.wrapShg==="true")return;
+
+                const size=col===SHG_COL ? shgSize : 13;
+                const room=Math.max(
+                  0,
+                  widths[col]-paddingPt(td)-borderPt(td)-2
+                );
+
+                if(measureTextPt(td,td.textContent||"",size)>room+EPS){
+                  fits=false;
+                }
+              });
+              return fits;
+            };
+
+            /* Start clean. */
+            table.querySelectorAll("tbody td").forEach(td=>{
+              td.dataset.wrapShg="false";
+              td.style.removeProperty("overflow-wrap");
+              td.style.removeProperty("word-break");
+              td.style.setProperty("white-space","nowrap","important");
+              td.style.setProperty("overflow","visible","important");
+            });
+            table.querySelectorAll("tbody tr").forEach(row=>{
+              row.dataset.shgWrapped="false";
+            });
+
+            resetTableTransform(table);
+
+            /* -------------------------------------------------------------
+             * STAGE 1: 10 mm margins + all data at 13pt.
+             * ----------------------------------------------------------- */
+            setStage(M10,W10);
+            setMixedFont(13);
+
+            let required=requiredMixed(13);
+            let widths=redistribute(required,W10);
+            setWidths(table,widths);
+            void table.offsetWidth;
+
+            if(fitsMixed(widths,13)){
+              setDcbRowHeight(table);
+              return;
+            }
+
+            /* -------------------------------------------------------------
+             * STAGE 2: only if necessary, reduce BOTH side margins to 6 mm.
+             * ----------------------------------------------------------- */
+            setStage(M8,W8);
+            setMixedFont(13);
+
+            required=requiredMixed(13);
+            widths=redistribute(required,W6);
+            setWidths(table,widths);
+            void table.offsetWidth;
+
+            if(fitsMixed(widths,13)){
+              setDcbRowHeight(table);
+              return;
+            }
+
+            /* -------------------------------------------------------------
+             * STAGE 3: only SHG Name becomes 10pt.
+             * Every other data cell remains 13pt.
+             * ----------------------------------------------------------- */
+            setMixedFont(10);
+
+            required=requiredMixed(10);
+            widths=redistribute(required,W6);
+            setWidths(table,widths);
+            void table.offsetWidth;
+
+            if(fitsMixed(widths,10)){
+              setDcbRowHeight(table);
+              return;
+            }
+
+            /* -------------------------------------------------------------
+             * STAGE 4: still insufficient -> wrap ONLY the SHG Name cell(s)
+             * that actually exceed their available width.
+             * ----------------------------------------------------------- */
+            dataCells(table).forEach(td=>{
+              if(td.cellIndex!==SHG_COL)return;
+
+              const room=Math.max(
+                0,
+                widths[SHG_COL]-paddingPt(td)-borderPt(td)-2
+              );
+              const text=td.textContent||"";
+
+              if(measureTextPt(td,text,10)>room+EPS){
+                td.dataset.wrapShg="true";
+                td.style.setProperty("font-size","10pt","important");
+                td.style.setProperty("white-space","normal","important");
+                td.style.setProperty("overflow-wrap","anywhere","important");
+                td.style.setProperty("word-break","break-word","important");
+                td.style.setProperty("overflow","hidden","important");
+
+                const row=td.closest("tr");
+                if(row)row.dataset.shgWrapped="true";
+              }
+            });
+
+            /*
+             * Wrapped SHG cells need enough row height for their second/third
+             * line. setDcbRowHeight() below has a wrapped-row branch.
+             */
+            setDcbRowHeight(table);
+            return;
+          }
+
+          /* Non-DCB tables retain their existing fitting behaviour. */
           const available=availableWidthForTable(table);
           const cells=dataCells(table);
           const originalSizes=cells.map(td=>cellFontSizePt(td));
@@ -1294,7 +1644,6 @@ button > *{position:relative;z-index:1;}
 
           resetTableTransform(table);
 
-          /* Remove any old individual sizing before fitting. */
           table.querySelectorAll(
             "tbody td, tbody td .pdf-cell-text"
           ).forEach(el=>{
@@ -1304,14 +1653,9 @@ button > *{position:relative;z-index:1;}
             el.style.removeProperty("font-style");
           });
 
-          /* 1. Initial state: exact equal columns. */
           let widths=Array(count).fill(available/count);
           setWidths(table,widths);
 
-          /*
-           * First attempt: keep the table's normal/base font if possible.
-           * This preserves the existing appearance for tables that already fit.
-           */
           setCommonDataFont(table,baseFont);
           let required=requiredByColumn(table,baseFont);
           widths=redistribute(required,available);
@@ -1323,10 +1667,6 @@ button > *{position:relative;z-index:1;}
             return;
           }
 
-          /*
-           * 4. Uniform font reduction starts at 10pt. There is NEVER a
-           * per-cell font-size reduction.
-           */
           let selectedFont=COMMON_REDUCTION_START;
           let foundFit=false;
 
@@ -1337,12 +1677,10 @@ button > *{position:relative;z-index:1;}
           ){
             size=Math.round(size*100)/100;
             setCommonDataFont(table,size);
-
             required=requiredByColumn(table,size);
             widths=redistribute(required,available);
             setWidths(table,widths);
             void table.offsetWidth;
-
             selectedFont=size;
 
             if(allDataCellsFit(table,widths,size)){
@@ -1351,45 +1689,20 @@ button > *{position:relative;z-index:1;}
             }
           }
 
-          /* Always keep the whole table at ONE common font size. */
           setCommonDataFont(table,selectedFont);
           required=requiredByColumn(table,selectedFont);
           widths=redistribute(required,available);
           setWidths(table,widths);
           void table.offsetWidth;
 
-          /*
-           * 6. Final 13pt-safe fallback.
-           * Never scale the table below 100%, because that would make the
-           * effective data font smaller than the required 13pt minimum.
-           *
-           * At 13pt, give long-data columns their measured content width first
-           * and use the complete available A4 safe width. If the combined
-           * content is wider than the page, the table remains at 13pt rather
-           * than shrinking the text.
-           */
           if(!foundFit || !allDataCellsFit(table,widths,selectedFont)){
-            /*
-             * HARD PAGE-BOUNDARY RULE:
-             * Never let Monthly DCB/Cumulative DCB grow beyond the A4 safe
-             * width.  The old fallback used the raw `required` widths when
-             * content was wider than the page; that made the table extend
-             * past the right margin (especially Monthly DCB).
-             *
-             * Keep the data font at 13pt, but force the final column widths
-             * to the available A4 width. Long text may therefore have less
-             * measured room, but the TABLE BORDER itself always ends at the
-             * fixed right margin.
-             */
             setCommonDataFont(table,COMMON_MIN_FONT);
             required=requiredByColumn(table,COMMON_MIN_FONT);
-
             const normalized=redistribute(required,available);
             setWidths(table,normalized);
-
             table.style.width=`${available.toFixed(3)}pt`;
             table.style.maxWidth=`${available.toFixed(3)}pt`;
-            table.style.minWidth=`0pt`;
+            table.style.minWidth="0pt";
             table.style.transformOrigin="left top";
             table.style.transform="none";
             table.style.marginLeft="0";
@@ -1397,8 +1710,6 @@ button > *{position:relative;z-index:1;}
             table.style.overflow="visible";
           }
 
-          /* Dynamic 25-row DCB/Cumulative DCB height comes last so it sees the
-             final header/table dimensions. */
           setDcbRowHeight(table);
         }
 
@@ -1424,95 +1735,102 @@ button > *{position:relative;z-index:1;}
         function sync(frame,table,head,splitCount){
           if(!frame||!table||!head)return;
 
-          /*
-           * MONTHLY/CUMULATIVE DCB HEADER ALIGNMENT
-           * ----------------------------------------
-           * The table can become wider than its CSS width when the fitted
-           * column widths are larger because of long data. Therefore
-           * offsetWidth/var(--dcb-width) is NOT used here.
-           *
-           * We use the FINAL rendered table geometry and copy that geometry
-           * to the top header. This makes the header's left edge, right edge,
-           * and group divider line match the actual table below it.
-           */
-          const tableRect=table.getBoundingClientRect();
-          if(!tableRect || tableRect.width<=0)return;
+          /* Each DCB page is fitted independently. Use that page's FINAL
+             rendered table geometry for its top header. */
+          const widthPt=parseFloat(table.dataset.pdfWidthPt)||785.197;
+          const widthPx=widthPt*96/72;
+          const marginPt=parseFloat(table.dataset.pdfMarginPt)||28.3465;
 
-          const transform=table.style.transform||"";
-          const origin=table.style.transformOrigin||"left top";
-          const scaleMatch=transform.match(/scale\(\s*([-+]?\d*\.?\d+)\s*\)/);
-          const scale=scaleMatch ? (parseFloat(scaleMatch[1])||1) : 1;
+          const page=table.closest(".dcb-page,.cumulative-dcb-page");
+          if(page){
+            page.style.setProperty("padding-left",`${marginPt.toFixed(4)}pt`,"important");
+            page.style.setProperty("padding-right",`${marginPt.toFixed(4)}pt`,"important");
+          }
 
-          /*
-           * FINAL EDGE-TO-EDGE ALIGNMENT
-           * -----------------------------
-           * The frame, top header and table are one exact 10 mm-safe-width
-           * block.  Do not derive the header width from content or from a
-           * transformed table rectangle.  The table itself is forced back to
-           * the same width first; then the header is made exactly the same
-           * width. This prevents the header's right edge from stopping short
-           * of, or extending beyond, the table's right edge.
-           */
-          const SAFE_WIDTH_PT=785.197;
-          const safeWidthPx=SAFE_WIDTH_PT*96/72;
-
-          table.style.width=`${safeWidthPx.toFixed(3)}px`;
-          table.style.maxWidth=`${safeWidthPx.toFixed(3)}px`;
-          table.style.minWidth=`${safeWidthPx.toFixed(3)}px`;
+          table.style.setProperty("width",`${widthPx.toFixed(3)}px`,"important");
+          table.style.setProperty("max-width",`${widthPx.toFixed(3)}px`,"important");
+          table.style.setProperty("min-width",`${widthPx.toFixed(3)}px`,"important");
           table.style.marginLeft="0";
           table.style.marginRight="0";
           table.style.boxSizing="border-box";
 
-          frame.style.width=`${safeWidthPx.toFixed(3)}px`;
-          frame.style.maxWidth=`${safeWidthPx.toFixed(3)}px`;
-          frame.style.minWidth=`${safeWidthPx.toFixed(3)}px`;
+          frame.style.setProperty("width",`${widthPx.toFixed(3)}px`,"important");
+          frame.style.setProperty("max-width",`${widthPx.toFixed(3)}px`,"important");
+          frame.style.setProperty("min-width",`${widthPx.toFixed(3)}px`,"important");
           frame.style.marginLeft="0";
           frame.style.marginRight="0";
           frame.style.boxSizing="border-box";
 
-          head.style.width=`${safeWidthPx.toFixed(3)}px`;
-          head.style.maxWidth=`${safeWidthPx.toFixed(3)}px`;
-          head.style.minWidth=`${safeWidthPx.toFixed(3)}px`;
-          head.style.marginLeft="0";
+          void table.offsetWidth;
+          void frame.offsetWidth;
+
+          let tableRect=table.getBoundingClientRect();
+          let frameRect=frame.getBoundingClientRect();
+          if(!tableRect||tableRect.width<=0)return;
+
+          /*
+           * The table uses collapsed borders; the top header uses a normal
+           * border. In Chrome print layout the visible table edge can be
+           * about 1 CSS px wider. Keep the left edge identical and compensate
+           * that one pixel on the header's right edge.
+           */
+          const EDGE_COMPENSATION_PX=1;
+          const headLeft=tableRect.left-frameRect.left;
+          const headWidth=tableRect.width+EDGE_COMPENSATION_PX;
+
+          head.style.setProperty("width",`${headWidth.toFixed(3)}px`,"important");
+          head.style.setProperty("max-width",`${headWidth.toFixed(3)}px`,"important");
+          head.style.setProperty("min-width",`${headWidth.toFixed(3)}px`,"important");
+          head.style.marginLeft=`${headLeft.toFixed(3)}px`;
           head.style.marginRight="0";
           head.style.boxSizing="border-box";
           head.style.transformOrigin="left top";
           head.style.transform="none";
 
-          /*
-           * Use the ACTUAL rendered column widths for the group divider.
-           * getBoundingClientRect() sees the final fitted widths and any
-           * transform applied by the table.
-           */
+          void head.offsetWidth;
+          const headRect=head.getBoundingClientRect();
           const cols=Array.from(table.querySelectorAll("colgroup col"));
 
           if(cols.length && splitCount>0 && splitCount<cols.length){
             const rects=cols.map(col=>col.getBoundingClientRect());
+            const splitRect=rects[splitCount-1];
+            const dividerFromTableLeft=Math.max(
+              0,splitRect.right-tableRect.left
+            );
 
-            const leftRendered=rects
-              .slice(0,splitCount)
-              .reduce((sum,r)=>sum+r.width,0);
+            const cs=w.getComputedStyle(head);
+            const bl=cssNumber(cs.borderLeftWidth);
+            const br=cssNumber(cs.borderRightWidth);
+            const contentWidth=Math.max(1,headRect.width-bl-br);
 
-            const totalRendered=rects
-              .reduce((sum,r)=>sum+r.width,0);
+            const leftTrack=Math.min(
+              Math.max(1,dividerFromTableLeft-bl),
+              contentWidth-1
+            );
+            const rightTrack=Math.max(1,contentWidth-leftTrack);
 
-            /* Use the exact fitted column ratio.  The header is the same
-               border-box width as the table, so this divider lands on the
-               corresponding table column boundary even when the table uses
-               border-collapse. */
-            const leftRatio=totalRendered>0 ? leftRendered/totalRendered : 0;
+            head.style.gridTemplateColumns=
+              `${leftTrack.toFixed(3)}px ${rightTrack.toFixed(3)}px`;
 
-            if(leftRatio>0 && leftRatio<1){
-              head.style.gridTemplateColumns=
-                `${(leftRatio*100).toFixed(6)}% ${(100-leftRatio*100).toFixed(6)}%`;
-            }
+            const leftCell=head.querySelector(
+              ".dcb-head-left,.cumulative-dcb-head-left"
+            );
+            const rightCell=head.querySelector(
+              ".dcb-head-right,.cumulative-dcb-head-right"
+            );
+
+            [leftCell,rightCell].forEach((cell,idx)=>{
+              if(!cell)return;
+              cell.style.gridColumn=String(idx+1);
+              cell.style.width="100%";
+              cell.style.minWidth="0";
+              cell.style.maxWidth="100%";
+              cell.style.boxSizing="border-box";
+              cell.style.overflow="hidden";
+            });
           }
         }
 
-        /*
-         * Monthly DCB:
-         * columns 1-10 form the left side of the top header.
-         */
         doc.querySelectorAll(".dcb-page").forEach(page=>{
           sync(
             page.querySelector(".dcb-frame"),
@@ -1522,10 +1840,6 @@ button > *{position:relative;z-index:1;}
           );
         });
 
-        /*
-         * Cumulative DCB:
-         * columns 1-8 form the left side of the top header.
-         */
         doc.querySelectorAll(".cumulative-dcb-page").forEach(page=>{
           sync(
             page.querySelector(".cumulative-dcb-frame"),
@@ -1841,12 +2155,10 @@ html,body{
   height:22pt;
  <!-- border-bottom:1px solid #555;-->
 }
-/* Fixed A4 safe-width boundary for Monthly DCB. */
+/* Default A4 safe-width boundary for Monthly DCB; runtime may use 6 mm fallback. */
 .dcb-page .dcb-frame,
 .dcb-page .dcb-head,
 .dcb-page .dcb-table{
-  width:785.197pt !important;
-  max-width:785.197pt !important;
   box-sizing:border-box !important;
   margin-left:0 !important;
   margin-right:0 !important;
@@ -1874,7 +2186,7 @@ html,body{
   text-align:center;
   /* DCB-only: use the same font treatment as the LL PDF. */
   font-family:"Gidugu",Arial,sans-serif;
-  font-size:18pt;
+  font-size:15.5pt;
   font-weight:100;
   line-height:1;
 }
@@ -1902,6 +2214,13 @@ html,body{
 .dcb-table thead .group-head{height:28pt}
 .dcb-table thead .sub-head{height:20pt}
 .dcb-table thead .number-head{height:10pt}
+/* Header text is soft: it may wrap so its column can donate width to long data. */
+.dcb-table thead th{
+  white-space:normal !important;
+  overflow:hidden;
+  word-break:normal;
+  overflow-wrap:normal;
+}
 .dcb-table thead th{
   /* Same as LL table headings. */
   font-family:"Gidugu",Arial,sans-serif;
@@ -1965,12 +2284,13 @@ html,body{
   margin-right:0;
 }
 .cumulative-dcb-head{
+  box-sizing:border-box !important;
   width:var(--cumulative-dcb-width);height:24pt;display:grid;
   grid-template-columns:1fr .73fr;border:1px solid #555;border-bottom:0;
 }
 .cumulative-dcb-head-left,.cumulative-dcb-head-right{
   display:flex;align-items:center;justify-content:center;text-align:center;
-  font-family:"Gidugu",Arial,sans-serif;font-size:18pt;font-weight:100;
+  font-family:"Gidugu",Arial,sans-serif;font-size:15.5pt;font-weight:100;
   line-height:1;white-space:nowrap;
 }
 .cumulative-dcb-head-left{border-right:1px solid #555}
@@ -1986,6 +2306,13 @@ html,body{
 .cumulative-dcb-table thead .group-head{height:28pt}
 .cumulative-dcb-table thead .sub-head{height:20pt}
 .cumulative-dcb-table thead .number-head{height:10pt}
+/* Cumulative DCB headers are soft and may wrap when data needs width. */
+.cumulative-dcb-table thead th{
+  white-space:normal !important;
+  overflow:hidden;
+  word-break:normal;
+  overflow-wrap:normal;
+}
 .cumulative-dcb-table thead th{
   font-family:"Gidugu",Arial,sans-serif;font-size:13pt;font-weight:100;line-height:1;
 }
@@ -2457,7 +2784,7 @@ html,body{
                 <colgroup>${colStyle}</colgroup>
                 <thead>
                   <tr class="group-head">
-                    <th rowspan="2">S.N</th>
+                    <th rowspan="2">S.No</th>
                     <th rowspan="2"><span class="telugu">SHG పేరు</span></th>
                     <th rowspan="2"><span class="telugu">ప్రారంభ<br>అప్పు నిల్వ</span></th>
 
