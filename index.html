@@ -231,11 +231,11 @@ button > *{position:relative;z-index:1;}
 
 /* Stronger pulse for important actions. */
 #newVoBtn,#saveVoBtn,#createVoBtn,#addShgBtn,#saveAllBtn,
-#monthlyPdfBtn,#ledgerPdfBtn,#cumulativeDcbPdfBtn,#backupBtn,#importBtn,#resetBtn{
+#monthlyPdfBtn,#ledgerPdfBtn,#cumulativeDcbPdfBtn,#backupBtn,#importBtn,#importAllBtn,#resetBtn{
   animation:buttonFloat 3s ease-in-out infinite;
 }
 #newVoBtn:hover,#saveVoBtn:hover,#createVoBtn:hover,#addShgBtn:hover,#saveAllBtn:hover,
-#monthlyPdfBtn:hover,#ledgerPdfBtn:hover,#cumulativeDcbPdfBtn:hover,#backupBtn:hover,#importBtn:hover,#resetBtn:hover{
+#monthlyPdfBtn:hover,#ledgerPdfBtn:hover,#cumulativeDcbPdfBtn:hover,#backupBtn:hover,#importBtn:hover,#importAllBtn:hover,#resetBtn:hover{
   animation:none;
 }
 @keyframes buttonFloat{
@@ -469,8 +469,9 @@ button > *{position:relative;z-index:1;}
                 <button type="button" class="primary" id="newVoBtn">New VO</button>
                 <button type="button" class="success selected-vo-only" id="saveVoBtn">Save VO</button>
                 <button type="button" class="danger selected-vo-only" id="resetBtn">Delete VO</button>
-                <button type="button" class="secondary" id="backupBtn">Export Backup</button>
-                <button type="button" class="secondary" id="importBtn">Import Backup</button>
+                <button type="button" class="secondary" id="backupBtn">Download Backup</button>
+                <button type="button" class="secondary" id="importBtn">Restore Backup</button>
+                <button type="button" class="primary" id="importAllBtn">Merge Backup</button>
                 <span id="saveStatus" class="small"></span>
             </div>
 
@@ -1044,8 +1045,140 @@ button > *{position:relative;z-index:1;}
       writeDb();refreshVOSelect();markClean();document.getElementById("saveStatus").textContent="VO details saved";
     }
 
-    function exportBackup(){const blob=new Blob([JSON.stringify(db,null,2)],{type:"application/json"}),u=URL.createObjectURL(blob),a=document.createElement("a");a.href=u;a.download="vo-shg-backup.json";a.click();URL.revokeObjectURL(u);}
-    function importBackup(file){const r=new FileReader();r.onload=()=>{try{const x=JSON.parse(r.result);if(!x||!Array.isArray(x.vos))throw 0;db=x;selectedVOId=null;writeDb();refresh();document.getElementById("voDetailsToolbar").classList.remove("show-details");alert("Backup imported.");}catch(e){alert("Invalid backup file.");}};r.readAsText(file);}
+    function exportBackup(){
+      const blob=new Blob([JSON.stringify(db,null,2)],{type:"application/json"}),
+            u=URL.createObjectURL(blob),
+            a=document.createElement("a");
+      a.href=u;
+      a.download="vo-shg-backup.json";
+      a.click();
+      URL.revokeObjectURL(u);
+    }
+
+    /*
+     * Restore Backup = REPLACE mode.
+     * The current database is replaced by the selected backup.
+     * A warning is shown first so the user can export the current VOs
+     * or choose Merge Backup instead.
+     */
+    function importBackup(file){
+      const r=new FileReader();
+      r.onload=()=>{
+        try{
+          const x=JSON.parse(r.result);
+          if(!x||!Array.isArray(x.vos))throw 0;
+
+          const currentCount=Array.isArray(db.vos)?db.vos.length:0;
+          const importedCount=x.vos.length;
+
+          const proceed=confirm(
+            "WARNING: Restore Backup will REPLACE your current VOs.\n\n"+
+            "Current VOs: "+currentCount+"\n"+
+            "VOs in this backup: "+importedCount+"\n\n"+
+            "Your current VOs will be removed from the dashboard if you continue.\n\n"+
+            "Before continuing, click Cancel to Download Backup first, OR use Merge Backup to keep the current VOs and add the backup VOs.\n\n"+
+            "Press OK only if you want to REPLACE the current data."
+          );
+
+          if(!proceed)return;
+
+          db=x;
+          selectedVOId=null;
+          monthIndex=0;
+          writeDb();
+          refresh();
+          document.getElementById("voDetailsToolbar").classList.remove("show-details");
+          document.getElementById("dashboard").classList.add("hidden");
+          // Import completed successfully; clear any previous screen-dirty state.
+          // Selecting a VO after import should NOT trigger the unsaved-changes warning.
+          markClean();
+          document.getElementById("saveStatus").textContent="Backup imported";
+          alert("Backup imported. Current VOs were replaced by the imported backup.");
+        }catch(e){
+          alert("Invalid backup file.");
+        }
+      };
+      r.readAsText(file);
+    }
+
+    /*
+     * Merge Backup = MERGE mode.
+     * Existing VOs are kept. VOs from the backup are appended.
+     * If an imported VO has an ID already present in the current database,
+     * it is skipped to avoid creating duplicate copies of the same VO.
+     */
+    function importAllBackup(file){
+      const r=new FileReader();
+      r.onload=()=>{
+        try{
+          const x=JSON.parse(r.result);
+          if(!x||!Array.isArray(x.vos))throw 0;
+
+          const currentVos=Array.isArray(db.vos)?db.vos:[],
+                importedVos=x.vos;
+
+          const proceed=confirm(
+            "Merge Backup will KEEP your current VOs and ADD the VOs from this backup.\n\n"+
+            "Current VOs: "+currentVos.length+"\n"+
+            "VOs in this backup: "+importedVos.length+"\n\n"+
+            "No current VO will be deleted.\n"+
+            "If a backup VO has the same VO ID as an existing VO, that backup VO will be skipped to avoid duplicates.\n\n"+
+            "Continue with Merge Backup?"
+          );
+
+          if(!proceed)return;
+
+          const existingIds=new Set(currentVos.map(v=>String(v.id||"")));
+          const added=[];
+          const skipped=[];
+
+          importedVos.forEach(v=>{
+            const id=String(v&&v.id||"");
+            if(id && existingIds.has(id)){
+              skipped.push(v);
+              return;
+            }
+
+            const clone=JSON.parse(JSON.stringify(v||{}));
+            if(!clone.id || existingIds.has(String(clone.id))){
+              clone.id="VO-"+Date.now()+"-"+Math.random().toString(36).slice(2);
+            }
+
+            existingIds.add(String(clone.id));
+            added.push(clone);
+            currentVos.push(clone);
+          });
+
+          db.vos=currentVos;
+          selectedVOId=null;
+          monthIndex=0;
+          writeDb();
+          refresh();
+          document.getElementById("voDetailsToolbar").classList.remove("show-details");
+          document.getElementById("dashboard").classList.add("hidden");
+          // Merge Backup completed successfully; there are no unsaved screen edits.
+          // This prevents the VO-selection handler from showing an irrelevant warning.
+          markClean();
+          document.getElementById("saveStatus").textContent="Merge Backup completed";
+
+          let message="Merge Backup completed.\n\n"+
+                      "Current VOs kept: "+(currentVos.length-added.length)+"\n"+
+                      "New VOs added: "+added.length+"\n"+
+                      "Duplicate VO IDs skipped: "+skipped.length+"\n"+
+                      "Total VOs now available: "+db.vos.length;
+
+          if(skipped.length){
+            message+="\n\nThe skipped VOs already existed with the same VO ID.";
+          }
+
+          alert(message);
+        }catch(e){
+          alert("Invalid backup file.");
+        }
+      };
+      r.readAsText(file);
+    }
+
     function resetAll(){
       const v=vo();
       if(!v){
@@ -3397,8 +3530,24 @@ html,body{
     document.getElementById("ledgerPdfBtn").onclick=()=>ledgerPDF(false);
     document.getElementById("allPdfsBtn").onclick=()=>allPdfsPDF();
     document.getElementById("backupBtn").onclick=exportBackup;
-    document.getElementById("importBtn").onclick=()=>document.getElementById("fileInput").click();
-    document.getElementById("fileInput").onchange=e=>{if(e.target.files[0])importBackup(e.target.files[0]);};
+    document.getElementById("importBtn").onclick=()=>{
+      document.getElementById("fileInput").dataset.importMode="replace";
+      document.getElementById("fileInput").click();
+    };
+    document.getElementById("importAllBtn").onclick=()=>{
+      document.getElementById("fileInput").dataset.importMode="merge";
+      document.getElementById("fileInput").click();
+    };
+    document.getElementById("fileInput").onchange=e=>{
+      const file=e.target.files[0];
+      const mode=e.target.dataset.importMode||"replace";
+      if(file){
+        if(mode==="merge")importAllBackup(file);
+        else importBackup(file);
+      }
+      e.target.value="";
+      e.target.dataset.importMode="";
+    };
     document.getElementById("resetBtn").onclick=resetAll;
     document.addEventListener("input",function(e){
       if(e.target.matches("input,textarea") && e.target.id!=="newVoName" && e.target.id!=="loginUsername" && e.target.id!=="loginPassword")markDirty();
