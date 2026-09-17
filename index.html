@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VO & SHG Accounting</title>
+    <title>Chary's VO - DCB & SHG Accounting</title>
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2317365d'/%3E%3Ctext x='32' y='42' text-anchor='middle' font-family='Arial,sans-serif' font-size='25' font-weight='700' fill='white'%3EVO%3C/text%3E%3C/svg%3E">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Gidugu&display=swap');
@@ -26,6 +26,7 @@
         header{display:flex;align-items:center;gap:12px;}
         #homeBtn{background:#e6ebf1;color:#17365d;padding:8px 12px;}
         #homeBtn + h1{margin:0;}
+        #logoutBtn{margin-left:auto;background:#c62828;color:#fff;padding:8px 12px;white-space:nowrap;}
         @media(max-width:900px){#voDetailsToolbar:not(.show-details),#shgToolbar{max-width:100%;}
           #newVoForm .field,#shgToolbar > .field:first-child{flex-basis:100%;max-width:100%;}
         }
@@ -65,7 +66,9 @@
         #loginCard .login-field{margin-bottom:14px}
         #loginCard .login-field label{font-size:13px}
         #loginCard .login-field input{font-size:15px}
-        #loginBtn{width:100%;margin-top:4px}
+        #loginBtn,#signUpBtn{width:100%;display:block;margin-left:0;margin-right:0}
+        #loginBtn{margin-top:4px}
+        #signUpBtn{margin-top:8px}
         #loginError{min-height:18px;margin-top:10px;color:#c62828;font-size:13px;text-align:center;font-weight:bold}
 
         .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.months{display:flex;gap:5px;flex-wrap:wrap;margin:10px 0}.months button{background:#e6ebf1}.months button.active{background:#1769aa;color:#fff}
@@ -635,7 +638,7 @@ button > *{position:relative;z-index:1;}
 <body>
 <section id="loginScreen" aria-label="Login">
     <div id="loginCard">
-        <h1>VO & SHG Accounting</h1>
+        <h1>Chary's VO - DCB & SHG Accounting</h1>
         <p>Login to continue</p>
         <div class="login-field">
             <label for="loginUsername">Username</label>
@@ -646,6 +649,7 @@ button > *{position:relative;z-index:1;}
             <input id="loginPassword" type="password" autocomplete="current-password" placeholder="Password">
         </div>
         <button type="button" class="primary" id="loginBtn">Login</button>
+        <button type="button" class="secondary" id="signUpBtn">Create Account / Sign Up</button>
         <div id="loginError" aria-live="polite"></div>
     </div>
 </section>
@@ -654,6 +658,7 @@ button > *{position:relative;z-index:1;}
     <header>
         <button type="button" id="homeBtn" title="Go to initial page">Home</button>
         <h1>Chary's - VO DCB & LL Dashboard</h1>
+        <button type="button" id="logoutBtn" title="Logout">Logout</button>
     </header>
     <main>
 
@@ -690,7 +695,7 @@ button > *{position:relative;z-index:1;}
             </div>
 
             <div class="actions">
-                <button type="button" class="primary" id="newVoBtn">New VO</button>
+                <button type="button" class="primary" id="newVoBtn">Create VO</button>
                 <button type="button" class="success selected-vo-only" id="saveVoBtn">Save VO</button>
                 <button type="button" class="danger selected-vo-only" id="resetBtn">Delete VO</button>
                 <button type="button" class="secondary" id="backupBtn">Download Backup</button>
@@ -768,6 +773,140 @@ button > *{position:relative;z-index:1;}
         </section>
     </main>
 </div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
+    import {
+      getAuth,
+      onAuthStateChanged,
+      signInWithEmailAndPassword,
+      createUserWithEmailAndPassword,
+      signOut
+    } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
+    import {
+      getFirestore,
+      doc,
+      getDoc,
+      setDoc
+    } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCOYqFubFid6igfZAQYJ4UmweZDGjV_TUs",
+      authDomain: "vo-shg-accounts.firebaseapp.com",
+      projectId: "vo-shg-accounts",
+      storageBucket: "vo-shg-accounts.firebasestorage.app",
+      messagingSenderId: "362863242858",
+      appId: "1:362863242858:web:00fe2cdb4825e3e78be413"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const firestore = getFirestore(app);
+
+    let currentUser = null;
+    let cloudLoaded = false;
+    let saveTimer = null;
+
+    function userDocRef(){
+      if(!currentUser) return null;
+      return doc(firestore, "users", currentUser.uid);
+    }
+
+    async function loadCloudDb(){
+      if(!currentUser) return null;
+      const snap = await getDoc(userDocRef());
+      if(!snap.exists()) return null;
+      const data = snap.data();
+      return data && Array.isArray(data.vos) ? data : {vos:[]};
+    }
+
+    async function saveCloudDb(db){
+      if(!currentUser) return;
+      await setDoc(userDocRef(), {
+        vos: Array.isArray(db.vos) ? db.vos : [],
+        updatedAt: new Date().toISOString(),
+        ownerUid: currentUser.uid
+      }, {merge:true});
+    }
+
+    function queueCloudSave(db){
+      if(!currentUser || !cloudLoaded) return;
+      clearTimeout(saveTimer);
+      saveTimer=setTimeout(async()=>{
+        try{
+          await saveCloudDb(db);
+          const el=document.getElementById("saveStatus");
+          if(el) el.textContent="Saved to cloud";
+        }catch(err){
+          console.error("Firebase auto-save failed:",err);
+          const el=document.getElementById("saveStatus");
+          if(el) el.textContent="Local saved • Cloud save failed";
+        }
+      },700);
+    }
+
+    window.firebaseCloud = {
+      get currentUser(){ return currentUser; },
+      get cloudLoaded(){ return cloudLoaded; },
+      signIn: (email,password)=>signInWithEmailAndPassword(auth,email,password),
+      signUp: (email,password)=>createUserWithEmailAndPassword(auth,email,password),
+      logout: ()=>signOut(auth),
+      loadCloudDb,
+      saveCloudDb,
+      queueCloudSave,
+      setCloudLoaded(v){cloudLoaded=!!v;}
+    };
+
+    onAuthStateChanged(auth, async(user)=>{
+      currentUser=user||null;
+      if(!user){
+        cloudLoaded=false;
+        const loginScreen=document.getElementById("loginScreen");
+        const appShell=document.getElementById("appShell");
+        if(loginScreen)loginScreen.classList.remove("hidden");
+        if(appShell)appShell.classList.add("hidden");
+        return;
+      }
+
+      const loginScreen=document.getElementById("loginScreen");
+      const appShell=document.getElementById("appShell");
+      const loginError=document.getElementById("loginError");
+
+      try{
+        const cloud=await loadCloudDb();
+        const localRaw=localStorage.getItem("vo_shg_accounting_v18");
+        const localDb=localRaw ? (()=>{try{return JSON.parse(localRaw)}catch(e){return {vos:[]}}})() : {vos:[]};
+
+        if(cloud){
+          window.dispatchEvent(new CustomEvent("firebase-cloud-ready",{detail:{db:cloud,hasCloud:true}}));
+        }else{
+          let initial={vos:[]};
+          if(localDb && Array.isArray(localDb.vos) && localDb.vos.length){
+            const useLocal=confirm(
+              "No cloud data was found for this account.\n\n"+
+              "Existing data was found on this device.\n\n"+
+              "Press OK to upload this existing data to this Firebase account, or Cancel to start this account with an empty database."
+            );
+            if(useLocal) initial=localDb;
+          }
+          await saveCloudDb(initial);
+          window.dispatchEvent(new CustomEvent("firebase-cloud-ready",{detail:{db:initial,hasCloud:false}}));
+        }
+
+        cloudLoaded=true;
+        loginScreen.classList.add("hidden");
+        appShell.classList.remove("hidden");
+        loginError.textContent="";
+        document.getElementById("loginPassword").value="";
+        document.getElementById("loginUsername").blur();
+      }catch(err){
+        console.error(err);
+        loginError.textContent="Unable to load cloud data. Please try again.";
+        await signOut(auth);
+      }
+    });
+</script>
+
 <script>
     (function(){
     "use strict";
@@ -775,8 +914,30 @@ button > *{position:relative;z-index:1;}
     const MONTHS=[["Apr-26","April-2026"],["May-26","May-2026"],["Jun-26","June-2026"],["Jul-26","July-2026"],["Aug-26","August-2026"],["Sep-26","September-2026"],["Oct-26","October-2026"],["Nov-26","November-2026"],["Dec-26","December-2026"],["Jan-27","January-2027"],["Feb-27","February-2027"],["Mar-27","March-2027"]];
     let db=readDb(), selectedVOId=null, monthIndex=0, dirty=false;
 
-    function readDb(){try{const x=JSON.parse(localStorage.getItem(KEY));if(x&&Array.isArray(x.vos))return x}catch(e){}return{vos:[]};}
-    function writeDb(){localStorage.setItem(KEY,JSON.stringify(db));}
+    window.addEventListener("firebase-cloud-ready",function(e){
+      const cloudDb=e.detail&&e.detail.db;
+      db=(cloudDb&&Array.isArray(cloudDb.vos))?cloudDb:{vos:[]};
+      localStorage.setItem(KEY,JSON.stringify(db));
+      selectedVOId=null;
+      monthIndex=0;
+      markClean();
+      refresh();
+      document.getElementById("voDetailsToolbar").classList.remove("show-details");
+      document.getElementById("dashboard").classList.add("hidden");
+      document.getElementById("saveStatus").textContent="Cloud data loaded";
+    });
+
+    function readDb(){
+      try{
+        const x=JSON.parse(localStorage.getItem(KEY));
+        if(x&&Array.isArray(x.vos))return x;
+      }catch(e){}
+      return{vos:[]};
+    }
+    function writeDb(){
+      localStorage.setItem(KEY,JSON.stringify(db));
+      if(window.firebaseCloud) window.firebaseCloud.queueCloudSave(db);
+    }
     function vo(){return db.vos.find(v=>v.id===selectedVOId)||null;}
     function markDirty(){dirty=true;updateDirtyUI();}
     function markClean(){dirty=false;updateDirtyUI();}
@@ -3688,34 +3849,78 @@ html,body{
       printReport("VO",body);
     }
 
-    /* Login gate: the dashboard is inaccessible until username/password match. */
-    const LOGIN_USERNAME="8008";
-    const LOGIN_PASSWORD="123456";
+    /* Firebase Login / Sign Up gate. */
     const loginScreen=document.getElementById("loginScreen");
     const appShell=document.getElementById("appShell");
     const loginUsername=document.getElementById("loginUsername");
     const loginPassword=document.getElementById("loginPassword");
     const loginError=document.getElementById("loginError");
+    const signUpBtn=document.getElementById("signUpBtn");
 
-    function attemptLogin(){
-      const username=loginUsername.value.trim();
+    function friendlyAuthError(err){
+      const code=String(err&&err.code||"");
+      if(code.includes("invalid-credential")||code.includes("wrong-password")||code.includes("user-not-found"))
+        return "Invalid email or password.";
+      if(code.includes("email-already-in-use"))
+        return "This email already has an account. Please Login.";
+      if(code.includes("invalid-email"))
+        return "Enter a valid email address.";
+      if(code.includes("weak-password"))
+        return "Password must be at least 6 characters.";
+      if(code.includes("too-many-requests"))
+        return "Too many attempts. Please try again later.";
+      return "Login/Sign Up failed. Please try again.";
+    }
+
+    async function attemptLogin(){
+      const email=loginUsername.value.trim();
       const password=loginPassword.value;
-      if(username===LOGIN_USERNAME && password===LOGIN_PASSWORD){
-        loginError.textContent="";
-        loginScreen.classList.add("hidden");
-        appShell.classList.remove("hidden");
-        loginPassword.value="";
-        loginUsername.blur();
-        markClean();
-        refresh();
-      }else{
-        loginError.textContent="Invalid username or password.";
-        loginPassword.select();
+      if(!email||!password){
+        loginError.textContent="Enter your email and password.";
+        return;
+      }
+      loginError.textContent="Signing in...";
+      try{
+        await window.firebaseCloud.signIn(email,password);
+      }catch(err){
+        console.error(err);
+        loginError.textContent=friendlyAuthError(err);
+      }
+    }
+
+    async function attemptSignUp(){
+      const email=loginUsername.value.trim();
+      const password=loginPassword.value;
+      if(!email||!password){
+        loginError.textContent="Enter your email and password first.";
+        return;
+      }
+      if(password.length<6){
+        loginError.textContent="Password must be at least 6 characters.";
+        return;
+      }
+      loginError.textContent="Creating account...";
+      try{
+        await window.firebaseCloud.signUp(email,password);
+      }catch(err){
+        console.error(err);
+        loginError.textContent=friendlyAuthError(err);
       }
     }
 
     document.getElementById("homeBtn").onclick=goHome;
     document.getElementById("loginBtn").onclick=attemptLogin;
+    signUpBtn.onclick=attemptSignUp;
+
+    document.getElementById("logoutBtn").onclick=async()=>{
+      if(!confirmSwitch("logging out"))return;
+      try{
+        await window.firebaseCloud.logout();
+      }catch(err){
+        console.error(err);
+        alert("Logout failed. Please try again.");
+      }
+    };
     loginUsername.onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();loginPassword.focus();}};
     loginPassword.onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();attemptLogin();}};
     setTimeout(()=>loginUsername.focus(),50);
