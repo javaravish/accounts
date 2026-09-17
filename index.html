@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>VO & SHG Accounting</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2317365d'/%3E%3Ctext x='32' y='42' text-anchor='middle' font-family='Arial,sans-serif' font-size='25' font-weight='700' fill='white'%3EVO%3C/text%3E%3C/svg%3E">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Gidugu&display=swap');
                 *{box-sizing:border-box}body{margin:0;font-family:Arial,"Noto Sans",sans-serif;background:#f4f6f8;color:#202733}
@@ -407,6 +408,229 @@ button > *{position:relative;z-index:1;}
           }
         }
     </style>
+
+    <style id="mobile-friendly-ui">
+        /* =========================================================
+           MOBILE / TABLET FRIENDLY UI
+           Screen-only rules: these do NOT affect PDF/print layouts.
+           ========================================================= */
+
+        @media screen and (max-width: 900px){
+          main{
+            width:100%;
+            max-width:none;
+            margin:10px auto;
+            padding:0 10px;
+          }
+
+          .card{
+            padding:14px;
+            border-radius:8px;
+          }
+
+          header{
+            padding:12px 14px;
+            gap:9px;
+            flex-wrap:nowrap;
+          }
+
+          header h1{
+            font-size:19px;
+            line-height:1.2;
+            min-width:0;
+          }
+
+          #homeBtn{
+            flex:0 0 auto;
+            padding:9px 12px;
+          }
+
+          .toolbar,
+          #voDetailsToolbar,
+          #newVoForm .toolbar{
+            width:100%;
+            max-width:none !important;
+          }
+
+          .toolbar .field{
+            min-width:0;
+            width:100%;
+          }
+
+          #voDetailsToolbar.show-details .initial-hidden-field{
+            width:100%;
+          }
+
+          #newVoForm .field{
+            flex:1 1 100% !important;
+            max-width:none !important;
+          }
+
+          #createVoBtn,
+          #cancelVoBtn{
+            flex:1 1 140px;
+          }
+
+          /* The desktop toolbar intentionally stays on one row.
+             On smaller screens it becomes a clean vertical stack. */
+          #shgToolbar{
+            display:flex !important;
+            flex-direction:column !important;
+            flex-wrap:nowrap !important;
+            align-items:stretch !important;
+            width:100% !important;
+            gap:9px !important;
+            white-space:normal !important;
+          }
+
+          #shgToolbar > .field:first-child,
+          #shgToolbar > .field:nth-of-type(2){
+            flex:1 1 auto !important;
+            width:100% !important;
+            max-width:none !important;
+            min-width:0 !important;
+          }
+
+          #addShgBtn{
+            width:100%;
+            min-height:42px;
+          }
+
+          .actions{
+            gap:8px;
+          }
+
+          .actions > button{
+            min-height:42px;
+          }
+
+          /* Month tabs scroll horizontally instead of becoming tiny/wrapped. */
+          .months{
+            flex-wrap:nowrap;
+            overflow-x:auto;
+            overflow-y:hidden;
+            padding:3px 2px 7px;
+            -webkit-overflow-scrolling:touch;
+            scrollbar-width:thin;
+          }
+
+          .months button{
+            flex:0 0 auto;
+            min-height:40px;
+          }
+
+          /* The accounting table remains wide for readability, but the table
+             itself is horizontally swipe/scroll friendly on phones. */
+          .tablewrap{
+            width:100%;
+            overflow-x:auto;
+            overflow-y:hidden;
+            -webkit-overflow-scrolling:touch;
+            touch-action:pan-x;
+            border-radius:5px;
+          }
+
+          .entry{
+            min-width:1450px;
+          }
+
+          .notice{
+            font-size:12px;
+            line-height:1.45;
+          }
+        }
+
+        @media screen and (max-width:600px){
+          body{
+            font-size:14px;
+          }
+
+          header{
+            padding:10px 12px;
+          }
+
+          header h1{
+            font-size:16px;
+          }
+
+          #homeBtn{
+            padding:8px 10px;
+            font-size:12px;
+          }
+
+          h2{
+            font-size:20px;
+            margin-bottom:12px;
+          }
+
+          .card{
+            padding:12px;
+            margin-bottom:12px;
+          }
+
+          input,
+          select{
+            min-height:42px;
+            font-size:16px; /* avoids iOS input zoom */
+          }
+
+          button{
+            min-height:42px;
+          }
+
+          .actions > button{
+            flex:1 1 calc(50% - 8px);
+            min-width:135px;
+          }
+
+          #newVoForm .toolbar{
+            display:flex;
+            flex-direction:column;
+            align-items:stretch;
+          }
+
+          #createVoBtn,
+          #cancelVoBtn{
+            width:100%;
+            flex:0 0 auto;
+          }
+
+          #loginCard{
+            width:100%;
+            padding:22px 18px;
+          }
+
+          #loginCard h1{
+            font-size:21px;
+          }
+
+          .entry{
+            min-width:1450px;
+          }
+        }
+
+        @media screen and (max-width:420px){
+          header h1{
+            font-size:15px;
+          }
+
+          #homeBtn{
+            font-size:11px;
+            padding:8px 9px;
+          }
+
+          .actions > button{
+            flex:1 1 100%;
+            width:100%;
+          }
+
+          .months button{
+            font-size:12px;
+            padding:8px 11px;
+          }
+        }
+    </style>
+
 </head>
 <body>
 <section id="loginScreen" aria-label="Login">
