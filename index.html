@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chary's VO - DCB & SHG Accounting</title>
     <!-- SIGNUP_NO_OTP_VERSION_2026-09-18 -->
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2317365d'/%3E%3Ctext x='32' y='42' text-anchor='middle' font-family='Arial,sans-serif' font-size='25' font-weight='700' fill='white'%3EVO%3C/text%3E%3C/svg%3E">
+    <link rel="icon" type="image/svg+xml"
+          href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2317365d'/%3E%3Ctext x='32' y='42' text-anchor='middle' font-family='Arial,sans-serif' font-size='25' font-weight='700' fill='white'%3EVO%3C/text%3E%3C/svg%3E">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Gidugu&display=swap');
                 *{box-sizing:border-box}body{margin:0;font-family:Arial,"Noto Sans",sans-serif;background:#f4f6f8;color:#202733}
@@ -114,10 +115,19 @@
 .entry th:nth-child(2),.entry td:nth-child(2){
   border-left:0!important;
 }
-.shg-delete-btn{
-  white-space:nowrap;
-  padding:4px 8px!important;
-  font-size:11px!important;
+/* SHG row Save and Delete buttons must have the same size. */
+.entry td:nth-last-child(2) button,
+.entry td:nth-last-child(1) button,
+.entry .shg-delete-btn{
+  width:100% !important;
+  min-width:80px !important;
+  min-height:32px !important;
+  box-sizing:border-box !important;
+  padding:6px 10px !important;
+  font-size:11px !important;
+  line-height:1.2 !important;
+  white-space:nowrap !important;
+  margin:0 !important;
 }
 
 /* Automatically freeze S.No and SHG Name while horizontally scrolling. */
@@ -176,7 +186,40 @@
   z-index:10;
 }
 
+/* Keep the two SHG row action columns equal width. */
+.entry th:nth-last-child(2),.entry td:nth-last-child(2),
+.entry th:nth-last-child(1),.entry td:nth-last-child(1){
+  width:92px;
+  min-width:92px;
+  max-width:92px;
+  text-align:center !important;
+}
+
 .entry th,.entry td{border:1px solid #c3cad2;padding:5px;font-size:11px;text-align:right}.entry th{text-align:center;background:#edf1f5}.entry th:first-child,.entry td:first-child{width:55px;min-width:55px;max-width:55px;text-align:center}.entry th:nth-child(2),.entry td:nth-child(2){width:150px;min-width:150px}.entry th:nth-child(3),.entry td:nth-child(3){width:72px;min-width:72px;text-align:center}.entry input{min-width:80px;padding:6px;font-size:11px;text-align:right}.entry .name{min-width:150px;text-align:left;font-weight:bold}
+
+/* Mobile/tablet: SHG Name column auto-fits to the longest name.
+   With no entered name it stays at the SHG Name header width.
+   When a name is entered, the whole column grows to the longest text. */
+@media(max-width:900px){
+  .entry th:nth-child(2),
+  .entry td:nth-child(2){
+    width:auto;
+    min-width:0;
+    max-width:none;
+    white-space:nowrap;
+  }
+  .entry td:nth-child(2) .name{
+    display:block;
+    width:100% !important;
+    min-width:0 !important;
+    max-width:none !important;
+    box-sizing:border-box;
+    text-align:left;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:clip;
+  }
+}
 
 /* Mobile/tablet only: keep the SHG Name table column at the header width initially,
    and expand it to fit the longest entered SHG name without changing other columns. */
@@ -309,11 +352,11 @@ button:focus-visible{
 button > *{position:relative;z-index:1;}
 
 /* Stronger pulse for important actions. */
-#newVoBtn,#saveVoBtn,#createVoBtn,#addShgBtn,#saveAllBtn,
+#saveVoBtn,#createVoBtn,#addShgBtn,#saveAllBtn,
 #monthlyPdfBtn,#ledgerPdfBtn,#cumulativeDcbPdfBtn,#backupBtn,#importBtn,#importAllBtn,#resetBtn{
   animation:buttonFloat 3s ease-in-out infinite;
 }
-#newVoBtn:hover,#saveVoBtn:hover,#createVoBtn:hover,#addShgBtn:hover,#saveAllBtn:hover,
+#saveVoBtn:hover,#createVoBtn:hover,#addShgBtn:hover,#saveAllBtn:hover,
 #monthlyPdfBtn:hover,#ledgerPdfBtn:hover,#cumulativeDcbPdfBtn:hover,#backupBtn:hover,#importBtn:hover,#importAllBtn:hover,#resetBtn:hover{
   animation:none;
 }
@@ -468,6 +511,23 @@ button > *{position:relative;z-index:1;}
     flex:0 0 auto !important;
     white-space:nowrap !important;
   }
+
+/* FINAL SHG-PAGE RULE:
+   Create New VO is available only on the Home / initial page.
+   The selected-VO / SHG page must never display it. */
+#voDetailsToolbar.show-details #homeNewVoBtn{
+  display:none !important;
+}
+#voDetailsToolbar.show-details ~ .actions #newVoBtn{
+  display:none !important;
+}
+
+
+/* Home / initial page: show the Home-page Create New VO button. */
+#voDetailsToolbar:not(.show-details) #homeNewVoBtn{
+  display:inline-block !important;
+}
+
     </style>
     </style>
     </style>
@@ -709,6 +769,110 @@ button > *{position:relative;z-index:1;}
         }
     </style>
 
+    <style id="vo-selection-creation-details-layout-final">
+        /* VO Selection & Creation stays visible on both Home and SHG pages.
+           VO Details is a separate card shown only when a VO is selected. */
+        #voSelectionToolbar{
+          max-width:100% !important;
+          align-items:flex-end !important;
+        }
+        /* Keep Existing VO and Create New VO the same fixed size as the
+           original Home-page controls, including when shown on the SHG page. */
+        #voSelectionToolbar > .field{
+          flex:0 0 255px !important;
+          width:255px !important;
+          max-width:255px !important;
+          min-width:255px !important;
+        }
+        #voSelectionToolbar #homeNewVoBtn{
+          display:inline-block !important;
+          flex:0 0 255px !important;
+          width:255px !important;
+          max-width:255px !important;
+          min-width:255px !important;
+          height:38px !important;
+          min-height:38px !important;
+          padding:9px 13px !important;
+        }
+        #voDetailsSection{
+          display:block;
+        }
+        #voDetailsSection.hidden{
+          display:none !important;
+        }
+        #voDetailsToolbar{
+          width:100% !important;
+          max-width:100% !important;
+          display:grid !important;
+          grid-template-columns:repeat(4,minmax(0,1fr)) !important;
+          gap:10px !important;
+          align-items:end !important;
+        }
+        #voDetailsToolbar > .field{
+          width:100% !important;
+          min-width:0 !important;
+          max-width:none !important;
+          flex:none !important;
+        }
+        #voDetailsToolbar input{
+          width:100% !important;
+          min-width:0 !important;
+        }
+        #voDetailsActions{
+          display:flex !important;
+          align-items:center !important;
+          gap:8px !important;
+          margin-top:12px !important;
+        }
+        #voDetailsSection .selected-vo-only{
+          display:inline-block !important;
+        }
+        @media(max-width:900px){
+          #voSelectionToolbar{
+            display:grid !important;
+            grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;
+            gap:10px !important;
+          }
+          #voSelectionToolbar > .field{
+            width:100% !important;
+            max-width:none !important;
+            min-width:0 !important;
+            flex:none !important;
+          }
+          #voSelectionToolbar #homeNewVoBtn{
+            width:100% !important;
+            max-width:none !important;
+            min-width:0 !important;
+            flex:none !important;
+            height:38px !important;
+          }
+          #voDetailsToolbar{
+            grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+          }
+          #voDetailsActions{
+            display:grid !important;
+            grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;
+          }
+          #voDetailsActions #saveStatus{
+            grid-column:1 / -1 !important;
+          }
+        }
+        @media(max-width:600px){
+          #voSelectionToolbar{
+            grid-template-columns:1fr !important;
+          }
+          #voDetailsToolbar{
+            grid-template-columns:1fr !important;
+          }
+          #voDetailsActions{
+            grid-template-columns:1fr !important;
+          }
+          #voDetailsActions #saveStatus{
+            grid-column:auto !important;
+          }
+        }
+    </style>
+
 
     <style id="account-auth-ui">
         .auth-link{border:0;background:none;color:#1769aa;padding:6px;font-weight:bold;cursor:pointer}.auth-link:hover{box-shadow:none;transform:none;background:none}
@@ -788,9 +952,6 @@ button > *{position:relative;z-index:1;}
             margin:0 !important;
           }
 
-          #voDetailsToolbar.show-details + .actions #newVoBtn{
-            grid-column:1 / -1 !important;
-          }
 
           #voDetailsToolbar.show-details + .actions #saveStatus{
             grid-column:1 / -1 !important;
@@ -1183,12 +1344,26 @@ button > *{position:relative;z-index:1;}
     <div class="auth-box">
         <h2>Create Account</h2>
         <p class="small">Enter your email, mobile number, username and password.</p>
-        <div class="field"><label>Email ID *</label><input id="signupEmail" type="email" autocomplete="email" placeholder="name@example.com"></div>
-        <div class="field"><label>Mobile Number *</label><input id="signupMobile" type="tel" autocomplete="tel" placeholder="+91 9876543210"></div>
-        <div class="field"><label>Username *</label><input id="signupUsername" type="text" autocomplete="username" placeholder="Choose a username"></div>
-        <div class="field password-wrap"><label>Password *</label><input id="signupPassword" type="password" autocomplete="new-password" placeholder="Minimum 6 characters"><button type="button" class="toggle-pass" data-target="signupPassword">Show</button></div>
-        <div class="field password-wrap"><label>Confirm Password *</label><input id="signupConfirm" type="password" autocomplete="new-password" placeholder="Re-enter password"><button type="button" class="toggle-pass" data-target="signupConfirm">Show</button></div>
-        <div class="auth-actions"><button type="button" class="success" id="signupCreateBtn">Create Account</button><button type="button" class="secondary" data-close-modal="signupModal">Cancel</button></div>
+        <div class="field"><label>Email ID *</label><input id="signupEmail" type="email" autocomplete="email"
+                                                           placeholder="name@example.com"></div>
+        <div class="field"><label>Mobile Number *</label><input id="signupMobile" type="tel" autocomplete="tel"
+                                                                placeholder="+91 9876543210"></div>
+        <div class="field"><label>Username *</label><input id="signupUsername" type="text" autocomplete="username"
+                                                           placeholder="Choose a username"></div>
+        <div class="field password-wrap"><label>Password *</label><input id="signupPassword" type="password"
+                                                                         autocomplete="new-password"
+                                                                         placeholder="Minimum 6 characters">
+            <button type="button" class="toggle-pass" data-target="signupPassword">Show</button>
+        </div>
+        <div class="field password-wrap"><label>Confirm Password *</label><input id="signupConfirm" type="password"
+                                                                                 autocomplete="new-password"
+                                                                                 placeholder="Re-enter password">
+            <button type="button" class="toggle-pass" data-target="signupConfirm">Show</button>
+        </div>
+        <div class="auth-actions">
+            <button type="button" class="success" id="signupCreateBtn">Create Account</button>
+            <button type="button" class="secondary" data-close-modal="signupModal">Cancel</button>
+        </div>
         <div id="signupMsg" class="auth-msg"></div>
     </div>
 </div>
@@ -1196,8 +1371,12 @@ button > *{position:relative;z-index:1;}
     <div class="auth-box">
         <h2>Verify Mobile Number</h2>
         <p class="small" id="phoneOtpHelp">Enter the verification code sent to your mobile.</p>
-        <div class="field"><label>Verification Code *</label><input id="phoneOtpCode" type="text" inputmode="numeric" maxlength="6" placeholder="6-digit code"></div>
-        <div class="auth-actions"><button type="button" class="primary" id="verifyPhoneOtpBtn">Verify Code</button><button type="button" class="secondary" data-close-modal="phoneOtpModal">Cancel</button></div>
+        <div class="field"><label>Verification Code *</label><input id="phoneOtpCode" type="text" inputmode="numeric"
+                                                                    maxlength="6" placeholder="6-digit code"></div>
+        <div class="auth-actions">
+            <button type="button" class="primary" id="verifyPhoneOtpBtn">Verify Code</button>
+            <button type="button" class="secondary" data-close-modal="phoneOtpModal">Cancel</button>
+        </div>
         <div id="phoneOtpMsg" class="auth-msg"></div>
     </div>
 </div>
@@ -1221,9 +1400,20 @@ button > *{position:relative;z-index:1;}
     <div class="auth-box">
         <h2>Set New Password</h2>
         <p class="small">Your mobile number has been verified. Set a new password.</p>
-        <div class="field password-wrap"><label>New Password *</label><input id="resetNewPassword" type="password" autocomplete="new-password" placeholder="Minimum 6 characters"><button type="button" class="toggle-pass" data-target="resetNewPassword">Show</button></div>
-        <div class="field password-wrap"><label>Confirm New Password *</label><input id="resetConfirmPassword" type="password" autocomplete="new-password" placeholder="Re-enter password"><button type="button" class="toggle-pass" data-target="resetConfirmPassword">Show</button></div>
-        <div class="auth-actions"><button type="button" class="success" id="saveResetPasswordBtn">Update Password</button></div>
+        <div class="field password-wrap"><label>New Password *</label><input id="resetNewPassword" type="password"
+                                                                             autocomplete="new-password"
+                                                                             placeholder="Minimum 6 characters">
+            <button type="button" class="toggle-pass" data-target="resetNewPassword">Show</button>
+        </div>
+        <div class="field password-wrap"><label>Confirm New Password *</label><input id="resetConfirmPassword"
+                                                                                     type="password"
+                                                                                     autocomplete="new-password"
+                                                                                     placeholder="Re-enter password">
+            <button type="button" class="toggle-pass" data-target="resetConfirmPassword">Show</button>
+        </div>
+        <div class="auth-actions">
+            <button type="button" class="success" id="saveResetPasswordBtn">Update Password</button>
+        </div>
         <div id="resetMsg" class="auth-msg"></div>
     </div>
 </div>
@@ -1240,12 +1430,14 @@ button > *{position:relative;z-index:1;}
         <h3>Change Password</h3>
         <div class="field password-wrap">
             <label>New Password *</label>
-            <input id="profileNewPassword" type="password" autocomplete="new-password" placeholder="Minimum 6 characters">
+            <input id="profileNewPassword" type="password" autocomplete="new-password"
+                   placeholder="Minimum 6 characters">
             <button type="button" class="toggle-pass" data-target="profileNewPassword">Show</button>
         </div>
         <div class="field password-wrap">
             <label>Confirm New Password *</label>
-            <input id="profileConfirmPassword" type="password" autocomplete="new-password" placeholder="Re-enter password">
+            <input id="profileConfirmPassword" type="password" autocomplete="new-password"
+                   placeholder="Re-enter password">
             <button type="button" class="toggle-pass" data-target="profileConfirmPassword">Show</button>
         </div>
 
@@ -1267,44 +1459,17 @@ button > *{position:relative;z-index:1;}
     </header>
     <main>
 
-        <section class="card">
-            <h2>VO Details</h2>
+        <section class="card" id="voSelectionSection">
+            <h2>VO Selection &amp; Creation</h2>
 
-            <div class="toolbar" id="voDetailsToolbar">
-                <div class="field" style="flex:0 0 calc(50% - 5px);min-width:0">
+            <div class="toolbar" id="voSelectionToolbar">
+                <div class="field" style="flex:0 0 calc(40% - 5px);min-width:0">
                     <label>Existing VO</label>
                     <select id="voSelect">
                         <option value="">-- Select existing VO --</option>
                     </select>
                 </div>
                 <button type="button" class="primary initial-create-vo" id="homeNewVoBtn">Create New VO</button>
-
-                <div class="field initial-hidden-field">
-                    <label>VO Name</label>
-                    <input id="voName" placeholder="VO Name">
-                </div>
-
-                <div class="field initial-hidden-field">
-                    <label>Village <span style="color:#c62828">*</span></label>
-                    <input id="village" placeholder="Village">
-                </div>
-
-                <div class="field initial-hidden-field">
-                    <label>Mandal <span style="color:#c62828">*</span></label>
-                    <input id="mandal" placeholder="Mandal">
-                </div>
-
-                <div class="field initial-hidden-field">
-                    <label>District</label>
-                    <input id="district" placeholder="District">
-                </div>
-            </div>
-
-            <div class="actions">
-                <button type="button" class="success selected-vo-only" id="saveVoBtn">Save VO</button>
-                <button type="button" class="danger selected-vo-only" id="resetBtn">Delete VO</button>
-                <button type="button" class="primary selected-vo-only" id="newVoBtn">Create New VO</button>
-                <span id="saveStatus" class="small"></span>
             </div>
 
             <div id="newVoForm" class="hidden" style="margin-top:14px">
@@ -1319,9 +1484,42 @@ button > *{position:relative;z-index:1;}
             </div>
         </section>
 
+        <section class="card hidden" id="voDetailsSection">
+            <h2>VO Details</h2>
+            <div class="toolbar" id="voDetailsToolbar">
+                <div class="field">
+                    <label>VO Name</label>
+                    <input id="voName" placeholder="VO Name">
+                </div>
+
+                <div class="field">
+                    <label>Village <span style="color:#c62828">*</span></label>
+                    <input id="village" placeholder="Village">
+                </div>
+
+                <div class="field">
+                    <label>Mandal <span style="color:#c62828">*</span></label>
+                    <input id="mandal" placeholder="Mandal">
+                </div>
+
+                <div class="field">
+                    <label>District</label>
+                    <input id="district" placeholder="District">
+                </div>
+            </div>
+
+            <div class="actions" id="voDetailsActions">
+                <button type="button" class="success selected-vo-only" id="saveVoBtn">Save VO</button>
+                <button type="button" class="danger selected-vo-only" id="resetBtn">Delete VO</button>
+                <span id="saveStatus" class="small"></span>
+            </div>
+        </section>
+
         <section class="card" id="dataManagementSection">
             <h2>Data Management</h2>
-            <div class="notice">Use these options to back up your data, restore a previous backup, or merge backup data with your current VOs.</div>
+            <div class="notice">Use these options to back up your data, restore a previous backup, or merge backup data
+                with your current VOs.
+            </div>
             <div class="actions">
                 <button type="button" class="secondary" id="backupBtn">Download Backup</button>
                 <button type="button" class="secondary" id="importBtn">Restore Backup</button>
@@ -1428,6 +1626,19 @@ button > *{position:relative;z-index:1;}
     let lastActivityAt = Date.now();
     let isLoggingOutAutomatically = false;
 
+    // Wait briefly for the accounting app to expose its save-before-logout
+    // bridge. This is important because the authentication module is loaded
+    // before the main accounting script.
+    async function saveAppDataBeforeAuthLogout(){
+      for(let i=0;i<40 && typeof window.saveAppDataBeforeLogout!=="function";i++){
+        await new Promise(resolve=>setTimeout(resolve,50));
+      }
+      if(typeof window.saveAppDataBeforeLogout==="function"){
+        return await window.saveAppDataBeforeLogout();
+      }
+      return false;
+    }
+
     function isPageRefresh(){
       try{
         const nav = performance.getEntriesByType("navigation")[0];
@@ -1466,6 +1677,8 @@ button > *{position:relative;z-index:1;}
         }
         isLoggingOutAutomatically=true;
         try{
+          // Save all current accounting data before ending the session.
+          await saveAppDataBeforeAuthLogout();
           await signOut(auth);
         }catch(err){
           console.error("Automatic inactivity logout failed:",err);
@@ -1491,7 +1704,11 @@ button > *{position:relative;z-index:1;}
       const elapsed=Date.now()-lastActivityAt;
       if(elapsed >= AUTO_LOGOUT_MS){
         isLoggingOutAutomatically=true;
-        try{ await signOut(auth); }catch(err){ console.error(err); }
+        try{
+          // Save all current accounting data before ending the session.
+          await saveAppDataBeforeAuthLogout();
+          await signOut(auth);
+        }catch(err){ console.error(err); }
         finally{ isLoggingOutAutomatically=false; clearInactivityTimer(); }
       }else{
         startInactivityTimer();
@@ -1632,6 +1849,16 @@ button > *{position:relative;z-index:1;}
       },700);
     }
 
+    // Flush the pending auto-save immediately before logout.
+    async function saveNowBeforeLogout(db){
+      clearTimeout(saveTimer);
+      if(!currentUser || !cloudLoaded) return false;
+      await saveCloudDb(db);
+      const el=document.getElementById("saveStatus");
+      if(el) el.textContent="Data Saved before logout";
+      return true;
+    }
+
     window.firebaseCloud = {
       get currentUser(){ return currentUser; },
       get cloudLoaded(){ return cloudLoaded; },
@@ -1651,6 +1878,7 @@ button > *{position:relative;z-index:1;}
       loadCloudDb,
       saveCloudDb,
       queueCloudSave,
+      saveNowBeforeLogout,
       setCloudLoaded(v){cloudLoaded=!!v;}
     };
 
@@ -1734,8 +1962,23 @@ button > *{position:relative;z-index:1;}
       monthIndex=0;
       markClean();
       refresh();
-      document.getElementById("voDetailsToolbar").classList.remove("show-details");
-      document.getElementById("dashboard").classList.add("hidden");
+
+      // Every successful login must always start on the Home / initial page.
+      // If the previous session was logged out from the SHG page, the old
+      // selected-VO UI state would otherwise remain hidden behind appShell
+      // and appear again after the next login.
+      const voDetailsSection=document.getElementById("voDetailsSection");
+      if(voDetailsSection)voDetailsSection.classList.add("hidden");
+      const homeNewVoBtn=document.getElementById("homeNewVoBtn");
+      if(homeNewVoBtn)homeNewVoBtn.style.removeProperty("display");
+      const dataManagementSection=document.getElementById("dataManagementSection");
+      if(dataManagementSection)dataManagementSection.classList.remove("hidden");
+      const newVoForm=document.getElementById("newVoForm");
+      if(newVoForm)newVoForm.classList.add("hidden");
+      const dashboard=document.getElementById("dashboard");
+      if(dashboard)dashboard.classList.add("hidden");
+      const newVoName=document.getElementById("newVoName");
+      if(newVoName)newVoName.value="";
       document.getElementById("saveStatus").textContent="Data loaded";
     });
 
@@ -1750,6 +1993,33 @@ button > *{position:relative;z-index:1;}
       localStorage.setItem(KEY,JSON.stringify(db));
       if(window.firebaseCloud) window.firebaseCloud.queueCloudSave(db);
     }
+
+    // Save current screen values and then wait for the Firebase write to
+    // finish. Used by both manual and automatic logout.
+    window.saveAppDataBeforeLogout = async function(){
+      try{
+        if(selectedVOId){
+          const saved=saveCurrentScreen();
+          if(!saved){
+            // Even if validation prevents the normal Save VO action,
+            // preserve the current database locally before logout.
+            localStorage.setItem(KEY,JSON.stringify(db));
+          }
+        }else{
+          localStorage.setItem(KEY,JSON.stringify(db));
+        }
+
+        if(window.firebaseCloud && window.firebaseCloud.saveNowBeforeLogout){
+          await window.firebaseCloud.saveNowBeforeLogout(db);
+        }
+        return true;
+      }catch(err){
+        console.error("Save before logout failed:",err);
+        // localStorage was written before the cloud operation.
+        return false;
+      }
+    };
+
     function vo(){return db.vos.find(v=>v.id===selectedVOId)||null;}
     function markDirty(){dirty=true;updateDirtyUI();}
     function markClean(){dirty=false;updateDirtyUI();}
@@ -1824,8 +2094,7 @@ button > *{position:relative;z-index:1;}
       if(!dirty)return true;
       const proceed=confirm(
         "You have unsaved changes.\n\n" +
-        "If you continue without saving, your current unsaved VO data will be LOST.\n\n" +
-        "Press OK to continue without saving, or Cancel to stay on this screen."
+        "Press OK to continue without saving, or Cancel and save the VO details."
       );
       if(proceed){
         /* Discard only the unsaved screen changes. Reload the last saved DB
@@ -1901,7 +2170,9 @@ button > *{position:relative;z-index:1;}
       if(!confirmSwitch("returning to the initial page"))return;
       selectedVOId=null;
       monthIndex=0;
-      document.getElementById("voDetailsToolbar").classList.remove("show-details");
+      document.getElementById("voDetailsSection").classList.add("hidden");
+      const homeNewVoBtn=document.getElementById("homeNewVoBtn");
+      if(homeNewVoBtn)homeNewVoBtn.style.setProperty("display","inline-block","important");
       document.getElementById("dashboard").classList.add("hidden");
       document.getElementById("dataManagementSection").classList.remove("hidden");
       document.getElementById("newVoForm").classList.add("hidden");
@@ -1920,7 +2191,16 @@ button > *{position:relative;z-index:1;}
       db.vos.push(v);selectedVOId=v.id;monthIndex=0;
       document.getElementById("newVoName").value="";
       document.getElementById("newVoForm").classList.add("hidden");
-      refresh();document.getElementById("voDetailsToolbar").classList.add("show-details");markDirty();
+      refresh();
+      document.getElementById("voDetailsSection").classList.remove("hidden");
+      // A newly created VO is now on the selected-VO / SHG page.
+      // Keep VO Selection & Creation visible on the SHG page so another VO
+      // can be selected or a new VO can be created from there.
+      const homeNewVoBtn=document.getElementById("homeNewVoBtn");
+      if(homeNewVoBtn)homeNewVoBtn.style.removeProperty("display");
+      // Data Management belongs only on the Home / initial page.
+      document.getElementById("dataManagementSection").classList.add("hidden");
+      markDirty();
       setTimeout(()=>document.getElementById("village").focus(),50);
     }
 
@@ -1960,6 +2240,65 @@ button > *{position:relative;z-index:1;}
       const cp=document.getElementById("collectP-"+i),ci=document.getElementById("collectI-"+i);
       return {opening:vals.opening,prevPrincipal:vals.prevP,prevInterest:vals.prevI,demandPrincipal:vals.demandP,demandInterest:vals.demandI,
         principalCollection:cp?String(cp.value).trim():"",interestCollection:ci?String(ci.value).trim():"",newLoan:vals.newLoan};
+    }
+
+    function fitShgNameColumn(){
+      const table=document.querySelector("#entryBody")?.closest("table.entry");
+      if(!table)return;
+
+      const header=table.querySelector("thead th:nth-child(2)");
+      const cells=[...table.querySelectorAll("tbody td:nth-child(2)")];
+      const inputs=[...table.querySelectorAll("tbody td:nth-child(2) input.name")];
+
+      /* Measure using the actual SHG-name input font so the column matches
+         the longest entered name. Header text is the minimum width. */
+      const probe=document.createElement("span");
+      const sample=inputs[0] || header;
+      const cs=sample ? getComputedStyle(sample) : getComputedStyle(table);
+      probe.style.cssText=[
+        "position:absolute",
+        "visibility:hidden",
+        "white-space:nowrap",
+        "width:auto",
+        "height:auto",
+        "left:-99999px",
+        "top:-99999px",
+        `font:${cs.font}`,
+        `font-family:${cs.fontFamily}`,
+        `font-size:${cs.fontSize}`,
+        `font-weight:${cs.fontWeight}`,
+        `letter-spacing:${cs.letterSpacing}`
+      ].join(";");
+      document.body.appendChild(probe);
+
+      probe.textContent="SHG Name";
+      let width=probe.getBoundingClientRect().width;
+
+      inputs.forEach(input=>{
+        const value=input.value || "";
+        probe.textContent=value;
+        width=Math.max(width,probe.getBoundingClientRect().width);
+      });
+
+      /* Room for the input's left/right padding and cell borders. */
+      width=Math.ceil(width)+18;
+
+      if(header)header.style.width=width+"px";
+      cells.forEach(cell=>{
+        cell.style.width=width+"px";
+        cell.style.minWidth=width+"px";
+      });
+
+      inputs.forEach(input=>{
+        input.style.width="100%";
+        input.style.minWidth="0";
+        input.style.boxSizing="border-box";
+        input.style.overflow="hidden";
+        input.style.textOverflow="clip";
+        input.style.whiteSpace="nowrap";
+      });
+
+      probe.remove();
     }
 
     function renderRows(){
@@ -2041,6 +2380,7 @@ button > *{position:relative;z-index:1;}
       '<td><button type="button" class="danger shg-delete-btn" onclick="window.deleteSHG('+i+')">Delete</button></td>';
       body.appendChild(tr);
      });
+     fitShgNameColumn();
      if(!v.shgs.length)body.innerHTML='<tr><td colspan="17" style="text-align:center;padding:22px">No SHGs. Add the first SHG above.</td></tr>';
     }
 
@@ -2285,7 +2625,7 @@ button > *{position:relative;z-index:1;}
           monthIndex=0;
           writeDb();
           refresh();
-          document.getElementById("voDetailsToolbar").classList.remove("show-details");
+          document.getElementById("voDetailsSection").classList.add("hidden");
           document.getElementById("dashboard").classList.add("hidden");
           // Import completed successfully; clear any previous screen-dirty state.
           // Selecting a VO after import should NOT trigger the unsaved-changes warning.
@@ -2352,7 +2692,7 @@ button > *{position:relative;z-index:1;}
           monthIndex=0;
           writeDb();
           refresh();
-          document.getElementById("voDetailsToolbar").classList.remove("show-details");
+          document.getElementById("voDetailsSection").classList.add("hidden");
           document.getElementById("dashboard").classList.add("hidden");
           // Merge Backup completed successfully; there are no unsaved screen edits.
           // This prevents the VO-selection handler from showing an irrelevant warning.
@@ -2389,9 +2729,20 @@ button > *{position:relative;z-index:1;}
         selectedVOId=null;
         monthIndex=0;
         writeDb();
+
+        // Deleting the selected VO returns the user to the Home / initial page.
+        // Restore all Home-only UI here, just like goHome().
+        document.getElementById("voDetailsSection").classList.add("hidden");
+        const homeNewVoBtn=document.getElementById("homeNewVoBtn");
+        if(homeNewVoBtn)homeNewVoBtn.style.removeProperty("display");
+        document.getElementById("dataManagementSection").classList.remove("hidden");
+        document.getElementById("dashboard").classList.add("hidden");
+        document.getElementById("newVoForm").classList.add("hidden");
+        document.getElementById("newVoName").value="";
+        document.getElementById("saveStatus").textContent="";
         markClean();
         refresh();
-        document.getElementById("voDetailsToolbar").classList.remove("show-details");
+
         alert("Current VO deleted. Other VOs are unchanged.");
       }
     }
@@ -5175,11 +5526,17 @@ html,body{
     document.getElementById("homeBtn").onclick=goHome;
 
     document.getElementById("logoutBtn").onclick=async()=>{
+      const btn=document.getElementById("logoutBtn");
+      if(btn) btn.disabled=true;
       try{
+        // IMPORTANT: save all current data before ending the Firebase session.
+        await window.saveAppDataBeforeLogout();
         await window.firebaseCloud.logout();
       }catch(err){
         console.error(err);
         alert("Logout failed. Please try again.");
+      }finally{
+        if(btn) btn.disabled=false;
       }
     };
     loginUsername.onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();loginPassword.focus();}};
@@ -5197,14 +5554,17 @@ html,body{
     const homeNewVoBtn=document.getElementById("homeNewVoBtn");
     if(homeNewVoBtn)homeNewVoBtn.onclick=openNewVoForm;
 
-    const newVoBtn=document.getElementById("newVoBtn");
-    if(newVoBtn)newVoBtn.onclick=openNewVoForm;
     document.getElementById("cancelVoBtn").onclick=()=>document.getElementById("newVoForm").classList.add("hidden");
     document.getElementById("createVoBtn").onclick=createVO;
     document.getElementById("newVoName").onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();createVO();}};
     document.getElementById("voSelect").onchange=e=>{
       const id=e.target.value;if(!id||id===selectedVOId)return;
-      selectedVOId=id;monthIndex=0;refresh();document.getElementById("voDetailsToolbar").classList.add("show-details");document.getElementById("dataManagementSection").classList.add("hidden");markClean();
+      selectedVOId=id;monthIndex=0;refresh();
+      document.getElementById("voDetailsSection").classList.remove("hidden");
+      const homeNewVoBtn=document.getElementById("homeNewVoBtn");
+      if(homeNewVoBtn)homeNewVoBtn.style.removeProperty("display");
+      document.getElementById("dataManagementSection").classList.add("hidden");
+      markClean();
     };
     document.getElementById("saveVoBtn").onclick=saveVO;
     document.getElementById("addShgBtn").onclick=addSHG;
@@ -5246,7 +5606,14 @@ html,body{
       e.target.dataset.importMode="";
     };
     document.getElementById("resetBtn").onclick=resetAll;
+    window.addEventListener("resize",function(){
+      if(document.querySelector("#entryBody input.name"))fitShgNameColumn();
+    });
+
     document.addEventListener("input",function(e){
+      if(e.target.matches && e.target.matches("#entryBody input.name")){
+        fitShgNameColumn();
+      }
       if(e.target.matches("input,textarea") && !["newVoName","loginUsername","loginPassword","signupEmail","signupMobile","signupUsername","signupPassword","signupConfirm"].includes(e.target.id))markDirty();
       const m=e.target.id&&e.target.id.match(/^(prevP|prevI|demandP)-(\d+)$/);
       if(m && typeof window.recalc==="function") window.recalc(Number(m[2]));
