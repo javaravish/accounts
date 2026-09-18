@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chary's VO - DCB & SHG Accounting</title>
+    <!-- SIGNUP_NO_OTP_VERSION_2026-09-18 -->
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2317365d'/%3E%3Ctext x='32' y='42' text-anchor='middle' font-family='Arial,sans-serif' font-size='25' font-weight='700' fill='white'%3EVO%3C/text%3E%3C/svg%3E">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Gidugu&display=swap');
@@ -1124,6 +1125,37 @@ button > *{position:relative;z-index:1;}
         #signupModal .auth-msg.error{white-space:normal;line-height:1.35;}
     </style>
 
+
+    <style id="signup-profile-only-ui">
+        .auth-modal{
+          position:fixed;inset:0;background:rgba(0,0,0,.45);
+          display:flex;align-items:center;justify-content:center;
+          padding:20px;z-index:9999;
+        }
+        .auth-box{
+          width:min(430px,100%);background:#fff;border-radius:12px;
+          padding:24px;box-shadow:0 18px 50px rgba(0,0,0,.22);
+        }
+        .auth-box h2{margin:0 0 8px;color:#17365d}
+        .auth-box .small{margin:0 0 18px;color:#667085;font-size:13px}
+        .auth-box .field{margin-bottom:12px}
+        .auth-actions{display:flex;gap:8px;margin-top:14px}
+        .auth-actions button{flex:1}
+        .auth-msg{min-height:18px;margin-top:12px;text-align:center;font-size:13px;font-weight:bold}
+        .auth-msg.error{color:#c62828}.auth-msg.ok{color:#18864b}
+        .auth-box .password-wrap{position:relative}
+        .auth-box .password-wrap input{padding-right:80px}
+        .auth-box .password-wrap .toggle-pass{
+          position:absolute;right:5px;top:calc(50% + 14px);
+          transform:translateY(-50%);padding:6px 8px;
+          background:#e6ebf1;color:#263445;font-size:11px;z-index:5;
+        }
+        @media(max-width:600px){
+          .auth-box{padding:18px}
+          .auth-actions{flex-direction:column}
+        }
+    </style>
+
 </head>
 <body>
 <section id="loginScreen" aria-label="Login">
@@ -1156,7 +1188,6 @@ button > *{position:relative;z-index:1;}
         <div class="field"><label>Username *</label><input id="signupUsername" type="text" autocomplete="username" placeholder="Choose a username"></div>
         <div class="field password-wrap"><label>Password *</label><input id="signupPassword" type="password" autocomplete="new-password" placeholder="Minimum 6 characters"><button type="button" class="toggle-pass" data-target="signupPassword">Show</button></div>
         <div class="field password-wrap"><label>Confirm Password *</label><input id="signupConfirm" type="password" autocomplete="new-password" placeholder="Re-enter password"><button type="button" class="toggle-pass" data-target="signupConfirm">Show</button></div>
-        <div id="signupRecaptcha" class="recaptcha-box"></div>
         <div class="auth-actions"><button type="button" class="success" id="signupCreateBtn">Create Account</button><button type="button" class="secondary" data-close-modal="signupModal">Cancel</button></div>
         <div id="signupMsg" class="auth-msg"></div>
     </div>
@@ -1173,15 +1204,17 @@ button > *{position:relative;z-index:1;}
 <div id="forgotModal" class="auth-modal hidden">
     <div class="auth-box">
         <h2>Forgot Password</h2>
-        <p class="small">Choose how you want to reset your password.</p>
-        <div class="field"><label>Registered Email ID</label><input id="forgotEmail" type="email" placeholder="Email ID"></div>
+        <p class="small">Enter your registered email ID or username.</p>
+        <div class="field">
+            <label>Registered Email / Username</label>
+            <input id="forgotIdentifier" type="text" autocomplete="username"
+                   placeholder="Email ID or Username">
+        </div>
         <button type="button" class="primary" id="sendEmailResetBtn">Send Reset Email</button>
-        <hr style="border:0;border-top:1px solid #d5dce4;margin:18px 0">
-        <div class="field"><label>Registered Mobile Number</label><input id="forgotMobile" type="tel" placeholder="+91 9876543210"></div>
-        <div id="forgotRecaptcha" class="recaptcha-box"></div>
-        <button type="button" class="success" id="sendMobileOtpBtn">Send Mobile OTP</button>
         <div id="forgotMsg" class="auth-msg"></div>
-        <div class="auth-actions"><button type="button" class="secondary" data-close-modal="forgotModal">Close</button></div>
+        <div class="auth-actions">
+            <button type="button" class="secondary" data-close-modal="forgotModal">Close</button>
+        </div>
     </div>
 </div>
 <div id="resetPasswordModal" class="auth-modal hidden">
@@ -1198,13 +1231,33 @@ button > *{position:relative;z-index:1;}
     <div class="auth-box">
         <h2>My Profile</h2>
         <div id="profileSummary" class="profile-summary"></div>
+
+        <div class="field">
+            <label>Mobile Number</label>
+            <input id="profileMobileInput" type="tel" autocomplete="tel" placeholder="Mobile Number">
+        </div>
+
         <h3>Change Password</h3>
-        <div class="field password-wrap"><label>New Password *</label><input id="profileNewPassword" type="password" autocomplete="new-password" placeholder="Minimum 6 characters"><button type="button" class="toggle-pass" data-target="profileNewPassword">Show</button></div>
-        <div class="field password-wrap"><label>Confirm New Password *</label><input id="profileConfirmPassword" type="password" autocomplete="new-password" placeholder="Re-enter password"><button type="button" class="toggle-pass" data-target="profileConfirmPassword">Show</button></div>
-        <div class="auth-actions"><button type="button" class="success" id="saveProfileMobileBtn">Save Mobile</button><button type="button" class="success" id="changePasswordBtn">Change Password</button><button type="button" class="secondary" data-close-modal="profileModal">Close</button></div>
+        <div class="field password-wrap">
+            <label>New Password *</label>
+            <input id="profileNewPassword" type="password" autocomplete="new-password" placeholder="Minimum 6 characters">
+            <button type="button" class="toggle-pass" data-target="profileNewPassword">Show</button>
+        </div>
+        <div class="field password-wrap">
+            <label>Confirm New Password *</label>
+            <input id="profileConfirmPassword" type="password" autocomplete="new-password" placeholder="Re-enter password">
+            <button type="button" class="toggle-pass" data-target="profileConfirmPassword">Show</button>
+        </div>
+
+        <div class="auth-actions">
+            <button type="button" class="success" id="saveProfileMobileBtn">Save Mobile</button>
+            <button type="button" class="success" id="changePasswordBtn">Change Password</button>
+            <button type="button" class="secondary" data-close-modal="profileModal">Close</button>
+        </div>
         <div id="profileMsg" class="auth-msg"></div>
     </div>
 </div>
+
 <div id="appShell" class="hidden">
     <header>
         <button type="button" id="homeBtn" title="Go to initial page">Home</button>
@@ -1342,21 +1395,17 @@ button > *{position:relative;z-index:1;}
       signInWithEmailAndPassword,
       createUserWithEmailAndPassword,
       signOut,
-      updatePassword,
-      sendPasswordResetEmail,
-      RecaptchaVerifier,
-      signInWithPhoneNumber,
-      PhoneAuthProvider,
-      linkWithCredential,
-      linkWithPhoneNumber,
-      updatePhoneNumber,
-      deleteUser
+      setPersistence,
+      browserSessionPersistence,
+      deleteUser,
+      sendPasswordResetEmail
     } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
     import {
       getFirestore,
       doc,
       getDoc,
-      setDoc
+      setDoc,
+      runTransaction
     } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -1372,14 +1421,182 @@ button > *{position:relative;z-index:1;}
     const auth = getAuth(app);
     const firestore = getFirestore(app);
 
+    // Authentication is session-only: closing the browser/tab ends the login.
+    // A page refresh is also treated as a fresh login and signs the user out.
+    const AUTO_LOGOUT_MS = 5 * 60 * 1000;
+    let inactivityTimer = null;
+    let lastActivityAt = Date.now();
+    let isLoggingOutAutomatically = false;
+
+    function isPageRefresh(){
+      try{
+        const nav = performance.getEntriesByType("navigation")[0];
+        return !!nav && nav.type === "reload";
+      }catch(e){
+        return false;
+      }
+    }
+
+    async function forceLogoutOnRefresh(){
+      if(!isPageRefresh()) return;
+      try{
+        await signOut(auth);
+      }catch(err){
+        console.warn("Refresh logout failed:", err);
+      }
+    }
+
+    function clearInactivityTimer(){
+      if(inactivityTimer){
+        clearTimeout(inactivityTimer);
+        inactivityTimer=null;
+      }
+    }
+
+    function startInactivityTimer(){
+      clearInactivityTimer();
+      lastActivityAt=Date.now();
+      try{ sessionStorage.setItem("voLastActivityAt", String(lastActivityAt)); }catch(e){}
+      inactivityTimer=setTimeout(async()=>{
+        if(!currentUser) return;
+        const elapsed=Date.now()-lastActivityAt;
+        if(elapsed < AUTO_LOGOUT_MS){
+          startInactivityTimer();
+          return;
+        }
+        isLoggingOutAutomatically=true;
+        try{
+          await signOut(auth);
+        }catch(err){
+          console.error("Automatic inactivity logout failed:",err);
+        }finally{
+          isLoggingOutAutomatically=false;
+          clearInactivityTimer();
+        }
+      }, AUTO_LOGOUT_MS);
+    }
+
+    function registerActivity(){
+      if(!currentUser) return;
+      lastActivityAt=Date.now();
+      try{ sessionStorage.setItem("voLastActivityAt", String(lastActivityAt)); }catch(e){}
+      clearTimeout(inactivityTimer);
+      inactivityTimer=setTimeout(()=>{
+        if(currentUser) registerActivityCheck();
+      }, AUTO_LOGOUT_MS);
+    }
+
+    async function registerActivityCheck(){
+      if(!currentUser) return;
+      const elapsed=Date.now()-lastActivityAt;
+      if(elapsed >= AUTO_LOGOUT_MS){
+        isLoggingOutAutomatically=true;
+        try{ await signOut(auth); }catch(err){ console.error(err); }
+        finally{ isLoggingOutAutomatically=false; clearInactivityTimer(); }
+      }else{
+        startInactivityTimer();
+      }
+    }
+
+    ["click","keydown","pointerdown","touchstart","mousemove","scroll"].forEach(evt=>{
+      window.addEventListener(evt, registerActivity, {passive:true});
+    });
+
+    // Set Firebase Auth persistence to the current browser tab/session.
+    // This automatically logs out when the tab/browser session is closed.
+    setPersistence(auth, browserSessionPersistence).catch(err=>{
+      console.warn("Could not set session-only authentication persistence:",err);
+    });
+
+    forceLogoutOnRefresh();
+
     let currentUser = null;
     let cloudLoaded = false;
-    let newSignupInProgress = false;
     let saveTimer = null;
 
     function userDocRef(){
       if(!currentUser) return null;
       return doc(firestore, "users", currentUser.uid);
+    }
+
+    async function ensureAccountLookupForUser(user, cloudData){
+      if(!user)return;
+
+      const profile=(cloudData&&cloudData.profile)||{};
+      const email=String(profile.email||user.email||"").trim();
+      if(!email)return;
+
+      const username=String(profile.username||"").trim();
+
+      try{
+        const ref=doc(firestore,"accountLookup","email_"+email.toLowerCase());
+        await setDoc(ref,{
+          uid:user.uid,
+          email,
+          username
+        },{merge:true});
+
+        if(username){
+          const usernameRef=doc(firestore,"usernames",username.toLowerCase());
+          const usernameSnap=await getDoc(usernameRef);
+
+          if(!usernameSnap.exists()){
+            await setDoc(usernameRef,{
+              uid:user.uid,
+              email
+            },{merge:false});
+          }
+        }
+      }catch(err){
+        console.warn("Could not repair account lookup:",err);
+      }
+    }
+
+    async function migrateAccountIndexes(user, cloudData){
+      if(!user || !cloudData || !cloudData.profile)return;
+
+      const profile=cloudData.profile;
+      const usernameKey=String(profile.username||"").trim().toLowerCase();
+      const email=String(profile.email||user.email||"").trim();
+      if(!usernameKey && !email)return;
+
+      try{
+        const db=firestore;
+
+        // Create the username reservation for older accounts only when the
+        // username document does not already belong to someone else.
+        if(usernameKey){
+          const usernameRef=doc(db,"usernames",usernameKey);
+          const usernameSnap=await getDoc(usernameRef);
+
+          if(!usernameSnap.exists()){
+            try{
+              await setDoc(usernameRef,{uid:user.uid,email},{merge:false});
+            }catch(e){
+              console.warn("Could not migrate username index:",e);
+            }
+          }
+        }
+
+        // Create the email lookup used by Forgot Password.
+        if(email){
+          const emailRef=doc(db,"accountLookup","email_"+email.toLowerCase());
+          const emailSnap=await getDoc(emailRef);
+          if(!emailSnap.exists()){
+            try{
+              await setDoc(emailRef,{
+                uid:user.uid,
+                email,
+                username:String(profile.username||"")
+              },{merge:false});
+            }catch(e){
+              console.warn("Could not migrate email lookup:",e);
+            }
+          }
+        }
+      }catch(e){
+        console.warn("Account index migration skipped:",e);
+      }
     }
 
     async function loadCloudDb(){
@@ -1406,7 +1623,7 @@ button > *{position:relative;z-index:1;}
         try{
           await saveCloudDb(db);
           const el=document.getElementById("saveStatus");
-          if(el) el.textContent="Changes are saved";
+          if(el) el.textContent="Data Saved";
         }catch(err){
           console.error("Firebase auto-save failed:",err);
           const el=document.getElementById("saveStatus");
@@ -1420,25 +1637,17 @@ button > *{position:relative;z-index:1;}
       get cloudLoaded(){ return cloudLoaded; },
       signIn: (email,password)=>signInWithEmailAndPassword(auth,email,password),
       signUp: (email,password)=>createUserWithEmailAndPassword(auth,email,password),
+      deleteCurrentUser: ()=>currentUser ? deleteUser(currentUser) : Promise.resolve(),
       logout: ()=>signOut(auth),
-      updatePassword: (password)=>currentUser ? updatePassword(currentUser,password) : Promise.reject(new Error("Not signed in")),
       sendPasswordResetEmail: (email)=>sendPasswordResetEmail(auth,email),
-      getAuth(){return auth;},
-      getCurrentUser(){return currentUser;},
-      getFirestore(){return firestore;},
+
+      // Firestore helpers used by Profile, username lookup and account creation.
+      getFirestore: ()=>firestore,
       doc,
       getDoc,
       setDoc,
-      createRecaptcha(containerId){
-        return new RecaptchaVerifier(auth, containerId, {size:"invisible"});
-      },
-      phoneSignIn(phone,appVerifier){return signInWithPhoneNumber(auth,phone,appVerifier);},
-      phoneVerify(phone,appVerifier){return new PhoneAuthProvider(auth).verifyPhoneNumber({phoneNumber:phone},appVerifier);},
-      phoneLink(user,phone,appVerifier){return linkWithPhoneNumber(user,phone,appVerifier);},
-      phoneCredential(verificationId,code){return PhoneAuthProvider.credential(verificationId,code);},
-      linkPhone(user,credential){return linkWithCredential(user,credential);},
-      updatePhone(user,credential){return updatePhoneNumber(user,credential);},
-      deleteUser(user){return deleteUser(user);},
+      runTransaction,
+
       loadCloudDb,
       saveCloudDb,
       queueCloudSave,
@@ -1447,15 +1656,8 @@ button > *{position:relative;z-index:1;}
 
     onAuthStateChanged(auth, async(user)=>{
       currentUser=user||null;
-
-      // createUserWithEmailAndPassword signs the user in immediately.
-      // During signup, do NOT let this auth-state callback initialize the
-      // normal app/cloud session before mobile OTP verification is complete.
-      if(user && newSignupInProgress){
-        return;
-      }
-
       if(!user){
+        clearInactivityTimer();
         cloudLoaded=false;
         const loginScreen=document.getElementById("loginScreen");
         const appShell=document.getElementById("appShell");
@@ -1463,6 +1665,8 @@ button > *{position:relative;z-index:1;}
         if(appShell)appShell.classList.add("hidden");
         return;
       }
+
+      startInactivityTimer();
 
       const loginScreen=document.getElementById("loginScreen");
       const appShell=document.getElementById("appShell");
@@ -1476,10 +1680,8 @@ button > *{position:relative;z-index:1;}
         if(cloud){
           window.dispatchEvent(new CustomEvent("firebase-cloud-ready",{detail:{db:cloud,hasCloud:true}}));
         }else{
-          // A newly created account starts with an empty cloud database.
-          // Do not show the existing-device-data confirmation during signup.
           let initial={vos:[]};
-          if(!newSignupInProgress && localDb && Array.isArray(localDb.vos) && localDb.vos.length){
+          if(localDb && Array.isArray(localDb.vos) && localDb.vos.length){
             const useLocal=confirm(
               "No cloud data was found for this account.\n\n"+
               "Existing data was found on this device.\n\n"+
@@ -1491,6 +1693,18 @@ button > *{position:relative;z-index:1;}
           window.dispatchEvent(new CustomEvent("firebase-cloud-ready",{detail:{db:initial,hasCloud:false}}));
         }
 
+        // Older accounts may not have username/email lookup documents yet.
+        // Migrate them once the user is authenticated.
+        try{
+          const currentCloud=await loadCloudDb();
+          if(currentCloud){
+            await migrateAccountIndexes(user,currentCloud);
+            await ensureAccountLookupForUser(user,currentCloud);
+          }
+        }catch(indexErr){
+          console.warn("Account index migration failed:",indexErr);
+        }
+
         cloudLoaded=true;
         loginScreen.classList.add("hidden");
         appShell.classList.remove("hidden");
@@ -1499,7 +1713,7 @@ button > *{position:relative;z-index:1;}
         document.getElementById("loginUsername").blur();
       }catch(err){
         console.error(err);
-        loginError.textContent="Unable to load cloud data. Please try again.";
+        loginError.textContent="Session time out. Please login again.";
         await signOut(auth);
       }
     });
@@ -1606,21 +1820,6 @@ button > *{position:relative;z-index:1;}
       writeDb();refreshVOSelect();markClean();document.getElementById("saveStatus").textContent="Saved";return true;
     }
 
-    /*
-     * UNSAVED-CHANGE WARNING POLICY
-     * -----------------------------
-     * Warning is required for:
-     *   1. Create New VO
-     *   2. Home
-     *   3. Selecting another VO
-     *   4. Logout
-     *   5. Browser refresh/reload
-     *   6. Closing the tab/browser
-     *   7. Browser Back/navigation away from this document
-     *
-     * Month switching is deliberately excluded. Month buttons silently save
-     * the current month and never call confirmSwitch().
-     */
     function confirmSwitch(action){
       if(!dirty)return true;
       const proceed=confirm(
@@ -1685,12 +1884,9 @@ button > *{position:relative;z-index:1;}
     }
     function refresh(){
      refreshVOSelect();
-     const v=vo(),dash=document.getElementById("dashboard"),dataManagement=document.getElementById("dataManagementSection");
+     const v=vo(),dash=document.getElementById("dashboard");
      if(v && (v.interestRate===undefined||v.interestRate===null) && v.shgs.length) v.interestRate=Number(v.shgs[0].interestRate||12);
      dash.classList.toggle("hidden",!v);
-     // Data Management is available only on the Home/VO selection screen.
-     // Once a VO is selected or created, hide it to keep the accounting screen clean.
-     if(dataManagement) dataManagement.classList.toggle("hidden",!!v);
      if(!v)return;
      document.getElementById("voName").value=v.name;
      document.getElementById("village").value=v.village||"";
@@ -1702,15 +1898,15 @@ button > *{position:relative;z-index:1;}
     }
 
     function goHome(){
-      /* Home navigation must not show the unsaved-changes warning. */
+      if(!confirmSwitch("returning to the initial page"))return;
       selectedVOId=null;
       monthIndex=0;
       document.getElementById("voDetailsToolbar").classList.remove("show-details");
       document.getElementById("dashboard").classList.add("hidden");
+      document.getElementById("dataManagementSection").classList.remove("hidden");
       document.getElementById("newVoForm").classList.add("hidden");
       document.getElementById("newVoName").value="";
       document.getElementById("saveStatus").textContent="";
-      document.getElementById("dataManagementSection").classList.remove("hidden");
       markClean();
       refresh();
       document.getElementById("voSelect").focus();
@@ -1751,115 +1947,9 @@ button > *{position:relative;z-index:1;}
       input.focus();
     }
 
-    /*
-     * Month switching:
-     * -----------------
-     * Changing Apr/May/Jun/etc. is normal accounting work and must NEVER
-     * show the "unsaved changes" confirmation.
-     *
-     * Before changing month, silently capture the current screen values into
-     * the selected VO and save them to local storage/cloud. The confirmation
-     * is reserved for higher-level navigation such as Home, Create VO,
-     * selecting another VO, refresh/close, or browser navigation.
-     */
-    function saveCurrentMonthSilently(){
-      const v=vo();
-      if(!v)return true;
-
-      // Save any currently edited VO detail fields without forcing validation.
-      const voNameEl=document.getElementById("voName");
-      const villageEl=document.getElementById("village");
-      const mandalEl=document.getElementById("mandal");
-      const districtEl=document.getElementById("district");
-
-      if(voNameEl && voNameEl.value.trim()) v.name=voNameEl.value.trim();
-      if(villageEl) v.village=villageEl.value.trim();
-      if(mandalEl) v.mandal=mandalEl.value.trim();
-      if(districtEl) v.district=districtEl.value.trim();
-
-      const rateInput=document.getElementById("shgRateInput");
-      const rate=rateInput ? Number(rateInput.value) : Number(v.interestRate ?? 12);
-      if(Number.isFinite(rate) && rate>=0 && rate<=100){
-        v.interestRate=rate;
-        if(Array.isArray(v.shgs)) v.shgs.forEach(shg=>shg.interestRate=rate);
-      }
-
-      if(!Array.isArray(v.shgs))v.shgs=[];
-
-      v.shgs.forEach((shg,i)=>{
-        const startIdx=Number.isInteger(shg.startMonthIndex)?shg.startMonthIndex:0;
-        if(monthIndex<startIdx)return;
-
-        const nameEl=document.getElementById("name-"+i);
-        if(nameEl && nameEl.value.trim()) shg.name=nameEl.value.trim();
-
-        const key=MONTHS[monthIndex][0];
-        const raw=getRowData(i);
-        const april=(monthIndex===0);
-        const creationMonth=(monthIndex===startIdx && startIdx>0);
-        const nextMonthStart=(monthIndex===startIdx+1 && startIdx>0);
-
-        if(april){
-          // April SHGs use the normal editable starting fields.
-        }else if(creationMonth){
-          raw.opening=0;
-          raw.prevPrincipal=0;
-          raw.prevInterest=0;
-          raw.demandPrincipal=0;
-          raw.principalCollection="";
-          raw.interestCollection="";
-        }else if(nextMonthStart){
-          const prev=lastConsideredMonth(shg,monthIndex);
-          if(prev){
-            const pc=calc(prev.data);
-            raw.opening=pc.totalLoanBalance;
-            raw.prevPrincipal=pc.balancePrincipal;
-            raw.prevInterest=pc.balanceInterest;
-          }
-        }else{
-          const prev=lastConsideredMonth(shg,monthIndex);
-          const pc=prev?calc(prev.data):null;
-          if(pc){
-            raw.opening=pc.totalLoanBalance;
-            raw.prevPrincipal=pc.balancePrincipal;
-            raw.prevInterest=pc.balanceInterest;
-          }
-          const baseData=shg.months[MONTHS[startIdx+1] ? MONTHS[startIdx+1][0] : MONTHS[startIdx][0]]||blank();
-          raw.demandPrincipal=baseData.demandPrincipal;
-        }
-
-        raw.demandInterest=monthlyInterest(raw.opening,shg.interestRate);
-
-        if(monthIsConsidered(raw)) shg.months[key]=raw;
-        else if(shg.months[key]) delete shg.months[key];
-      });
-
-      // Month changes are an automatic save, so there is nothing "dirty"
-      // to confirm when moving to another month.
-      writeDb();
-      markClean();
-      return true;
-    }
-
     function renderMonths(){
-      const box=document.getElementById("monthTabs");
-      box.innerHTML="";
-      MONTHS.forEach((m,i)=>{
-        const b=document.createElement("button");
-        b.type="button";
-        b.textContent=m[0];
-        if(i===monthIndex)b.classList.add("active");
-        b.onclick=()=>{
-          if(i===monthIndex)return;
-
-          // IMPORTANT: Do NOT call confirmSwitch() here.
-          // Month switching silently saves the current SHG month.
-          saveCurrentMonthSilently();
-          monthIndex=i;
-          refresh();
-        };
-        box.appendChild(b);
-      });
+     const box=document.getElementById("monthTabs");box.innerHTML="";
+     MONTHS.forEach((m,i)=>{const b=document.createElement("button");b.type="button";b.textContent=m[0];if(i===monthIndex)b.classList.add("active");b.onclick=()=>{if(i===monthIndex)return;monthIndex=i;refresh();};box.appendChild(b);});
     }
 
     function getRowData(i){
@@ -1870,34 +1960,6 @@ button > *{position:relative;z-index:1;}
       const cp=document.getElementById("collectP-"+i),ci=document.getElementById("collectI-"+i);
       return {opening:vals.opening,prevPrincipal:vals.prevP,prevInterest:vals.prevI,demandPrincipal:vals.demandP,demandInterest:vals.demandI,
         principalCollection:cp?String(cp.value).trim():"",interestCollection:ci?String(ci.value).trim():"",newLoan:vals.newLoan};
-    }
-
-    function resizeShgNameTableColumn(){
-      if(window.innerWidth>900)return;
-      const table=document.querySelector("table.entry");
-      if(!table)return;
-      const header=table.querySelector("thead th:nth-child(2)");
-      if(!header)return;
-
-      const canvas=document.createElement("canvas");
-      const ctx=canvas.getContext("2d");
-      const cs=getComputedStyle(header);
-      ctx.font=cs.font;
-
-      let maxWidth=ctx.measureText("SHG Name").width;
-      table.querySelectorAll("tbody tr td:nth-child(2) input.name").forEach(input=>{
-        const value=input.value||"";
-        if(value)maxWidth=Math.max(maxWidth,ctx.measureText(value).width);
-      });
-
-      // Text width + cell padding + input border/padding breathing room.
-      const width=Math.ceil(maxWidth)+22;
-      header.style.width=width+"px";
-      header.style.minWidth=width+"px";
-      table.querySelectorAll("tbody tr td:nth-child(2)").forEach(td=>{
-        td.style.width=width+"px";
-        td.style.minWidth=width+"px";
-      });
     }
 
     function renderRows(){
@@ -1962,7 +2024,7 @@ button > *{position:relative;z-index:1;}
       const tr=document.createElement("tr");tr.id="row-"+i;
       tr.innerHTML=
       '<td>'+(i+1)+'</td>'+
-      '<td><input class="name" id="name-'+i+'" value="'+esc(s.name)+'"'+locked(lockName)+' oninput="resizeShgNameTableColumn();markDirty()"></td>'+
+      '<td><input class="name" id="name-'+i+'" value="'+esc(s.name)+'"'+locked(lockName)+'></td>'+
       '<td><input type="number" id="opening-'+i+'" value="'+opening+'"'+locked(lockOpening)+' oninput="window.recalc('+i+')"></td>'+
       '<td><input type="number" id="prevP-'+i+'" value="'+prevP+'"'+locked(lockPrevP)+' oninput="window.recalc('+i+')"></td>'+
       '<td><input type="number" id="prevI-'+i+'" value="'+prevI+'"'+locked(lockPrevI)+' oninput="window.recalc('+i+')"></td>'+
@@ -1980,7 +2042,6 @@ button > *{position:relative;z-index:1;}
       body.appendChild(tr);
      });
      if(!v.shgs.length)body.innerHTML='<tr><td colspan="17" style="text-align:center;padding:22px">No SHGs. Add the first SHG above.</td></tr>';
-     resizeShgNameTableColumn();
     }
 
     window.recalc=function(i){
@@ -2323,9 +2384,7 @@ button > *{position:relative;z-index:1;}
         return;
       }
 
-      if(!confirmSwitch("reset the current VO"))return;
-
-      if(prompt("Type RESET to delete the currently selected VO.")==="RESET"){
+      if(prompt("Type DELETE to delete the currently selected VO.")==="DELETE"){
         db.vos=db.vos.filter(x=>x.id!==selectedVOId);
         selectedVOId=null;
         monthIndex=0;
@@ -3894,119 +3953,7 @@ html,body{
   white-space:nowrap !important;overflow:visible !important;
 }
 
-
-
-        /* Mobile/tablet: selected VO action buttons layout.
-           Save VO + Delete VO stay side-by-side; Create New VO is below
-           and spans exactly the combined width of the two buttons. */
-        @media screen and (max-width:900px){
-          #voDetailsToolbar.show-details ~ .actions{
-            display:grid;
-            grid-template-columns:1fr 1fr;
-            gap:8px;
-            width:100%;
-            align-items:stretch;
-          }
-
-          #voDetailsToolbar.show-details ~ .actions #saveVoBtn,
-          #voDetailsToolbar.show-details ~ .actions #resetBtn{
-            display:block !important;
-            width:100%;
-            min-width:0;
-            grid-column:auto;
-          }
-
-          #voDetailsToolbar.show-details ~ .actions #newVoBtn{
-            grid-column:1 / -1;
-            width:100%;
-            min-width:0;
-          }
-
-          #voDetailsToolbar.show-details ~ .actions #saveStatus{
-            grid-column:1 / -1;
-          }
-        }
-
-/* Mobile + tablet only: VO action buttons use the same 2-on-top + full-width-below arrangement. */
-@media screen and (max-width:900px){
-  #voDetailsToolbar.show-details ~ .actions{
-    display:grid;
-    grid-template-columns:repeat(2,minmax(0,1fr));
-    gap:8px;
-    width:100%;
-  }
-
-  #voDetailsToolbar.show-details ~ .actions > button{
-    width:100%;
-    min-width:0;
-    margin:0;
-  }
-
-  #voDetailsToolbar.show-details ~ .actions #newVoBtn{
-    grid-column:1 / -1;
-  }
-}
-
-
-/* Mobile + tablet only: VO detail fields use the full available card width. */
-@media screen and (max-width:900px){
-  #voDetailsToolbar{
-    width:100% !important;
-    max-width:100% !important;
-    display:flex;
-    flex-direction:column;
-    align-items:stretch;
-    gap:10px;
-  }
-
-  #voDetailsToolbar > .field{
-    width:100% !important;
-    max-width:none !important;
-    min-width:0 !important;
-    flex:0 0 auto !important;
-  }
-
-  #voDetailsToolbar > .field input,
-  #voDetailsToolbar > .field select{
-    width:100% !important;
-  }
-}
-
-
-/* Mobile + tablet only: arrange VO fields like the requested 2-column layout.
-   Row 1: Existing VO | VO Name
-   Row 2: Village     | Mandal
-   Row 3: District full width
-*/
-@media screen and (max-width:900px){
-  #voDetailsToolbar{
-    display:grid !important;
-    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
-    gap:10px !important;
-    width:100% !important;
-    max-width:100% !important;
-    align-items:end !important;
-  }
-
-  #voDetailsToolbar > .field{
-    width:100% !important;
-    max-width:none !important;
-    min-width:0 !important;
-    flex:none !important;
-  }
-
-  #voDetailsToolbar > .field input,
-  #voDetailsToolbar > .field select{
-    width:100% !important;
-  }
-
-  /* District occupies the full third row. */
-  #voDetailsToolbar > .field:nth-child(5){
-    grid-column:1 / -1;
-  }
-}
-
-    </style>
+</style>
 </head>
 <body>${body}</body>
 </html>`);
@@ -4713,304 +4660,521 @@ html,body{
       printReport("VO",body);
     }
 
-    /* Firebase Login / Sign Up / Profile / Password recovery. */
+    /* Firebase Login / Sign Up gate.
+       Mobile number + username are stored in the user's Profile only.
+       No SMS/OTP is used. */
+    const loginScreen=document.getElementById("loginScreen");
+    const appShell=document.getElementById("appShell");
     const loginUsername=document.getElementById("loginUsername");
     const loginPassword=document.getElementById("loginPassword");
     const loginError=document.getElementById("loginError");
-    let signupVerifier=null, forgotVerifier=null, profilePhoneVerifier=null, pendingPhoneConfirmation=null, pendingSignupData=null;
-    let pendingProfileMobile=null;
 
-    function setMsg(id,msg,type=""){const el=document.getElementById(id);if(el){el.textContent=msg;el.className="auth-msg"+(type?" "+type:"");}}
     function friendlyAuthError(err){
       const code=String(err&&err.code||"");
-      if(code.includes("invalid-credential")||code.includes("wrong-password")||code.includes("user-not-found")) return "Invalid username/email or password.";
-      if(code.includes("email-already-in-use")) return "This email already has an account. Please Login.";
-      if(code.includes("invalid-email")) return "Enter a valid email address.";
-      if(code.includes("weak-password")) return "Password must be at least 6 characters.";
-      if(code.includes("too-many-requests")) return "Too many attempts. Please try again later.";
-      if(code.includes("invalid-phone-number")) return "Enter a valid mobile number with country code, e.g. +919876543210.";
-      if(code.includes("quota-exceeded")) return "SMS quota exceeded. Please try again later.";
-      if(code.includes("captcha-check-failed")) return "reCAPTCHA verification failed. Please try again.";
-      if(code.includes("permission-denied") || code.includes("Missing or insufficient permissions")) return "Firebase Firestore permissions are blocking this operation. Please publish the Firestore Rules provided with this app.";
-      if(code.includes("credential-already-in-use")) return "That mobile number is already linked to another account.";
-      if(code.includes("requires-recent-login")) return "For security, please logout and login again before changing your mobile number.";
+      if(code.includes("invalid-credential")||code.includes("wrong-password")||code.includes("user-not-found"))
+        return "Invalid username/email or password.";
+      if(code.includes("email-already-in-use"))
+        return "This email already has an account. Please Login.";
+      if(code.includes("invalid-email"))
+        return "Enter a valid email address.";
+      if(code.includes("weak-password"))
+        return "Password must be at least 6 characters.";
+      if(code.includes("too-many-requests"))
+        return "Too many attempts. Please try again later.";
+      if(code.includes("invalid-email"))
+        return "Enter a valid email address.";
+      if(code.includes("operation-not-allowed"))
+        return "Password reset is not enabled for this account.";
+      if(code.includes("permission-denied"))
+        return "Firebase permission denied. Check your Firestore rules.";
+      if(code.includes("unavailable"))
+        return "Firebase is temporarily unavailable. Please try again.";
+      if(code.includes("permission-denied")||code.includes("Missing or insufficient permissions"))
+        return "Firebase Firestore permissions are blocking this operation.";
       return err&&err.message ? err.message : "Authentication failed. Please try again.";
     }
+
     function normalizePhone(v){
       let p=String(v||"").trim().replace(/[\s()-]/g,"");
       if(/^0\d{10}$/.test(p)) p="+91"+p.slice(1);
       if(/^\d{10}$/.test(p)) p="+91"+p;
       return p;
     }
+
     async function lookupUsername(username){
       const key=String(username||"").trim().toLowerCase();
       if(!key)return null;
-      const snap=await window.firebaseCloud.getDoc(window.firebaseCloud.doc(window.firebaseCloud.getFirestore(),"usernames",key));
+      const snap=await window.firebaseCloud.getDoc(
+        window.firebaseCloud.doc(window.firebaseCloud.getFirestore(),"usernames",key)
+      );
       return snap.exists()?snap.data():null;
     }
+
     async function saveProfile(uid,data){
-      await window.firebaseCloud.setDoc(window.firebaseCloud.doc(window.firebaseCloud.getFirestore(),"users",uid),{profile:data,updatedAt:new Date().toISOString()},{merge:true});
-      if(data.username) await window.firebaseCloud.setDoc(window.firebaseCloud.doc(window.firebaseCloud.getFirestore(),"usernames",String(data.username).toLowerCase()),{uid,email:data.email,mobile:data.mobile,username:data.username},{merge:false});
+      const emailKey=String(data.email||"").trim().toLowerCase();
+
+      await window.firebaseCloud.setDoc(
+        window.firebaseCloud.doc(window.firebaseCloud.getFirestore(),"users",uid),
+        {
+          profile:{
+            email:data.email,
+            mobile:data.mobile,
+            username:data.username
+          },
+          updatedAt:new Date().toISOString()
+        },
+        {merge:true}
+      );
+
+      // Public lookup record contains no password. It allows Forgot Password
+      // to resolve a registered email without relying on Firebase's
+      // anti-enumeration sign-in-method API.
+      await window.firebaseCloud.setDoc(
+        window.firebaseCloud.doc(window.firebaseCloud.getFirestore(),"accountLookup","email_"+emailKey),
+        {uid,email:data.email,username:data.username},
+        {merge:true}
+      );
     }
+
+    async function lookupEmail(email){
+      const key=String(email||"").trim().toLowerCase();
+      if(!key)return null;
+      const snap=await window.firebaseCloud.getDoc(
+        window.firebaseCloud.doc(window.firebaseCloud.getFirestore(),"accountLookup","email_"+key)
+      );
+      return snap.exists()?snap.data():null;
+    }
+
+    async function reserveUsername(uid,email,username){
+      const key=String(username||"").trim().toLowerCase();
+      if(!key)throw new Error("Username is required.");
+      const db=window.firebaseCloud.getFirestore();
+      const ref=window.firebaseCloud.doc(db,"usernames",key);
+
+      // Atomic create-only reservation. An existing username can never be
+      // overwritten by another account.
+      await window.firebaseCloud.runTransaction(db,async(transaction)=>{
+        const snap=await transaction.get(ref);
+
+        if(snap.exists()){
+          const owner=snap.data()||{};
+          if(String(owner.uid||"")===String(uid||"")){
+            return;
+          }
+          throw new Error("USERNAME_ALREADY_EXISTS");
+        }
+
+        transaction.set(ref,{uid,email},{merge:false});
+      });
+    }
+
+
+
     async function attemptLogin(){
-      const identifier=loginUsername.value.trim(),password=loginPassword.value;
-      if(!identifier||!password){loginError.textContent="Enter your username/email and password.";return;}
+      const identifier=loginUsername.value.trim();
+      const password=loginPassword.value;
+
+      if(!identifier||!password){
+        loginError.textContent="Enter your username/email and password.";
+        return;
+      }
+
       loginError.textContent="Signing in...";
+
       try{
         let email=identifier;
+
         if(!identifier.includes("@")){
           const rec=await lookupUsername(identifier);
-          if(!rec||!rec.email){loginError.textContent="Invalid username/email or password.";return;}
+          if(!rec||!rec.email){
+            loginError.textContent="Invalid username/email or password.";
+            return;
+          }
           email=rec.email;
         }
+
         await window.firebaseCloud.signIn(email,password);
-      }catch(err){console.error(err);loginError.textContent=friendlyAuthError(err);}
+      }catch(err){
+        console.error(err);
+        loginError.textContent=friendlyAuthError(err);
+      }
     }
-    function openModal(id){document.getElementById(id).classList.remove("hidden");}
-    function closeModal(id){document.getElementById(id).classList.add("hidden");}
+
+    function openModal(id){
+      const el=document.getElementById(id);
+      if(el)el.classList.remove("hidden");
+    }
+
+    function closeModal(id){
+      const el=document.getElementById(id);
+      if(el)el.classList.add("hidden");
+    }
+
     function validateAccountForm(){
-      const email=document.getElementById("signupEmail").value.trim(),mobile=normalizePhone(document.getElementById("signupMobile").value),username=document.getElementById("signupUsername").value.trim(),pw=document.getElementById("signupPassword").value,cp=document.getElementById("signupConfirm").value;
-      if(!email||!mobile||!username||!pw||!cp)throw new Error("Fill all required fields.");
-      if(!/^\S+@\S+\.\S+$/.test(email))throw new Error("Enter a valid email address.");
-      if(!/^\+\d{8,15}$/.test(mobile))throw new Error("Enter a valid mobile number with country code.");
-      if(!/^[A-Za-z0-9._-]{3,30}$/.test(username))throw new Error("Username must be 3-30 characters and use letters, numbers, dot, underscore or hyphen.");
-      if(pw.length<6)throw new Error("Password must be at least 6 characters.");
-      if(pw!==cp)throw new Error("Passwords do not match.");
+      const email=document.getElementById("signupEmail").value.trim();
+      const mobile=normalizePhone(document.getElementById("signupMobile").value);
+      const username=document.getElementById("signupUsername").value.trim();
+      const pw=document.getElementById("signupPassword").value;
+      const cp=document.getElementById("signupConfirm").value;
+
+      if(!email||!mobile||!username||!pw||!cp)
+        throw new Error("Fill all required fields.");
+      if(!/^\S+@\S+\.\S+$/.test(email))
+        throw new Error("Enter a valid email address.");
+      if(!/^\+\d{8,15}$/.test(mobile))
+        throw new Error("Enter a valid mobile number.");
+      if(!/^[A-Za-z0-9._-]{3,30}$/.test(username))
+        throw new Error("Username must be 3-30 characters and use letters, numbers, dot, underscore or hyphen.");
+      if(pw.length<6)
+        throw new Error("Password must be at least 6 characters.");
+      if(pw!==cp)
+        throw new Error("Passwords do not match.");
+
       return {email,mobile,username,pw};
     }
-    async function withTimeout(promise, ms, message){
-      let timer;
-      const timeout=new Promise((_,reject)=>{
-        timer=setTimeout(()=>reject(new Error(message)),ms);
-      });
-      try{return await Promise.race([promise,timeout]);}
-      finally{clearTimeout(timer);}
+
+    async function openProfile(){
+      const modal=document.getElementById("profileModal");
+      const summary=document.getElementById("profileSummary");
+      const mobileInput=document.getElementById("profileMobileInput");
+      const msg=document.getElementById("profileMsg");
+
+      if(msg){
+        msg.textContent="";
+        msg.className="auth-msg";
+      }
+
+      const user=window.firebaseCloud && window.firebaseCloud.currentUser;
+      if(!user){
+        if(msg){
+          msg.textContent="Please login again to open Profile.";
+          msg.className="auth-msg error";
+        }
+        if(modal)modal.classList.remove("hidden");
+        return;
+      }
+
+      try{
+        const snap=await window.firebaseCloud.getDoc(
+          window.firebaseCloud.doc(window.firebaseCloud.getFirestore(),"users",user.uid)
+        );
+        const data=snap.exists()?snap.data():{};
+        const profile=data.profile||{};
+
+        if(summary){
+          summary.innerHTML=
+            "<div><b>Email:</b> "+String(profile.email||user.email||"")+"</div>"+
+            "<div><b>Username:</b> "+String(profile.username||"")+"</div>";
+        }
+        if(mobileInput)mobileInput.value=profile.mobile||"";
+        if(modal)modal.classList.remove("hidden");
+      }catch(err){
+        console.error(err);
+        if(summary)summary.textContent="";
+        if(msg){
+          msg.textContent=friendlyAuthError(err);
+          msg.className="auth-msg error";
+        }
+        if(modal)modal.classList.remove("hidden");
+      }
+    }
+
+    async function saveProfileMobile(){
+      const user=window.firebaseCloud && window.firebaseCloud.currentUser;
+      const input=document.getElementById("profileMobileInput");
+      const msg=document.getElementById("profileMsg");
+      if(!user){
+        if(msg)msg.textContent="Please login again.";
+        return;
+      }
+
+      const mobile=normalizePhone(input ? input.value : "");
+      if(!/^\+\d{8,15}$/.test(mobile)){
+        if(msg){
+          msg.textContent="Enter a valid mobile number.";
+          msg.className="auth-msg error";
+        }
+        return;
+      }
+
+      try{
+        if(msg){
+          msg.textContent="Saving mobile number...";
+          msg.className="auth-msg";
+        }
+
+        const snap=await window.firebaseCloud.getDoc(
+          window.firebaseCloud.doc(window.firebaseCloud.getFirestore(),"users",user.uid)
+        );
+        const existing=snap.exists()?snap.data():{};
+        const profile=existing.profile||{};
+
+        await window.firebaseCloud.setDoc(
+          window.firebaseCloud.doc(window.firebaseCloud.getFirestore(),"users",user.uid),
+          {
+            profile:{
+              email:profile.email||user.email||"",
+              username:profile.username||"",
+              mobile:mobile
+            },
+            updatedAt:new Date().toISOString()
+          },
+          {merge:true}
+        );
+
+        if(msg){
+          msg.textContent="Mobile number saved.";
+          msg.className="auth-msg ok";
+        }
+      }catch(err){
+        console.error(err);
+        if(msg){
+          msg.textContent=friendlyAuthError(err);
+          msg.className="auth-msg error";
+        }
+      }
+    }
+
+    async function changeProfilePassword(){
+      const user=window.firebaseCloud && window.firebaseCloud.currentUser;
+      const pw=document.getElementById("profileNewPassword");
+      const cp=document.getElementById("profileConfirmPassword");
+      const msg=document.getElementById("profileMsg");
+
+      if(!user){
+        if(msg)msg.textContent="Please login again.";
+        return;
+      }
+
+      const newPw=pw?pw.value:"";
+      const confirmPw=cp?cp.value:"";
+
+      if(newPw.length<6){
+        if(msg){
+          msg.textContent="Password must be at least 6 characters.";
+          msg.className="auth-msg error";
+        }
+        return;
+      }
+      if(newPw!==confirmPw){
+        if(msg){
+          msg.textContent="Passwords do not match.";
+          msg.className="auth-msg error";
+        }
+        return;
+      }
+
+      try{
+        if(msg){
+          msg.textContent="Changing password...";
+          msg.className="auth-msg";
+        }
+        await window.firebaseCloud.updatePassword(newPw);
+        if(pw)pw.value="";
+        if(cp)cp.value="";
+        if(msg){
+          msg.textContent="Password changed successfully.";
+          msg.className="auth-msg ok";
+        }
+      }catch(err){
+        console.error(err);
+        if(msg){
+          msg.textContent=friendlyAuthError(err);
+          msg.className="auth-msg error";
+        }
+      }
+    }
+
+    async function sendEmailReset(){
+      const input=document.getElementById("forgotIdentifier");
+      const msg=document.getElementById("forgotMsg");
+      const identifier=input ? input.value.trim() : "";
+
+      if(!identifier){
+        msg.textContent="Enter your registered email or username.";
+        msg.className="auth-msg error";
+        return;
+      }
+
+      msg.textContent="Checking account...";
+      msg.className="auth-msg";
+
+      try{
+        let email="";
+
+        if(identifier.includes("@")){
+          const emailKey=identifier.toLowerCase();
+
+          // Our accountLookup is the application's registration directory.
+          // Never call Firebase password-reset until this confirms that the
+          // email was registered by this application.
+          const rec=await lookupEmail(emailKey);
+
+          if(!rec || !rec.email){
+            msg.textContent="No account was found with that email address.";
+            msg.className="auth-msg error";
+            return;
+          }
+
+          email=rec.email;
+        }else{
+          const rec=await lookupUsername(identifier);
+
+          if(!rec || !rec.email){
+            msg.textContent="No account was found with that username.";
+            msg.className="auth-msg error";
+            return;
+          }
+
+          email=rec.email;
+        }
+
+        // Only a confirmed registered account reaches this line.
+        await window.firebaseCloud.sendPasswordResetEmail(email);
+
+        msg.textContent="Password reset email sent. Please check your email inbox (and Spam/Junk).";
+        msg.className="auth-msg ok";
+      }catch(err){
+        console.error("Forgot password failed:",err);
+
+        if(String(err&&err.code||"").includes("permission-denied")){
+          msg.textContent="Unable to verify the account. Please check your Firestore rules.";
+        }else if(String(err&&err.code||"").includes("invalid-email")){
+          msg.textContent="Enter a valid email address.";
+        }else{
+          msg.textContent="No account was found with that email address.";
+        }
+        msg.className="auth-msg error";
+      }
     }
 
     async function attemptSignUp(){
       const btn=document.getElementById("signupCreateBtn");
+      const msg=document.getElementById("signupMsg");
       if(btn)btn.disabled=true;
 
       try{
-        /* Validate first. Never leave the user on a generic checking message. */
-        let data;
+        const data=validateAccountForm();
+        const usernameKey=String(data.username||"").trim().toLowerCase();
+
+        if(msg){
+          msg.textContent="Checking username...";
+          msg.className="auth-msg";
+        }
+
+        // Quick check if Firestore rules permit the lookup. The transaction
+        // below remains the authoritative uniqueness check.
         try{
-          data=validateAccountForm();
-        }catch(validationErr){
-          setMsg("signupMsg",validationErr.message||"Please check the entered details.","error");
-          return;
+          const existing=await lookupUsername(usernameKey);
+          if(existing)throw new Error("USERNAME_ALREADY_EXISTS");
+        }catch(e){
+          if(String(e.message||"")!=="USERNAME_ALREADY_EXISTS" &&
+             !String(e.code||"").includes("permission-denied"))throw e;
+          if(String(e.message||"")==="USERNAME_ALREADY_EXISTS")throw e;
         }
 
-        /* Let the browser paint the next status before Firebase work starts. */
-        setMsg("signupMsg","Creating account...","");
-        await new Promise(resolve=>setTimeout(resolve,50));
-
-        newSignupInProgress=true;
-
-        let cred;
-        try{
-          cred=await withTimeout(
-            window.firebaseCloud.signUp(data.email,data.pw),
-            20000,
-            "Account creation timed out. Check your internet connection and make sure Firebase Authentication > Sign-in method > Email/Password is enabled."
-          );
-        }catch(authErr){
-          console.error("Firebase createUserWithEmailAndPassword failed:",authErr);
-          newSignupInProgress=false;
-          setMsg("signupMsg",friendlyAuthError(authErr),"error");
-          return;
+        if(msg){
+          msg.textContent="Creating account...";
+          msg.className="auth-msg";
         }
 
-        const createdUser=cred && cred.user ? cred.user : window.firebaseCloud.getCurrentUser();
-        if(!createdUser){
-          newSignupInProgress=false;
-          setMsg("signupMsg","Firebase created the account but no signed-in user was returned. Please try Login.","error");
-          return;
-        }
-
-        pendingSignupData=data;
-
-        /* Account creation is already successful. Profile storage is separate. */
-        setMsg("signupMsg","Account created. Saving profile...","ok");
-        try{
-          await withTimeout(
-            saveProfile(createdUser.uid,{
-              email:data.email,
-              mobile:data.mobile,
-              username:data.username
-            }),
-            10000,
-            "Account created, but profile saving timed out. Check your Firestore Rules."
-          );
-        }catch(profileErr){
-          console.error("Signup profile save failed:",profileErr);
-          newSignupInProgress=false;
-          setMsg("signupMsg","Account created, but profile could not be saved: "+friendlyAuthError(profileErr),"error");
-          return;
-        }
-
-        /* Keep the existing signup mobile-verification flow, but make its
-           failure explicit instead of leaving the form apparently stuck. */
-        setMsg("signupMsg","Account created. Sending mobile verification code...","ok");
-        await new Promise(resolve=>setTimeout(resolve,50));
+        const cred=await window.firebaseCloud.signUp(data.email,data.pw);
+        const user=cred&&cred.user ? cred.user : window.firebaseCloud.currentUser;
+        if(!user)throw new Error("Account was created but the user could not be loaded.");
 
         try{
-          if(!signupVerifier)signupVerifier=window.firebaseCloud.createRecaptcha("signupRecaptcha");
-          pendingPhoneConfirmation=await withTimeout(
-            window.firebaseCloud.phoneLink(createdUser,data.mobile,signupVerifier),
-            25000,
-            "Account created successfully, but the mobile verification code could not be sent. Check Firebase Phone Authentication and reCAPTCHA settings."
-          );
-
-          setMsg("signupMsg","Account created. Enter the SMS code to verify your mobile number.","ok");
-          closeModal("signupModal");
-          openModal("phoneOtpModal");
-          document.getElementById("phoneOtpModal").dataset.mode="signup";
-          document.getElementById("phoneOtpHelp").textContent="Enter the 6-digit code sent to "+data.mobile+".";
-        }catch(phoneErr){
-          console.error("Signup mobile verification failed:",phoneErr);
-          newSignupInProgress=false;
-          setMsg("signupMsg","Account created successfully, but mobile verification could not start: "+friendlyAuthError(phoneErr),"error");
+          await reserveUsername(user.uid,data.email,usernameKey);
+        }catch(e){
+          try{await window.firebaseCloud.deleteCurrentUser();}catch(delErr){console.error(delErr);}
+          if(String(e.message||"")==="USERNAME_ALREADY_EXISTS"){
+            throw new Error("Username already exists. Please choose another username.");
+          }
+          throw new Error("Unable to reserve username. Please check your Firestore rules.");
         }
+
+        await saveProfile(user.uid,data);
+
+        closeModal("signupModal");
+        ["signupEmail","signupMobile","signupUsername","signupPassword","signupConfirm"].forEach(id=>{
+          const el=document.getElementById(id);
+          if(el)el.value="";
+        });
+
       }catch(err){
-        console.error("Unexpected signup error:",err);
-        newSignupInProgress=false;
-        setMsg("signupMsg",friendlyAuthError(err),"error");
+        console.error(err);
+        if(msg){
+          msg.textContent=(err && err.code === "auth/email-already-in-use")
+            ?"Email already exists. Please choose another username."
+            :(String(err.message||"")==="USERNAME_ALREADY_EXISTS"
+              ?"Username already exists. Please choose another username."
+              :(err.message||friendlyAuthError(err)));
+          msg.className="auth-msg error";
+        }
       }finally{
         if(btn)btn.disabled=false;
       }
     }
-    async function verifySignupOtp(){
-      try{
-        const code=document.getElementById("phoneOtpCode").value.trim();
-        if(!/^\d{6}$/.test(code)){setMsg("phoneOtpMsg","Enter the 6-digit verification code.","error");return;}
-        if(!pendingPhoneConfirmation){setMsg("phoneOtpMsg","No verification request is active.","error");return;}
-        await pendingPhoneConfirmation.confirm(code);
-        const u=window.firebaseCloud.getCurrentUser();
-        if(!u)throw new Error("Account session was not found after verification.");
-        await saveProfile(u.uid,{email:pendingSignupData.email,mobile:pendingSignupData.mobile,username:pendingSignupData.username});
-        setMsg("phoneOtpMsg","Mobile verified. Account setup completed.","ok");
-        newSignupInProgress=false;
-        pendingPhoneConfirmation=null;
-        pendingSignupData=null;
 
-        // Now that signup is complete, initialize the normal application
-        // session with a fresh empty cloud database.
-        window.firebaseCloud.setCloudLoaded(true);
-        window.dispatchEvent(new CustomEvent("firebase-cloud-ready",{detail:{db:{vos:[]},hasCloud:false}}));
-        document.getElementById("loginScreen").classList.add("hidden");
-        document.getElementById("appShell").classList.remove("hidden");
-        setTimeout(()=>closeModal("phoneOtpModal"),700);
-      }catch(err){console.error(err);setMsg("phoneOtpMsg",friendlyAuthError(err),"error");}
-    }
-    async function sendEmailReset(){
-      const email=document.getElementById("forgotEmail").value.trim();
-      if(!email){setMsg("forgotMsg","Enter your registered email ID.","error");return;}
-      try{await window.firebaseCloud.sendPasswordResetEmail(email);setMsg("forgotMsg","Password reset email sent. Check your inbox and follow the secure reset link.","ok");}
-      catch(err){setMsg("forgotMsg",friendlyAuthError(err),"error");}
-    }
-    async function sendMobileOtp(){
-      const mobile=normalizePhone(document.getElementById("forgotMobile").value);
-      if(!/^\+\d{8,15}$/.test(mobile)){setMsg("forgotMsg","Enter a valid registered mobile number.","error");return;}
-      try{
-        if(!forgotVerifier)forgotVerifier=window.firebaseCloud.createRecaptcha("forgotRecaptcha");
-        pendingPhoneConfirmation=await window.firebaseCloud.phoneSignIn(mobile,forgotVerifier);
-        closeModal("forgotModal");openModal("phoneOtpModal");document.getElementById("phoneOtpHelp").textContent="Enter the 6-digit password recovery code sent to "+mobile+".";
-        document.getElementById("phoneOtpModal").dataset.mode="reset";
-      }catch(err){setMsg("forgotMsg",friendlyAuthError(err),"error");}
-    }
-    async function verifyRecoveryOtp(){
-      try{
-        const code=document.getElementById("phoneOtpCode").value.trim();
-        if(!/^\d{6}$/.test(code)||!pendingPhoneConfirmation){setMsg("phoneOtpMsg","Enter the valid 6-digit code.","error");return;}
-        await pendingPhoneConfirmation.confirm(code);
-        closeModal("phoneOtpModal");openModal("resetPasswordModal");setMsg("resetMsg","Mobile verified. Enter your new password.","ok");
-      }catch(err){setMsg("phoneOtpMsg",friendlyAuthError(err),"error");}
-    }
-    async function saveResetPassword(){
-      const a=document.getElementById("resetNewPassword").value,b=document.getElementById("resetConfirmPassword").value;
-      if(a.length<6){setMsg("resetMsg","Password must be at least 6 characters.","error");return;} if(a!==b){setMsg("resetMsg","Passwords do not match.","error");return;}
-      try{await window.firebaseCloud.updatePassword(a);setMsg("resetMsg","Password updated successfully. You can now login with your new password.","ok");setTimeout(async()=>{closeModal("resetPasswordModal");await window.firebaseCloud.logout();},1000);}catch(err){setMsg("resetMsg",friendlyAuthError(err),"error");}
-    }
-    async function openProfile(){
-      const u=window.firebaseCloud.getCurrentUser();if(!u)return;
-      const snap=await window.firebaseCloud.getDoc(window.firebaseCloud.doc(window.firebaseCloud.getFirestore(),"users",u.uid));const p=snap.exists()?(snap.data().profile||{}):{};
-      const mobile=p.mobile||u.phoneNumber||"";
-      document.getElementById("profileSummary").innerHTML="<b>Username:</b> "+esc(p.username||"—")+"<br><b>Email:</b> "+esc(p.email||u.email||"—")+"<br><b>Mobile:</b> <input id=\"profileMobileInput\" type=\"tel\" inputmode=\"numeric\" maxlength=\"10\" autocomplete=\"tel\" placeholder=\"10-digit mobile number\" value=\""+esc(mobile.replace(/\D/g,""))+"\" style=\"display:inline-block;width:190px;padding:6px 8px;margin-left:4px;box-sizing:border-box;\">";
-      setMsg("profileMsg","");openModal("profileModal");
-    }
-    async function saveProfileMobile(){
-      const u=window.firebaseCloud.getCurrentUser();
-      const input=document.getElementById("profileMobileInput");
-      if(!u||!input)return;
-      const mobile=input.value.replace(/\D/g,"");
-      if(!/^\d{10}$/.test(mobile)){setMsg("profileMsg","Enter a valid 10-digit mobile number.","error");input.focus();return;}
-      try{
-        const fs=window.firebaseCloud.getFirestore();
-        const userRef=window.firebaseCloud.doc(fs,"users",u.uid);
-        const snap=await window.firebaseCloud.getDoc(userRef);
-        const data=snap.exists()?snap.data():{};
-        const oldProfile=data.profile||{};
-        const username=oldProfile.username||"";
-        const email=oldProfile.email||u.email||"";
-        await window.firebaseCloud.setDoc(userRef,{profile:{...oldProfile,email,mobile,username},updatedAt:new Date().toISOString()},{merge:true});
-        if(username){
-          await window.firebaseCloud.setDoc(window.firebaseCloud.doc(fs,"usernames",String(username).toLowerCase()),{uid:u.uid,email,mobile,username},{merge:true});
-        }
-        setMsg("profileMsg","Mobile number updated successfully.","ok");
-        /* Account-profile updates do not count as unsaved VO changes. */
-        markClean();
-      }catch(err){
-        console.error(err);setMsg("profileMsg",err.message||"Unable to update mobile number.","error");
-      }
-    }
-    async function changeProfilePassword(){
-      const a=document.getElementById("profileNewPassword").value,b=document.getElementById("profileConfirmPassword").value;
-      if(a.length<6){setMsg("profileMsg","Password must be at least 6 characters.","error");return;}if(a!==b){setMsg("profileMsg","Passwords do not match.","error");return;}
-      try{await window.firebaseCloud.updatePassword(a);setMsg("profileMsg","Password changed successfully.","ok");markClean();document.getElementById("profileNewPassword").value="";document.getElementById("profileConfirmPassword").value="";}catch(err){setMsg("profileMsg","For security, Firebase may require you to login again before changing the password. Please logout and login, then try again.","error");}
-    }
     document.getElementById("loginBtn").onclick=attemptLogin;
-    document.getElementById("signUpBtn").onclick=()=>{setMsg("signupMsg","");openModal("signupModal");};
-    document.getElementById("forgotPasswordBtn").onclick=()=>{setMsg("forgotMsg","");openModal("forgotModal");};
+    document.getElementById("signUpBtn").onclick=()=>{
+      const msg=document.getElementById("signupMsg");
+      if(msg){msg.textContent="";msg.className="auth-msg";}
+      openModal("signupModal");
+    };
     document.getElementById("signupCreateBtn").onclick=attemptSignUp;
-    /* signup-field-enter-handler */
-    ["signupEmail","signupMobile","signupUsername","signupPassword","signupConfirm"].forEach(id=>{
-      const el=document.getElementById(id);
-      if(el)el.addEventListener("keydown",e=>{
-        if(e.key==="Enter"){e.preventDefault();attemptSignUp();}
+    document.getElementById("forgotPasswordBtn").onclick=()=>{
+      const msg=document.getElementById("forgotMsg");
+      if(msg){msg.textContent="";msg.className="auth-msg";}
+      openModal("forgotModal");
+    };
+    document.getElementById("sendEmailResetBtn").onclick=sendEmailReset;
+    // Modal controls: use delegated handling so every Close/Cancel button works,
+    // including buttons added dynamically.
+    document.addEventListener("click",function(e){
+      const closeBtn=e.target.closest("[data-close-modal]");
+      if(closeBtn){
+        e.preventDefault();
+        e.stopPropagation();
+        closeModal(closeBtn.dataset.closeModal);
+        return;
+      }
+
+      const toggle=e.target.closest(".toggle-pass");
+      if(toggle){
+        const input=document.getElementById(toggle.dataset.target);
+        if(input){
+          input.type=input.type==="password"?"text":"password";
+          toggle.textContent=input.type==="password"?"Show":"Hide";
+        }
+      }
+    });
+
+    document.querySelectorAll(".auth-modal").forEach(function(modal){
+      modal.addEventListener("click",function(e){
+        if(e.target===modal)closeModal(modal.id);
       });
     });
 
-    document.getElementById("verifyPhoneOtpBtn").onclick=()=>{const mode=document.getElementById("phoneOtpModal").dataset.mode;if(mode==="reset")verifyRecoveryOtp();else if(mode==="profileMobile")verifyProfileMobileOtp();else verifySignupOtp();};
-    document.getElementById("sendEmailResetBtn").onclick=sendEmailReset;
-    document.getElementById("sendMobileOtpBtn").onclick=sendMobileOtp;
-    document.getElementById("saveResetPasswordBtn").onclick=saveResetPassword;
-    document.getElementById("profileBtn").onclick=openProfile;
-    document.addEventListener("click",function(e){
-      const btn=e.target.closest("#profileBtn");
-      if(btn){e.preventDefault();openProfile();}
-    });
-    document.getElementById("changePasswordBtn").onclick=changeProfilePassword;
+    const profileBtnEl=document.getElementById("profileBtn");
+    if(profileBtnEl)profileBtnEl.onclick=openProfile;
+
     const saveProfileMobileBtn=document.getElementById("saveProfileMobileBtn");
     if(saveProfileMobileBtn)saveProfileMobileBtn.onclick=saveProfileMobile;
-    /* Explicitly bind modal Close buttons, including the Profile Close button. */
-    document.querySelectorAll("[data-close-modal]").forEach(b=>{
-      b.onclick=e=>{e.preventDefault();closeModal(b.dataset.closeModal);}
-    });
-    const profileCloseBtn=document.querySelector('#profileModal [data-close-modal="profileModal"]');
-    if(profileCloseBtn)profileCloseBtn.onclick=e=>{e.preventDefault();closeModal("profileModal");};
-    document.querySelectorAll(".toggle-pass").forEach(b=>b.onclick=()=>{const i=document.getElementById(b.dataset.target);i.type=i.type==="password"?"text":"password";b.textContent=i.type==="password"?"Show":"Hide";});
-    loginUsername.onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();loginPassword.focus();}};
-    loginPassword.onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();attemptLogin();}};
-    setTimeout(()=>loginUsername.focus(),50);
+
+    const changePasswordBtn=document.getElementById("changePasswordBtn");
+    if(changePasswordBtn)changePasswordBtn.onclick=changeProfilePassword;
+
+
+    loginUsername.onkeydown=e=>{
+      if(e.key==="Enter"){e.preventDefault();loginPassword.focus();}
+    };
+    loginPassword.onkeydown=e=>{
+      if(e.key==="Enter"){e.preventDefault();attemptLogin();}
+    };
 
     document.getElementById("homeBtn").onclick=goHome;
-    document.getElementById("loginBtn").onclick=attemptLogin;
-    // Sign Up button opens the registration form.
-    document.getElementById("signUpBtn").onclick=()=>{setMsg("signupMsg","");openModal("signupModal");};
 
     document.getElementById("logoutBtn").onclick=async()=>{
-      if(!confirmSwitch("logging out"))return;
       try{
         await window.firebaseCloud.logout();
       }catch(err){
@@ -5027,15 +5191,20 @@ html,body{
       document.getElementById("newVoForm").classList.remove("hidden");
       document.getElementById("newVoName").focus();
     };
-    document.getElementById("homeNewVoBtn").onclick=openNewVoForm;
-    document.getElementById("newVoBtn").onclick=openNewVoForm;
+
+    // Both Create New VO buttons use the same handler.
+    // The Home-page button was previously missing its click binding.
+    const homeNewVoBtn=document.getElementById("homeNewVoBtn");
+    if(homeNewVoBtn)homeNewVoBtn.onclick=openNewVoForm;
+
+    const newVoBtn=document.getElementById("newVoBtn");
+    if(newVoBtn)newVoBtn.onclick=openNewVoForm;
     document.getElementById("cancelVoBtn").onclick=()=>document.getElementById("newVoForm").classList.add("hidden");
     document.getElementById("createVoBtn").onclick=createVO;
     document.getElementById("newVoName").onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();createVO();}};
     document.getElementById("voSelect").onchange=e=>{
       const id=e.target.value;if(!id||id===selectedVOId)return;
-      if(!confirmSwitch("opening the selected VO")){e.target.value=selectedVOId||"";return;}
-      selectedVOId=id;monthIndex=0;refresh();document.getElementById("voDetailsToolbar").classList.add("show-details");markClean();
+      selectedVOId=id;monthIndex=0;refresh();document.getElementById("voDetailsToolbar").classList.add("show-details");document.getElementById("dataManagementSection").classList.add("hidden");markClean();
     };
     document.getElementById("saveVoBtn").onclick=saveVO;
     document.getElementById("addShgBtn").onclick=addSHG;
@@ -5078,17 +5247,7 @@ html,body{
     };
     document.getElementById("resetBtn").onclick=resetAll;
     document.addEventListener("input",function(e){
-      if(e.target.matches("input,textarea")){
-        /* Profile fields are account settings, not unsaved VO screen data.
-           Editing mobile/password must never set the VO dirty flag. */
-        const profileField=e.target.id==="profileMobileInput" ||
-          e.target.id==="profileNewPassword" ||
-          e.target.id==="profileConfirmPassword";
-        const authField=e.target.id==="newVoName" ||
-          e.target.id==="loginUsername" ||
-          e.target.id==="loginPassword";
-        if(!profileField && !authField) markDirty();
-      }
+      if(e.target.matches("input,textarea") && !["newVoName","loginUsername","loginPassword","signupEmail","signupMobile","signupUsername","signupPassword","signupConfirm"].includes(e.target.id))markDirty();
       const m=e.target.id&&e.target.id.match(/^(prevP|prevI|demandP)-(\d+)$/);
       if(m && typeof window.recalc==="function") window.recalc(Number(m[2]));
     });
