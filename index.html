@@ -17,16 +17,27 @@
         /* Initial-page/new-VO controls match the Existing VO selector width. */
         #newVoForm .toolbar{align-items:end;}
         #newVoForm .field{flex:0 0 40%;min-width:0;}
+        /* Create New VO matches the Existing VO selector in width and height. */
+        .create-vo-field{flex:1;}
+        .create-vo-field button{width:100%;min-height:38px;}
         /* Main-page Add SHG input matches the Existing VO selector width. */
         #shgToolbar > .field:first-child{flex:0 0 calc((100% - 40px)/5);max-width:calc((100% - 40px)/5);min-width:220px;}
         /* Save/Delete belong to the selected-VO screen, not the initial page. */
         .selected-vo-only{display:none!important;}
         #voDetailsToolbar.show-details ~ .actions .selected-vo-only{display:inline-block!important;}
+        /* On the Home/initial screen, Create New VO sits beside Existing VO. */
+        #voDetailsToolbar:not(.show-details) .initial-create-vo{
+          display:inline-block!important;
+          flex:0 0 calc(50% - 5px);
+          min-width:0;
+        }
+        #voDetailsToolbar.show-details .initial-create-vo{display:none!important;}
         /* Header navigation. */
         header{display:flex;align-items:center;gap:12px;}
         #homeBtn{background:#e6ebf1;color:#17365d;padding:8px 12px;}
         #homeBtn + h1{margin:0;}
-        #logoutBtn{margin-left:auto;background:#c62828;color:#fff;padding:8px 12px;white-space:nowrap;}
+        #profileBtn{margin-left:auto;background:#e6ebf1;color:#17365d;padding:8px 12px;white-space:nowrap;}
+        #logoutBtn{margin-left:0;background:#c62828;color:#fff;padding:8px 12px;white-space:nowrap;}
         @media(max-width:900px){#voDetailsToolbar:not(.show-details),#shgToolbar{max-width:100%;}
           #newVoForm .field,#shgToolbar > .field:first-child{flex-basis:100%;max-width:100%;}
         }
@@ -39,6 +50,31 @@
 }
 .initial-hidden-field{display:none!important}
 #voDetailsToolbar.show-details .initial-hidden-field{display:block!important}
+
+/* Selected-VO screen: Existing VO, VO Name, Village, Mandal and District use the same field width. */
+#voDetailsToolbar.show-details > .field{
+  flex:0 0 calc((100% - 30px) / 4);
+  max-width:calc((100% - 30px) / 4);
+  min-width:0;
+}
+#voDetailsToolbar.show-details > .field:first-child{
+  flex:0 0 calc((100% - 30px) / 4);
+  max-width:calc((100% - 30px) / 4);
+}
+/* New VO Name input uses the same width as the VO Name field. */
+#newVoForm .field{
+  flex:0 0 calc((100% - 30px) / 4);
+  max-width:calc((100% - 30px) / 4);
+  min-width:0;
+}
+@media(max-width:900px){
+  #voDetailsToolbar.show-details > .field,
+  #voDetailsToolbar.show-details > .field:first-child,
+  #newVoForm .field{
+    flex:1 1 100%;
+    max-width:100%;
+  }
+}
         input,select{width:100%;padding:9px;border:1px solid #aeb8c4;border-radius:6px;font-size:14px;background:#fff}
         button{padding:9px 13px;border:0;border-radius:6px;font-weight:bold;cursor:pointer}
         .primary{background:#1769aa;color:#fff}.success{background:#18864b;color:#fff}.secondary{background:#e6ebf1;color:#263445}.danger{background:#c62828;color:#fff}.warning{background:#b87300;color:#fff}
@@ -139,10 +175,48 @@
   z-index:10;
 }
 
-.entry th,.entry td{border:1px solid #c3cad2;padding:5px;font-size:11px;text-align:right}.entry th{text-align:center;background:#edf1f5}.entry th:first-child,.entry td:first-child{width:55px;min-width:55px;max-width:55px;text-align:center}.entry th:nth-child(2),.entry td:nth-child(2){width:150px;min-width:150px}.entry th:nth-child(3),.entry td:nth-child(3){width:72px;min-width:72px;text-align:center}.entry input{min-width:80px;padding:6px;font-size:11px;text-align:right}.entry .name{min-width:150px;text-align:left;font-weight:bold}input:disabled{background:#eee;color:#555;cursor:not-allowed;}
+.entry th,.entry td{border:1px solid #c3cad2;padding:5px;font-size:11px;text-align:right}.entry th{text-align:center;background:#edf1f5}.entry th:first-child,.entry td:first-child{width:55px;min-width:55px;max-width:55px;text-align:center}.entry th:nth-child(2),.entry td:nth-child(2){width:150px;min-width:150px}.entry th:nth-child(3),.entry td:nth-child(3){width:72px;min-width:72px;text-align:center}.entry input{min-width:80px;padding:6px;font-size:11px;text-align:right}.entry .name{min-width:150px;text-align:left;font-weight:bold}
+
+/* Mobile/tablet only: keep the SHG Name table column at the header width initially,
+   and expand it to fit the longest entered SHG name without changing other columns. */
+@media(max-width:900px){
+  .entry th:nth-child(2),
+  .entry td:nth-child(2){
+    width:auto;
+    min-width:0;
+    max-width:none;
+  }
+  .entry td:nth-child(2) .name{
+    width:100%;
+    min-width:0;
+    box-sizing:border-box;
+  }
+}
+input:disabled{background:#eee;color:#555;cursor:not-allowed;}
         .telugu{font-family:"Gidugu",sans-serif}
         .calc{font-weight:bold}.entry input.calc{width:100%;min-width:80px;padding:6px;font-size:11px;text-align:right}
         .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.small{font-size:12px;color:#667085}.ok{color:#18864b;font-weight:bold}
+/* Mobile + tablet only: PDF/action buttons match the requested 2x2 + full-width layout. */
+@media screen and (max-width:900px){
+  #dashboard .actions{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:10px;
+    width:100%;
+  }
+
+  #dashboard .actions > button{
+    width:100%;
+    min-width:0;
+    min-height:54px;
+    margin:0;
+  }
+
+  #dashboard .actions #allPdfsBtn{
+    grid-column:1 / -1;
+  }
+}
+
         .remove-shg{background:#c62828;color:#fff;padding:6px 9px;font-size:11px}
         @media(max-width:900px){.grid4{grid-template-columns:repeat(2,1fr)}}@media(max-width:600px){.grid4{grid-template-columns:1fr}}
 
@@ -634,6 +708,422 @@ button > *{position:relative;z-index:1;}
         }
     </style>
 
+
+    <style id="account-auth-ui">
+        .auth-link{border:0;background:none;color:#1769aa;padding:6px;font-weight:bold;cursor:pointer}.auth-link:hover{box-shadow:none;transform:none;background:none}
+        .auth-modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:18px;z-index:1000}.auth-modal.hidden{display:none!important}.auth-box{width:min(480px,100%);max-height:90vh;overflow:auto;background:#fff;border-radius:14px;padding:24px;box-shadow:0 18px 60px rgba(0,0,0,.25)}.auth-box h2{color:#17365d;margin-top:0}.auth-box .field{margin-bottom:12px;min-width:0}.auth-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.auth-actions button{flex:1 1 140px}.auth-msg{font-size:13px;min-height:20px;margin-top:10px}.auth-msg.error{color:#c62828}.auth-msg.ok{color:#18864b}.profile-summary{background:#f4f6f8;border-radius:8px;padding:12px;margin-bottom:14px;font-size:13px;line-height:1.7}.password-wrap{position:relative}.password-wrap input{padding-right:80px}.toggle-pass{position:absolute;right:5px;top:5px;padding:6px 8px;background:#e6ebf1;font-size:11px}.recaptcha-box{margin:10px 0}
+        @media(max-width:600px){.auth-box{padding:18px}.auth-actions button{flex-basis:100%}#profileBtn{font-size:12px;padding:8px 9px}}
+    </style>
+
+
+    <style id="mobile-tablet-vo-selection-size-final">
+        /* Mobile/tablet only:
+           Existing VO selector, VO Name, Village and Mandal are equal-width.
+           District remains full-width. */
+        @media screen and (max-width:900px){
+          #voDetailsToolbar.show-details{
+            display:grid !important;
+            grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;
+            column-gap:10px !important;
+            row-gap:10px !important;
+            width:100% !important;
+            max-width:100% !important;
+            align-items:start !important;
+          }
+
+          #voDetailsToolbar.show-details > .field{
+            width:100% !important;
+            min-width:0 !important;
+            max-width:none !important;
+            flex:none !important;
+            margin:0 !important;
+          }
+
+          #voDetailsToolbar.show-details > .field:nth-of-type(1),
+          #voDetailsToolbar.show-details > .field:nth-of-type(2),
+          #voDetailsToolbar.show-details > .field:nth-of-type(3),
+          #voDetailsToolbar.show-details > .field:nth-of-type(4){
+            grid-column:auto !important;
+          }
+
+          #voDetailsToolbar.show-details > .field:nth-of-type(5){
+            grid-column:1 / -1 !important;
+          }
+
+          /* The Existing VO dropdown must be exactly the same width as the
+             neighboring VO Name/Village/Mandal text boxes. */
+          #voDetailsToolbar.show-details > .field:nth-of-type(1) > select,
+          #voDetailsToolbar.show-details > .field:nth-of-type(2) > input,
+          #voDetailsToolbar.show-details > .field:nth-of-type(3) > input,
+          #voDetailsToolbar.show-details > .field:nth-of-type(4) > input,
+          #voDetailsToolbar.show-details > .field:nth-of-type(5) > input{
+            display:block !important;
+            width:100% !important;
+            min-width:0 !important;
+            max-width:none !important;
+            box-sizing:border-box !important;
+          }
+        }
+    </style>
+
+
+    <style id="mobile-tablet-vo-action-buttons-final">
+        /* Mobile/tablet only:
+           Save VO | Delete VO
+           Create New VO (full width below)
+        */
+        @media screen and (max-width:900px){
+          #voDetailsToolbar.show-details + .actions{
+            display:grid !important;
+            grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;
+            gap:8px !important;
+            width:100% !important;
+            align-items:stretch !important;
+          }
+
+          #voDetailsToolbar.show-details + .actions > button.selected-vo-only{
+            width:100% !important;
+            min-width:0 !important;
+            margin:0 !important;
+          }
+
+          #voDetailsToolbar.show-details + .actions #newVoBtn{
+            grid-column:1 / -1 !important;
+          }
+
+          #voDetailsToolbar.show-details + .actions #saveStatus{
+            grid-column:1 / -1 !important;
+          }
+        }
+    </style>
+
+
+    <style id="mobile-tablet-district-same-as-existing-vo">
+        /* Mobile/tablet only:
+           District uses the same single-column width as Existing VO,
+           instead of spanning the full row. */
+        @media screen and (max-width:900px){
+          #voDetailsToolbar.show-details{
+            grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;
+          }
+
+          #voDetailsToolbar.show-details > .field:nth-of-type(5){
+            grid-column:1 !important;
+            width:100% !important;
+          }
+
+          #voDetailsToolbar.show-details > .field:nth-of-type(5) > input{
+            width:100% !important;
+            min-width:0 !important;
+            max-width:none !important;
+            box-sizing:border-box !important;
+          }
+        }
+    </style>
+
+
+    <style id="mobile-tablet-vo-requested-layout">
+        /* Mobile/tablet only:
+           Existing VO = full width
+           VO Name | Village
+           Mandal  | District
+        */
+        @media screen and (max-width:900px){
+          #voDetailsToolbar.show-details{
+            display:grid !important;
+            grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;
+            column-gap:10px !important;
+            row-gap:10px !important;
+            width:100% !important;
+            max-width:100% !important;
+            align-items:start !important;
+          }
+
+          #voDetailsToolbar.show-details > .field{
+            width:100% !important;
+            min-width:0 !important;
+            max-width:none !important;
+            flex:none !important;
+            margin:0 !important;
+          }
+
+          /* Existing VO full width */
+          #voDetailsToolbar.show-details > .field:nth-of-type(1){
+            grid-column:1 / -1 !important;
+          }
+
+          /* VO Name | Village */
+          #voDetailsToolbar.show-details > .field:nth-of-type(2),
+          #voDetailsToolbar.show-details > .field:nth-of-type(3){
+            grid-column:auto !important;
+          }
+
+          /* Mandal | District */
+          #voDetailsToolbar.show-details > .field:nth-of-type(4),
+          #voDetailsToolbar.show-details > .field:nth-of-type(5){
+            grid-column:auto !important;
+          }
+
+          #voDetailsToolbar.show-details > .field > input,
+          #voDetailsToolbar.show-details > .field > select{
+            display:block !important;
+            width:100% !important;
+            min-width:0 !important;
+            max-width:none !important;
+            box-sizing:border-box !important;
+            margin:0 !important;
+          }
+        }
+    </style>
+
+
+    <style id="mobile-tablet-data-management-buttons-layout">
+        /* Mobile/tablet only:
+           Download Backup | Restore Backup
+           Merge Backup = full width below
+        */
+        @media screen and (max-width:900px){
+          #dataManagementSection .actions{
+            display:grid !important;
+            grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;
+            gap:10px !important;
+            width:100% !important;
+          }
+
+          #dataManagementSection .actions > button{
+            width:100% !important;
+            min-width:0 !important;
+            min-height:54px !important;
+            margin:0 !important;
+          }
+
+          #dataManagementSection .actions #importAllBtn{
+            grid-column:1 / -1 !important;
+          }
+        }
+    </style>
+
+    <style id="mobile-tablet-create-vo-cancel-layout">
+        /* Mobile/tablet only:
+           New VO Name = full width
+           Create VO | Cancel = side by side
+        */
+        @media screen and (max-width:900px){
+          #newVoForm .toolbar{
+            display:grid !important;
+            grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;
+            column-gap:10px !important;
+            row-gap:10px !important;
+            width:100% !important;
+            max-width:100% !important;
+            align-items:end !important;
+          }
+
+          #newVoForm .toolbar > .field{
+            grid-column:1 / -1 !important;
+            width:100% !important;
+            min-width:0 !important;
+            max-width:none !important;
+            flex:none !important;
+            margin:0 !important;
+          }
+
+          #newVoForm .toolbar > #createVoBtn,
+          #newVoForm .toolbar > #cancelVoBtn{
+            grid-column:auto !important;
+            width:100% !important;
+            min-width:0 !important;
+            max-width:none !important;
+            margin:0 !important;
+            box-sizing:border-box !important;
+          }
+
+          #newVoForm .toolbar > .field > input{
+            display:block !important;
+            width:100% !important;
+            min-width:0 !important;
+            max-width:none !important;
+            box-sizing:border-box !important;
+            margin:0 !important;
+          }
+        }
+    </style>
+
+
+    <style id="mobile-tablet-shg-name-add-layout">
+        /* Mobile/tablet only:
+           SHG Name text box | Add SHG button side by side
+        */
+        @media screen and (max-width:900px){
+          #shgToolbar{
+            display:grid !important;
+            grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;
+            column-gap:10px !important;
+            row-gap:10px !important;
+            width:100% !important;
+            max-width:100% !important;
+            align-items:end !important;
+          }
+
+          #shgToolbar > .field{
+            width:100% !important;
+            min-width:0 !important;
+            max-width:none !important;
+            flex:none !important;
+            margin:0 !important;
+          }
+
+          #shgToolbar > .field input,
+          #shgToolbar > .field select{
+            width:100% !important;
+            min-width:0 !important;
+            max-width:none !important;
+            box-sizing:border-box !important;
+          }
+
+          #shgToolbar > button{
+            width:100% !important;
+            min-width:0 !important;
+            margin:0 !important;
+          }
+        }
+    </style>
+
+
+    <style id="profile-mobile-edit-style">
+        .profile-edit-mobile{padding:4px 8px;font-size:11px;margin-left:5px;vertical-align:middle}
+        #profileMobileEdit .auth-actions{margin-top:8px}
+        #profileMobileEdit .auth-actions button{min-width:0}
+    </style>
+
+    <style id="direct-mobile-edit-no-otp">
+        #profileMobileInput{vertical-align:middle;}
+    </style>
+
+
+    <style id="profile-button-click-fix">
+        #profileBtn{
+          position:relative !important;
+          z-index:10001 !important;
+          pointer-events:auto !important;
+        }
+    </style>
+
+
+    <style id="desktop-vo-fields-existing-top">
+        /* Desktop only:
+           Existing VO = full width on top
+           VO Name | Village | Mandal | District = same width, side by side below
+           Mobile/tablet layout is untouched.
+        */
+        @media screen and (min-width:901px){
+          #voDetailsToolbar.show-details{
+            display:grid !important;
+            grid-template-columns:repeat(4,minmax(0,1fr)) !important;
+            column-gap:10px !important;
+            row-gap:10px !important;
+            width:100% !important;
+            max-width:100% !important;
+            align-items:end !important;
+          }
+
+          #voDetailsToolbar.show-details > .field{
+            width:100% !important;
+            min-width:0 !important;
+            max-width:none !important;
+            flex:none !important;
+            margin:0 !important;
+          }
+
+          /* Existing VO stays on top, but has the same width as one field below */
+          #voDetailsToolbar.show-details > .field:nth-of-type(1){
+            grid-column:1 !important;
+          }
+
+          /* Four equal fields on second row */
+          #voDetailsToolbar.show-details > .field:nth-of-type(2){
+            grid-column:1 !important;
+          }
+          #voDetailsToolbar.show-details > .field:nth-of-type(3){
+            grid-column:2 !important;
+          }
+          #voDetailsToolbar.show-details > .field:nth-of-type(4){
+            grid-column:3 !important;
+          }
+          #voDetailsToolbar.show-details > .field:nth-of-type(5){
+            grid-column:4 !important;
+          }
+
+          #voDetailsToolbar.show-details > .field > input,
+          #voDetailsToolbar.show-details > .field > select{
+            display:block !important;
+            width:100% !important;
+            min-width:0 !important;
+            max-width:none !important;
+            box-sizing:border-box !important;
+            margin:0 !important;
+          }
+
+          /* Keep the initial Create New VO button from affecting the desktop
+             four-field layout when the details fields are shown. */
+          #voDetailsToolbar.show-details > #homeNewVoBtn{
+            display:none !important;
+          }
+        }
+    </style>
+
+
+    <style id="password-show-button-centered">
+        /* Keep the Show/Hide button vertically centered on the right side of
+           the password input, including Create Account on mobile/tablet. */
+        .password-wrap{
+          position:relative !important;
+        }
+        .password-wrap input{
+          padding-right:80px !important;
+        }
+        .password-wrap .toggle-pass{
+          position:absolute !important;
+          right:5px !important;
+          top:68% !important;
+          transform:translateY(-50%) !important;
+          margin:0 !important;
+          z-index:2 !important;
+          padding:6px 8px !important;
+          line-height:1.2 !important;
+        }
+    </style>
+
+
+    <style id="true-input-middle-show-button">
+        /* Put Show/Hide exactly at the vertical center of the password input,
+           not at the center of the whole field (label + input). */
+        .auth-box .password-wrap{
+          position:relative !important;
+        }
+        .auth-box .password-wrap .toggle-pass{
+          top:calc(35% + 17px) !important;
+          right:5px !important;
+          transform:translateY(-50%) !important;
+          margin:0 !important;
+          z-index:5 !important;
+        }
+        .auth-box .password-wrap input{
+          padding-right:80px !important;
+        }
+    </style>
+
+
+    <style id="signup-submit-state">
+        #signupCreateBtn:disabled{opacity:.65;cursor:wait;}
+    </style>
+
+
+    <style id="signup-final-fix">
+        #signupCreateBtn:disabled{opacity:.65;cursor:wait;}
+        #signupModal .auth-msg.error{white-space:normal;line-height:1.35;}
+    </style>
+
 </head>
 <body>
 <section id="loginScreen" aria-label="Login">
@@ -641,23 +1131,85 @@ button > *{position:relative;z-index:1;}
         <h1>Chary's VO - DCB & SHG Accounting</h1>
         <p>Login to continue</p>
         <div class="login-field">
-            <label for="loginUsername">Username</label>
-            <input id="loginUsername" type="text" autocomplete="username" placeholder="Username">
+            <label for="loginUsername">Username or Email ID</label>
+            <input id="loginUsername" type="text" autocomplete="username" placeholder="Username or Email ID">
         </div>
-        <div class="login-field">
+        <div class="login-field password-wrap">
             <label for="loginPassword">Password</label>
             <input id="loginPassword" type="password" autocomplete="current-password" placeholder="Password">
+            <button type="button" class="toggle-pass" data-target="loginPassword">Show</button>
         </div>
         <button type="button" class="primary" id="loginBtn">Login</button>
         <button type="button" class="secondary" id="signUpBtn">Create Account / Sign Up</button>
+        <button type="button" class="auth-link" id="forgotPasswordBtn">Forgot Password?</button>
         <div id="loginError" aria-live="polite"></div>
     </div>
 </section>
 
+
+<div id="signupModal" class="auth-modal hidden">
+    <div class="auth-box">
+        <h2>Create Account</h2>
+        <p class="small">Enter your email, mobile number, username and password.</p>
+        <div class="field"><label>Email ID *</label><input id="signupEmail" type="email" autocomplete="email" placeholder="name@example.com"></div>
+        <div class="field"><label>Mobile Number *</label><input id="signupMobile" type="tel" autocomplete="tel" placeholder="+91 9876543210"></div>
+        <div class="field"><label>Username *</label><input id="signupUsername" type="text" autocomplete="username" placeholder="Choose a username"></div>
+        <div class="field password-wrap"><label>Password *</label><input id="signupPassword" type="password" autocomplete="new-password" placeholder="Minimum 6 characters"><button type="button" class="toggle-pass" data-target="signupPassword">Show</button></div>
+        <div class="field password-wrap"><label>Confirm Password *</label><input id="signupConfirm" type="password" autocomplete="new-password" placeholder="Re-enter password"><button type="button" class="toggle-pass" data-target="signupConfirm">Show</button></div>
+        <div id="signupRecaptcha" class="recaptcha-box"></div>
+        <div class="auth-actions"><button type="button" class="success" id="signupCreateBtn">Create Account</button><button type="button" class="secondary" data-close-modal="signupModal">Cancel</button></div>
+        <div id="signupMsg" class="auth-msg"></div>
+    </div>
+</div>
+<div id="phoneOtpModal" class="auth-modal hidden">
+    <div class="auth-box">
+        <h2>Verify Mobile Number</h2>
+        <p class="small" id="phoneOtpHelp">Enter the verification code sent to your mobile.</p>
+        <div class="field"><label>Verification Code *</label><input id="phoneOtpCode" type="text" inputmode="numeric" maxlength="6" placeholder="6-digit code"></div>
+        <div class="auth-actions"><button type="button" class="primary" id="verifyPhoneOtpBtn">Verify Code</button><button type="button" class="secondary" data-close-modal="phoneOtpModal">Cancel</button></div>
+        <div id="phoneOtpMsg" class="auth-msg"></div>
+    </div>
+</div>
+<div id="forgotModal" class="auth-modal hidden">
+    <div class="auth-box">
+        <h2>Forgot Password</h2>
+        <p class="small">Choose how you want to reset your password.</p>
+        <div class="field"><label>Registered Email ID</label><input id="forgotEmail" type="email" placeholder="Email ID"></div>
+        <button type="button" class="primary" id="sendEmailResetBtn">Send Reset Email</button>
+        <hr style="border:0;border-top:1px solid #d5dce4;margin:18px 0">
+        <div class="field"><label>Registered Mobile Number</label><input id="forgotMobile" type="tel" placeholder="+91 9876543210"></div>
+        <div id="forgotRecaptcha" class="recaptcha-box"></div>
+        <button type="button" class="success" id="sendMobileOtpBtn">Send Mobile OTP</button>
+        <div id="forgotMsg" class="auth-msg"></div>
+        <div class="auth-actions"><button type="button" class="secondary" data-close-modal="forgotModal">Close</button></div>
+    </div>
+</div>
+<div id="resetPasswordModal" class="auth-modal hidden">
+    <div class="auth-box">
+        <h2>Set New Password</h2>
+        <p class="small">Your mobile number has been verified. Set a new password.</p>
+        <div class="field password-wrap"><label>New Password *</label><input id="resetNewPassword" type="password" autocomplete="new-password" placeholder="Minimum 6 characters"><button type="button" class="toggle-pass" data-target="resetNewPassword">Show</button></div>
+        <div class="field password-wrap"><label>Confirm New Password *</label><input id="resetConfirmPassword" type="password" autocomplete="new-password" placeholder="Re-enter password"><button type="button" class="toggle-pass" data-target="resetConfirmPassword">Show</button></div>
+        <div class="auth-actions"><button type="button" class="success" id="saveResetPasswordBtn">Update Password</button></div>
+        <div id="resetMsg" class="auth-msg"></div>
+    </div>
+</div>
+<div id="profileModal" class="auth-modal hidden">
+    <div class="auth-box">
+        <h2>My Profile</h2>
+        <div id="profileSummary" class="profile-summary"></div>
+        <h3>Change Password</h3>
+        <div class="field password-wrap"><label>New Password *</label><input id="profileNewPassword" type="password" autocomplete="new-password" placeholder="Minimum 6 characters"><button type="button" class="toggle-pass" data-target="profileNewPassword">Show</button></div>
+        <div class="field password-wrap"><label>Confirm New Password *</label><input id="profileConfirmPassword" type="password" autocomplete="new-password" placeholder="Re-enter password"><button type="button" class="toggle-pass" data-target="profileConfirmPassword">Show</button></div>
+        <div class="auth-actions"><button type="button" class="success" id="saveProfileMobileBtn">Save Mobile</button><button type="button" class="success" id="changePasswordBtn">Change Password</button><button type="button" class="secondary" data-close-modal="profileModal">Close</button></div>
+        <div id="profileMsg" class="auth-msg"></div>
+    </div>
+</div>
 <div id="appShell" class="hidden">
     <header>
         <button type="button" id="homeBtn" title="Go to initial page">Home</button>
         <h1>Chary's - VO DCB & LL Dashboard</h1>
+        <button type="button" id="profileBtn" title="Profile">Profile</button>
         <button type="button" id="logoutBtn" title="Logout">Logout</button>
     </header>
     <main>
@@ -666,12 +1218,13 @@ button > *{position:relative;z-index:1;}
             <h2>VO Details</h2>
 
             <div class="toolbar" id="voDetailsToolbar">
-                <div class="field">
+                <div class="field" style="flex:0 0 calc(50% - 5px);min-width:0">
                     <label>Existing VO</label>
                     <select id="voSelect">
                         <option value="">-- Select existing VO --</option>
                     </select>
                 </div>
+                <button type="button" class="primary initial-create-vo" id="homeNewVoBtn">Create New VO</button>
 
                 <div class="field initial-hidden-field">
                     <label>VO Name</label>
@@ -695,12 +1248,9 @@ button > *{position:relative;z-index:1;}
             </div>
 
             <div class="actions">
-                <button type="button" class="primary" id="newVoBtn">Create VO</button>
                 <button type="button" class="success selected-vo-only" id="saveVoBtn">Save VO</button>
                 <button type="button" class="danger selected-vo-only" id="resetBtn">Delete VO</button>
-                <button type="button" class="secondary" id="backupBtn">Download Backup</button>
-                <button type="button" class="secondary" id="importBtn">Restore Backup</button>
-                <button type="button" class="primary" id="importAllBtn">Merge Backup</button>
+                <button type="button" class="primary selected-vo-only" id="newVoBtn">Create New VO</button>
                 <span id="saveStatus" class="small"></span>
             </div>
 
@@ -713,6 +1263,16 @@ button > *{position:relative;z-index:1;}
                     <button type="button" class="success" id="createVoBtn">Create VO</button>
                     <button type="button" class="secondary" id="cancelVoBtn">Cancel</button>
                 </div>
+            </div>
+        </section>
+
+        <section class="card" id="dataManagementSection">
+            <h2>Data Management</h2>
+            <div class="notice">Use these options to back up your data, restore a previous backup, or merge backup data with your current VOs.</div>
+            <div class="actions">
+                <button type="button" class="secondary" id="backupBtn">Download Backup</button>
+                <button type="button" class="secondary" id="importBtn">Restore Backup</button>
+                <button type="button" class="primary" id="importAllBtn">Merge Backup</button>
             </div>
         </section>
 
@@ -781,7 +1341,16 @@ button > *{position:relative;z-index:1;}
       onAuthStateChanged,
       signInWithEmailAndPassword,
       createUserWithEmailAndPassword,
-      signOut
+      signOut,
+      updatePassword,
+      sendPasswordResetEmail,
+      RecaptchaVerifier,
+      signInWithPhoneNumber,
+      PhoneAuthProvider,
+      linkWithCredential,
+      linkWithPhoneNumber,
+      updatePhoneNumber,
+      deleteUser
     } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
     import {
       getFirestore,
@@ -805,6 +1374,7 @@ button > *{position:relative;z-index:1;}
 
     let currentUser = null;
     let cloudLoaded = false;
+    let newSignupInProgress = false;
     let saveTimer = null;
 
     function userDocRef(){
@@ -836,7 +1406,7 @@ button > *{position:relative;z-index:1;}
         try{
           await saveCloudDb(db);
           const el=document.getElementById("saveStatus");
-          if(el) el.textContent="Saved to cloud";
+          if(el) el.textContent="Changes are saved";
         }catch(err){
           console.error("Firebase auto-save failed:",err);
           const el=document.getElementById("saveStatus");
@@ -851,6 +1421,24 @@ button > *{position:relative;z-index:1;}
       signIn: (email,password)=>signInWithEmailAndPassword(auth,email,password),
       signUp: (email,password)=>createUserWithEmailAndPassword(auth,email,password),
       logout: ()=>signOut(auth),
+      updatePassword: (password)=>currentUser ? updatePassword(currentUser,password) : Promise.reject(new Error("Not signed in")),
+      sendPasswordResetEmail: (email)=>sendPasswordResetEmail(auth,email),
+      getAuth(){return auth;},
+      getCurrentUser(){return currentUser;},
+      getFirestore(){return firestore;},
+      doc,
+      getDoc,
+      setDoc,
+      createRecaptcha(containerId){
+        return new RecaptchaVerifier(auth, containerId, {size:"invisible"});
+      },
+      phoneSignIn(phone,appVerifier){return signInWithPhoneNumber(auth,phone,appVerifier);},
+      phoneVerify(phone,appVerifier){return new PhoneAuthProvider(auth).verifyPhoneNumber({phoneNumber:phone},appVerifier);},
+      phoneLink(user,phone,appVerifier){return linkWithPhoneNumber(user,phone,appVerifier);},
+      phoneCredential(verificationId,code){return PhoneAuthProvider.credential(verificationId,code);},
+      linkPhone(user,credential){return linkWithCredential(user,credential);},
+      updatePhone(user,credential){return updatePhoneNumber(user,credential);},
+      deleteUser(user){return deleteUser(user);},
       loadCloudDb,
       saveCloudDb,
       queueCloudSave,
@@ -859,6 +1447,14 @@ button > *{position:relative;z-index:1;}
 
     onAuthStateChanged(auth, async(user)=>{
       currentUser=user||null;
+
+      // createUserWithEmailAndPassword signs the user in immediately.
+      // During signup, do NOT let this auth-state callback initialize the
+      // normal app/cloud session before mobile OTP verification is complete.
+      if(user && newSignupInProgress){
+        return;
+      }
+
       if(!user){
         cloudLoaded=false;
         const loginScreen=document.getElementById("loginScreen");
@@ -880,8 +1476,10 @@ button > *{position:relative;z-index:1;}
         if(cloud){
           window.dispatchEvent(new CustomEvent("firebase-cloud-ready",{detail:{db:cloud,hasCloud:true}}));
         }else{
+          // A newly created account starts with an empty cloud database.
+          // Do not show the existing-device-data confirmation during signup.
           let initial={vos:[]};
-          if(localDb && Array.isArray(localDb.vos) && localDb.vos.length){
+          if(!newSignupInProgress && localDb && Array.isArray(localDb.vos) && localDb.vos.length){
             const useLocal=confirm(
               "No cloud data was found for this account.\n\n"+
               "Existing data was found on this device.\n\n"+
@@ -924,7 +1522,7 @@ button > *{position:relative;z-index:1;}
       refresh();
       document.getElementById("voDetailsToolbar").classList.remove("show-details");
       document.getElementById("dashboard").classList.add("hidden");
-      document.getElementById("saveStatus").textContent="Cloud data loaded";
+      document.getElementById("saveStatus").textContent="Data loaded";
     });
 
     function readDb(){
@@ -1008,6 +1606,21 @@ button > *{position:relative;z-index:1;}
       writeDb();refreshVOSelect();markClean();document.getElementById("saveStatus").textContent="Saved";return true;
     }
 
+    /*
+     * UNSAVED-CHANGE WARNING POLICY
+     * -----------------------------
+     * Warning is required for:
+     *   1. Create New VO
+     *   2. Home
+     *   3. Selecting another VO
+     *   4. Logout
+     *   5. Browser refresh/reload
+     *   6. Closing the tab/browser
+     *   7. Browser Back/navigation away from this document
+     *
+     * Month switching is deliberately excluded. Month buttons silently save
+     * the current month and never call confirmSwitch().
+     */
     function confirmSwitch(action){
       if(!dirty)return true;
       const proceed=confirm(
@@ -1072,9 +1685,12 @@ button > *{position:relative;z-index:1;}
     }
     function refresh(){
      refreshVOSelect();
-     const v=vo(),dash=document.getElementById("dashboard");
+     const v=vo(),dash=document.getElementById("dashboard"),dataManagement=document.getElementById("dataManagementSection");
      if(v && (v.interestRate===undefined||v.interestRate===null) && v.shgs.length) v.interestRate=Number(v.shgs[0].interestRate||12);
      dash.classList.toggle("hidden",!v);
+     // Data Management is available only on the Home/VO selection screen.
+     // Once a VO is selected or created, hide it to keep the accounting screen clean.
+     if(dataManagement) dataManagement.classList.toggle("hidden",!!v);
      if(!v)return;
      document.getElementById("voName").value=v.name;
      document.getElementById("village").value=v.village||"";
@@ -1086,7 +1702,7 @@ button > *{position:relative;z-index:1;}
     }
 
     function goHome(){
-      if(!confirmSwitch("returning to the initial page"))return;
+      /* Home navigation must not show the unsaved-changes warning. */
       selectedVOId=null;
       monthIndex=0;
       document.getElementById("voDetailsToolbar").classList.remove("show-details");
@@ -1094,6 +1710,7 @@ button > *{position:relative;z-index:1;}
       document.getElementById("newVoForm").classList.add("hidden");
       document.getElementById("newVoName").value="";
       document.getElementById("saveStatus").textContent="";
+      document.getElementById("dataManagementSection").classList.remove("hidden");
       markClean();
       refresh();
       document.getElementById("voSelect").focus();
@@ -1134,9 +1751,115 @@ button > *{position:relative;z-index:1;}
       input.focus();
     }
 
+    /*
+     * Month switching:
+     * -----------------
+     * Changing Apr/May/Jun/etc. is normal accounting work and must NEVER
+     * show the "unsaved changes" confirmation.
+     *
+     * Before changing month, silently capture the current screen values into
+     * the selected VO and save them to local storage/cloud. The confirmation
+     * is reserved for higher-level navigation such as Home, Create VO,
+     * selecting another VO, refresh/close, or browser navigation.
+     */
+    function saveCurrentMonthSilently(){
+      const v=vo();
+      if(!v)return true;
+
+      // Save any currently edited VO detail fields without forcing validation.
+      const voNameEl=document.getElementById("voName");
+      const villageEl=document.getElementById("village");
+      const mandalEl=document.getElementById("mandal");
+      const districtEl=document.getElementById("district");
+
+      if(voNameEl && voNameEl.value.trim()) v.name=voNameEl.value.trim();
+      if(villageEl) v.village=villageEl.value.trim();
+      if(mandalEl) v.mandal=mandalEl.value.trim();
+      if(districtEl) v.district=districtEl.value.trim();
+
+      const rateInput=document.getElementById("shgRateInput");
+      const rate=rateInput ? Number(rateInput.value) : Number(v.interestRate ?? 12);
+      if(Number.isFinite(rate) && rate>=0 && rate<=100){
+        v.interestRate=rate;
+        if(Array.isArray(v.shgs)) v.shgs.forEach(shg=>shg.interestRate=rate);
+      }
+
+      if(!Array.isArray(v.shgs))v.shgs=[];
+
+      v.shgs.forEach((shg,i)=>{
+        const startIdx=Number.isInteger(shg.startMonthIndex)?shg.startMonthIndex:0;
+        if(monthIndex<startIdx)return;
+
+        const nameEl=document.getElementById("name-"+i);
+        if(nameEl && nameEl.value.trim()) shg.name=nameEl.value.trim();
+
+        const key=MONTHS[monthIndex][0];
+        const raw=getRowData(i);
+        const april=(monthIndex===0);
+        const creationMonth=(monthIndex===startIdx && startIdx>0);
+        const nextMonthStart=(monthIndex===startIdx+1 && startIdx>0);
+
+        if(april){
+          // April SHGs use the normal editable starting fields.
+        }else if(creationMonth){
+          raw.opening=0;
+          raw.prevPrincipal=0;
+          raw.prevInterest=0;
+          raw.demandPrincipal=0;
+          raw.principalCollection="";
+          raw.interestCollection="";
+        }else if(nextMonthStart){
+          const prev=lastConsideredMonth(shg,monthIndex);
+          if(prev){
+            const pc=calc(prev.data);
+            raw.opening=pc.totalLoanBalance;
+            raw.prevPrincipal=pc.balancePrincipal;
+            raw.prevInterest=pc.balanceInterest;
+          }
+        }else{
+          const prev=lastConsideredMonth(shg,monthIndex);
+          const pc=prev?calc(prev.data):null;
+          if(pc){
+            raw.opening=pc.totalLoanBalance;
+            raw.prevPrincipal=pc.balancePrincipal;
+            raw.prevInterest=pc.balanceInterest;
+          }
+          const baseData=shg.months[MONTHS[startIdx+1] ? MONTHS[startIdx+1][0] : MONTHS[startIdx][0]]||blank();
+          raw.demandPrincipal=baseData.demandPrincipal;
+        }
+
+        raw.demandInterest=monthlyInterest(raw.opening,shg.interestRate);
+
+        if(monthIsConsidered(raw)) shg.months[key]=raw;
+        else if(shg.months[key]) delete shg.months[key];
+      });
+
+      // Month changes are an automatic save, so there is nothing "dirty"
+      // to confirm when moving to another month.
+      writeDb();
+      markClean();
+      return true;
+    }
+
     function renderMonths(){
-     const box=document.getElementById("monthTabs");box.innerHTML="";
-     MONTHS.forEach((m,i)=>{const b=document.createElement("button");b.type="button";b.textContent=m[0];if(i===monthIndex)b.classList.add("active");b.onclick=()=>{if(i===monthIndex)return;if(!confirmSwitch("opening another month"))return;monthIndex=i;refresh();};box.appendChild(b);});
+      const box=document.getElementById("monthTabs");
+      box.innerHTML="";
+      MONTHS.forEach((m,i)=>{
+        const b=document.createElement("button");
+        b.type="button";
+        b.textContent=m[0];
+        if(i===monthIndex)b.classList.add("active");
+        b.onclick=()=>{
+          if(i===monthIndex)return;
+
+          // IMPORTANT: Do NOT call confirmSwitch() here.
+          // Month switching silently saves the current SHG month.
+          saveCurrentMonthSilently();
+          monthIndex=i;
+          refresh();
+        };
+        box.appendChild(b);
+      });
     }
 
     function getRowData(i){
@@ -1147,6 +1870,34 @@ button > *{position:relative;z-index:1;}
       const cp=document.getElementById("collectP-"+i),ci=document.getElementById("collectI-"+i);
       return {opening:vals.opening,prevPrincipal:vals.prevP,prevInterest:vals.prevI,demandPrincipal:vals.demandP,demandInterest:vals.demandI,
         principalCollection:cp?String(cp.value).trim():"",interestCollection:ci?String(ci.value).trim():"",newLoan:vals.newLoan};
+    }
+
+    function resizeShgNameTableColumn(){
+      if(window.innerWidth>900)return;
+      const table=document.querySelector("table.entry");
+      if(!table)return;
+      const header=table.querySelector("thead th:nth-child(2)");
+      if(!header)return;
+
+      const canvas=document.createElement("canvas");
+      const ctx=canvas.getContext("2d");
+      const cs=getComputedStyle(header);
+      ctx.font=cs.font;
+
+      let maxWidth=ctx.measureText("SHG Name").width;
+      table.querySelectorAll("tbody tr td:nth-child(2) input.name").forEach(input=>{
+        const value=input.value||"";
+        if(value)maxWidth=Math.max(maxWidth,ctx.measureText(value).width);
+      });
+
+      // Text width + cell padding + input border/padding breathing room.
+      const width=Math.ceil(maxWidth)+22;
+      header.style.width=width+"px";
+      header.style.minWidth=width+"px";
+      table.querySelectorAll("tbody tr td:nth-child(2)").forEach(td=>{
+        td.style.width=width+"px";
+        td.style.minWidth=width+"px";
+      });
     }
 
     function renderRows(){
@@ -1211,7 +1962,7 @@ button > *{position:relative;z-index:1;}
       const tr=document.createElement("tr");tr.id="row-"+i;
       tr.innerHTML=
       '<td>'+(i+1)+'</td>'+
-      '<td><input class="name" id="name-'+i+'" value="'+esc(s.name)+'"'+locked(lockName)+'></td>'+
+      '<td><input class="name" id="name-'+i+'" value="'+esc(s.name)+'"'+locked(lockName)+' oninput="resizeShgNameTableColumn();markDirty()"></td>'+
       '<td><input type="number" id="opening-'+i+'" value="'+opening+'"'+locked(lockOpening)+' oninput="window.recalc('+i+')"></td>'+
       '<td><input type="number" id="prevP-'+i+'" value="'+prevP+'"'+locked(lockPrevP)+' oninput="window.recalc('+i+')"></td>'+
       '<td><input type="number" id="prevI-'+i+'" value="'+prevI+'"'+locked(lockPrevI)+' oninput="window.recalc('+i+')"></td>'+
@@ -1229,6 +1980,7 @@ button > *{position:relative;z-index:1;}
       body.appendChild(tr);
      });
      if(!v.shgs.length)body.innerHTML='<tr><td colspan="17" style="text-align:center;padding:22px">No SHGs. Add the first SHG above.</td></tr>';
+     resizeShgNameTableColumn();
     }
 
     window.recalc=function(i){
@@ -3142,7 +3894,119 @@ html,body{
   white-space:nowrap !important;overflow:visible !important;
 }
 
-</style>
+
+
+        /* Mobile/tablet: selected VO action buttons layout.
+           Save VO + Delete VO stay side-by-side; Create New VO is below
+           and spans exactly the combined width of the two buttons. */
+        @media screen and (max-width:900px){
+          #voDetailsToolbar.show-details ~ .actions{
+            display:grid;
+            grid-template-columns:1fr 1fr;
+            gap:8px;
+            width:100%;
+            align-items:stretch;
+          }
+
+          #voDetailsToolbar.show-details ~ .actions #saveVoBtn,
+          #voDetailsToolbar.show-details ~ .actions #resetBtn{
+            display:block !important;
+            width:100%;
+            min-width:0;
+            grid-column:auto;
+          }
+
+          #voDetailsToolbar.show-details ~ .actions #newVoBtn{
+            grid-column:1 / -1;
+            width:100%;
+            min-width:0;
+          }
+
+          #voDetailsToolbar.show-details ~ .actions #saveStatus{
+            grid-column:1 / -1;
+          }
+        }
+
+/* Mobile + tablet only: VO action buttons use the same 2-on-top + full-width-below arrangement. */
+@media screen and (max-width:900px){
+  #voDetailsToolbar.show-details ~ .actions{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:8px;
+    width:100%;
+  }
+
+  #voDetailsToolbar.show-details ~ .actions > button{
+    width:100%;
+    min-width:0;
+    margin:0;
+  }
+
+  #voDetailsToolbar.show-details ~ .actions #newVoBtn{
+    grid-column:1 / -1;
+  }
+}
+
+
+/* Mobile + tablet only: VO detail fields use the full available card width. */
+@media screen and (max-width:900px){
+  #voDetailsToolbar{
+    width:100% !important;
+    max-width:100% !important;
+    display:flex;
+    flex-direction:column;
+    align-items:stretch;
+    gap:10px;
+  }
+
+  #voDetailsToolbar > .field{
+    width:100% !important;
+    max-width:none !important;
+    min-width:0 !important;
+    flex:0 0 auto !important;
+  }
+
+  #voDetailsToolbar > .field input,
+  #voDetailsToolbar > .field select{
+    width:100% !important;
+  }
+}
+
+
+/* Mobile + tablet only: arrange VO fields like the requested 2-column layout.
+   Row 1: Existing VO | VO Name
+   Row 2: Village     | Mandal
+   Row 3: District full width
+*/
+@media screen and (max-width:900px){
+  #voDetailsToolbar{
+    display:grid !important;
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+    gap:10px !important;
+    width:100% !important;
+    max-width:100% !important;
+    align-items:end !important;
+  }
+
+  #voDetailsToolbar > .field{
+    width:100% !important;
+    max-width:none !important;
+    min-width:0 !important;
+    flex:none !important;
+  }
+
+  #voDetailsToolbar > .field input,
+  #voDetailsToolbar > .field select{
+    width:100% !important;
+  }
+
+  /* District occupies the full third row. */
+  #voDetailsToolbar > .field:nth-child(5){
+    grid-column:1 / -1;
+  }
+}
+
+    </style>
 </head>
 <body>${body}</body>
 </html>`);
@@ -3849,68 +4713,301 @@ html,body{
       printReport("VO",body);
     }
 
-    /* Firebase Login / Sign Up gate. */
-    const loginScreen=document.getElementById("loginScreen");
-    const appShell=document.getElementById("appShell");
+    /* Firebase Login / Sign Up / Profile / Password recovery. */
     const loginUsername=document.getElementById("loginUsername");
     const loginPassword=document.getElementById("loginPassword");
     const loginError=document.getElementById("loginError");
-    const signUpBtn=document.getElementById("signUpBtn");
+    let signupVerifier=null, forgotVerifier=null, profilePhoneVerifier=null, pendingPhoneConfirmation=null, pendingSignupData=null;
+    let pendingProfileMobile=null;
 
+    function setMsg(id,msg,type=""){const el=document.getElementById(id);if(el){el.textContent=msg;el.className="auth-msg"+(type?" "+type:"");}}
     function friendlyAuthError(err){
       const code=String(err&&err.code||"");
-      if(code.includes("invalid-credential")||code.includes("wrong-password")||code.includes("user-not-found"))
-        return "Invalid email or password.";
-      if(code.includes("email-already-in-use"))
-        return "This email already has an account. Please Login.";
-      if(code.includes("invalid-email"))
-        return "Enter a valid email address.";
-      if(code.includes("weak-password"))
-        return "Password must be at least 6 characters.";
-      if(code.includes("too-many-requests"))
-        return "Too many attempts. Please try again later.";
-      return "Login/Sign Up failed. Please try again.";
+      if(code.includes("invalid-credential")||code.includes("wrong-password")||code.includes("user-not-found")) return "Invalid username/email or password.";
+      if(code.includes("email-already-in-use")) return "This email already has an account. Please Login.";
+      if(code.includes("invalid-email")) return "Enter a valid email address.";
+      if(code.includes("weak-password")) return "Password must be at least 6 characters.";
+      if(code.includes("too-many-requests")) return "Too many attempts. Please try again later.";
+      if(code.includes("invalid-phone-number")) return "Enter a valid mobile number with country code, e.g. +919876543210.";
+      if(code.includes("quota-exceeded")) return "SMS quota exceeded. Please try again later.";
+      if(code.includes("captcha-check-failed")) return "reCAPTCHA verification failed. Please try again.";
+      if(code.includes("permission-denied") || code.includes("Missing or insufficient permissions")) return "Firebase Firestore permissions are blocking this operation. Please publish the Firestore Rules provided with this app.";
+      if(code.includes("credential-already-in-use")) return "That mobile number is already linked to another account.";
+      if(code.includes("requires-recent-login")) return "For security, please logout and login again before changing your mobile number.";
+      return err&&err.message ? err.message : "Authentication failed. Please try again.";
     }
-
+    function normalizePhone(v){
+      let p=String(v||"").trim().replace(/[\s()-]/g,"");
+      if(/^0\d{10}$/.test(p)) p="+91"+p.slice(1);
+      if(/^\d{10}$/.test(p)) p="+91"+p;
+      return p;
+    }
+    async function lookupUsername(username){
+      const key=String(username||"").trim().toLowerCase();
+      if(!key)return null;
+      const snap=await window.firebaseCloud.getDoc(window.firebaseCloud.doc(window.firebaseCloud.getFirestore(),"usernames",key));
+      return snap.exists()?snap.data():null;
+    }
+    async function saveProfile(uid,data){
+      await window.firebaseCloud.setDoc(window.firebaseCloud.doc(window.firebaseCloud.getFirestore(),"users",uid),{profile:data,updatedAt:new Date().toISOString()},{merge:true});
+      if(data.username) await window.firebaseCloud.setDoc(window.firebaseCloud.doc(window.firebaseCloud.getFirestore(),"usernames",String(data.username).toLowerCase()),{uid,email:data.email,mobile:data.mobile,username:data.username},{merge:false});
+    }
     async function attemptLogin(){
-      const email=loginUsername.value.trim();
-      const password=loginPassword.value;
-      if(!email||!password){
-        loginError.textContent="Enter your email and password.";
-        return;
-      }
+      const identifier=loginUsername.value.trim(),password=loginPassword.value;
+      if(!identifier||!password){loginError.textContent="Enter your username/email and password.";return;}
       loginError.textContent="Signing in...";
       try{
+        let email=identifier;
+        if(!identifier.includes("@")){
+          const rec=await lookupUsername(identifier);
+          if(!rec||!rec.email){loginError.textContent="Invalid username/email or password.";return;}
+          email=rec.email;
+        }
         await window.firebaseCloud.signIn(email,password);
-      }catch(err){
-        console.error(err);
-        loginError.textContent=friendlyAuthError(err);
-      }
+      }catch(err){console.error(err);loginError.textContent=friendlyAuthError(err);}
+    }
+    function openModal(id){document.getElementById(id).classList.remove("hidden");}
+    function closeModal(id){document.getElementById(id).classList.add("hidden");}
+    function validateAccountForm(){
+      const email=document.getElementById("signupEmail").value.trim(),mobile=normalizePhone(document.getElementById("signupMobile").value),username=document.getElementById("signupUsername").value.trim(),pw=document.getElementById("signupPassword").value,cp=document.getElementById("signupConfirm").value;
+      if(!email||!mobile||!username||!pw||!cp)throw new Error("Fill all required fields.");
+      if(!/^\S+@\S+\.\S+$/.test(email))throw new Error("Enter a valid email address.");
+      if(!/^\+\d{8,15}$/.test(mobile))throw new Error("Enter a valid mobile number with country code.");
+      if(!/^[A-Za-z0-9._-]{3,30}$/.test(username))throw new Error("Username must be 3-30 characters and use letters, numbers, dot, underscore or hyphen.");
+      if(pw.length<6)throw new Error("Password must be at least 6 characters.");
+      if(pw!==cp)throw new Error("Passwords do not match.");
+      return {email,mobile,username,pw};
+    }
+    async function withTimeout(promise, ms, message){
+      let timer;
+      const timeout=new Promise((_,reject)=>{
+        timer=setTimeout(()=>reject(new Error(message)),ms);
+      });
+      try{return await Promise.race([promise,timeout]);}
+      finally{clearTimeout(timer);}
     }
 
     async function attemptSignUp(){
-      const email=loginUsername.value.trim();
-      const password=loginPassword.value;
-      if(!email||!password){
-        loginError.textContent="Enter your email and password first.";
-        return;
-      }
-      if(password.length<6){
-        loginError.textContent="Password must be at least 6 characters.";
-        return;
-      }
-      loginError.textContent="Creating account...";
+      const btn=document.getElementById("signupCreateBtn");
+      if(btn)btn.disabled=true;
+
       try{
-        await window.firebaseCloud.signUp(email,password);
+        /* Validate first. Never leave the user on a generic checking message. */
+        let data;
+        try{
+          data=validateAccountForm();
+        }catch(validationErr){
+          setMsg("signupMsg",validationErr.message||"Please check the entered details.","error");
+          return;
+        }
+
+        /* Let the browser paint the next status before Firebase work starts. */
+        setMsg("signupMsg","Creating account...","");
+        await new Promise(resolve=>setTimeout(resolve,50));
+
+        newSignupInProgress=true;
+
+        let cred;
+        try{
+          cred=await withTimeout(
+            window.firebaseCloud.signUp(data.email,data.pw),
+            20000,
+            "Account creation timed out. Check your internet connection and make sure Firebase Authentication > Sign-in method > Email/Password is enabled."
+          );
+        }catch(authErr){
+          console.error("Firebase createUserWithEmailAndPassword failed:",authErr);
+          newSignupInProgress=false;
+          setMsg("signupMsg",friendlyAuthError(authErr),"error");
+          return;
+        }
+
+        const createdUser=cred && cred.user ? cred.user : window.firebaseCloud.getCurrentUser();
+        if(!createdUser){
+          newSignupInProgress=false;
+          setMsg("signupMsg","Firebase created the account but no signed-in user was returned. Please try Login.","error");
+          return;
+        }
+
+        pendingSignupData=data;
+
+        /* Account creation is already successful. Profile storage is separate. */
+        setMsg("signupMsg","Account created. Saving profile...","ok");
+        try{
+          await withTimeout(
+            saveProfile(createdUser.uid,{
+              email:data.email,
+              mobile:data.mobile,
+              username:data.username
+            }),
+            10000,
+            "Account created, but profile saving timed out. Check your Firestore Rules."
+          );
+        }catch(profileErr){
+          console.error("Signup profile save failed:",profileErr);
+          newSignupInProgress=false;
+          setMsg("signupMsg","Account created, but profile could not be saved: "+friendlyAuthError(profileErr),"error");
+          return;
+        }
+
+        /* Keep the existing signup mobile-verification flow, but make its
+           failure explicit instead of leaving the form apparently stuck. */
+        setMsg("signupMsg","Account created. Sending mobile verification code...","ok");
+        await new Promise(resolve=>setTimeout(resolve,50));
+
+        try{
+          if(!signupVerifier)signupVerifier=window.firebaseCloud.createRecaptcha("signupRecaptcha");
+          pendingPhoneConfirmation=await withTimeout(
+            window.firebaseCloud.phoneLink(createdUser,data.mobile,signupVerifier),
+            25000,
+            "Account created successfully, but the mobile verification code could not be sent. Check Firebase Phone Authentication and reCAPTCHA settings."
+          );
+
+          setMsg("signupMsg","Account created. Enter the SMS code to verify your mobile number.","ok");
+          closeModal("signupModal");
+          openModal("phoneOtpModal");
+          document.getElementById("phoneOtpModal").dataset.mode="signup";
+          document.getElementById("phoneOtpHelp").textContent="Enter the 6-digit code sent to "+data.mobile+".";
+        }catch(phoneErr){
+          console.error("Signup mobile verification failed:",phoneErr);
+          newSignupInProgress=false;
+          setMsg("signupMsg","Account created successfully, but mobile verification could not start: "+friendlyAuthError(phoneErr),"error");
+        }
       }catch(err){
-        console.error(err);
-        loginError.textContent=friendlyAuthError(err);
+        console.error("Unexpected signup error:",err);
+        newSignupInProgress=false;
+        setMsg("signupMsg",friendlyAuthError(err),"error");
+      }finally{
+        if(btn)btn.disabled=false;
       }
     }
+    async function verifySignupOtp(){
+      try{
+        const code=document.getElementById("phoneOtpCode").value.trim();
+        if(!/^\d{6}$/.test(code)){setMsg("phoneOtpMsg","Enter the 6-digit verification code.","error");return;}
+        if(!pendingPhoneConfirmation){setMsg("phoneOtpMsg","No verification request is active.","error");return;}
+        await pendingPhoneConfirmation.confirm(code);
+        const u=window.firebaseCloud.getCurrentUser();
+        if(!u)throw new Error("Account session was not found after verification.");
+        await saveProfile(u.uid,{email:pendingSignupData.email,mobile:pendingSignupData.mobile,username:pendingSignupData.username});
+        setMsg("phoneOtpMsg","Mobile verified. Account setup completed.","ok");
+        newSignupInProgress=false;
+        pendingPhoneConfirmation=null;
+        pendingSignupData=null;
+
+        // Now that signup is complete, initialize the normal application
+        // session with a fresh empty cloud database.
+        window.firebaseCloud.setCloudLoaded(true);
+        window.dispatchEvent(new CustomEvent("firebase-cloud-ready",{detail:{db:{vos:[]},hasCloud:false}}));
+        document.getElementById("loginScreen").classList.add("hidden");
+        document.getElementById("appShell").classList.remove("hidden");
+        setTimeout(()=>closeModal("phoneOtpModal"),700);
+      }catch(err){console.error(err);setMsg("phoneOtpMsg",friendlyAuthError(err),"error");}
+    }
+    async function sendEmailReset(){
+      const email=document.getElementById("forgotEmail").value.trim();
+      if(!email){setMsg("forgotMsg","Enter your registered email ID.","error");return;}
+      try{await window.firebaseCloud.sendPasswordResetEmail(email);setMsg("forgotMsg","Password reset email sent. Check your inbox and follow the secure reset link.","ok");}
+      catch(err){setMsg("forgotMsg",friendlyAuthError(err),"error");}
+    }
+    async function sendMobileOtp(){
+      const mobile=normalizePhone(document.getElementById("forgotMobile").value);
+      if(!/^\+\d{8,15}$/.test(mobile)){setMsg("forgotMsg","Enter a valid registered mobile number.","error");return;}
+      try{
+        if(!forgotVerifier)forgotVerifier=window.firebaseCloud.createRecaptcha("forgotRecaptcha");
+        pendingPhoneConfirmation=await window.firebaseCloud.phoneSignIn(mobile,forgotVerifier);
+        closeModal("forgotModal");openModal("phoneOtpModal");document.getElementById("phoneOtpHelp").textContent="Enter the 6-digit password recovery code sent to "+mobile+".";
+        document.getElementById("phoneOtpModal").dataset.mode="reset";
+      }catch(err){setMsg("forgotMsg",friendlyAuthError(err),"error");}
+    }
+    async function verifyRecoveryOtp(){
+      try{
+        const code=document.getElementById("phoneOtpCode").value.trim();
+        if(!/^\d{6}$/.test(code)||!pendingPhoneConfirmation){setMsg("phoneOtpMsg","Enter the valid 6-digit code.","error");return;}
+        await pendingPhoneConfirmation.confirm(code);
+        closeModal("phoneOtpModal");openModal("resetPasswordModal");setMsg("resetMsg","Mobile verified. Enter your new password.","ok");
+      }catch(err){setMsg("phoneOtpMsg",friendlyAuthError(err),"error");}
+    }
+    async function saveResetPassword(){
+      const a=document.getElementById("resetNewPassword").value,b=document.getElementById("resetConfirmPassword").value;
+      if(a.length<6){setMsg("resetMsg","Password must be at least 6 characters.","error");return;} if(a!==b){setMsg("resetMsg","Passwords do not match.","error");return;}
+      try{await window.firebaseCloud.updatePassword(a);setMsg("resetMsg","Password updated successfully. You can now login with your new password.","ok");setTimeout(async()=>{closeModal("resetPasswordModal");await window.firebaseCloud.logout();},1000);}catch(err){setMsg("resetMsg",friendlyAuthError(err),"error");}
+    }
+    async function openProfile(){
+      const u=window.firebaseCloud.getCurrentUser();if(!u)return;
+      const snap=await window.firebaseCloud.getDoc(window.firebaseCloud.doc(window.firebaseCloud.getFirestore(),"users",u.uid));const p=snap.exists()?(snap.data().profile||{}):{};
+      const mobile=p.mobile||u.phoneNumber||"";
+      document.getElementById("profileSummary").innerHTML="<b>Username:</b> "+esc(p.username||"—")+"<br><b>Email:</b> "+esc(p.email||u.email||"—")+"<br><b>Mobile:</b> <input id=\"profileMobileInput\" type=\"tel\" inputmode=\"numeric\" maxlength=\"10\" autocomplete=\"tel\" placeholder=\"10-digit mobile number\" value=\""+esc(mobile.replace(/\D/g,""))+"\" style=\"display:inline-block;width:190px;padding:6px 8px;margin-left:4px;box-sizing:border-box;\">";
+      setMsg("profileMsg","");openModal("profileModal");
+    }
+    async function saveProfileMobile(){
+      const u=window.firebaseCloud.getCurrentUser();
+      const input=document.getElementById("profileMobileInput");
+      if(!u||!input)return;
+      const mobile=input.value.replace(/\D/g,"");
+      if(!/^\d{10}$/.test(mobile)){setMsg("profileMsg","Enter a valid 10-digit mobile number.","error");input.focus();return;}
+      try{
+        const fs=window.firebaseCloud.getFirestore();
+        const userRef=window.firebaseCloud.doc(fs,"users",u.uid);
+        const snap=await window.firebaseCloud.getDoc(userRef);
+        const data=snap.exists()?snap.data():{};
+        const oldProfile=data.profile||{};
+        const username=oldProfile.username||"";
+        const email=oldProfile.email||u.email||"";
+        await window.firebaseCloud.setDoc(userRef,{profile:{...oldProfile,email,mobile,username},updatedAt:new Date().toISOString()},{merge:true});
+        if(username){
+          await window.firebaseCloud.setDoc(window.firebaseCloud.doc(fs,"usernames",String(username).toLowerCase()),{uid:u.uid,email,mobile,username},{merge:true});
+        }
+        setMsg("profileMsg","Mobile number updated successfully.","ok");
+        /* Account-profile updates do not count as unsaved VO changes. */
+        markClean();
+      }catch(err){
+        console.error(err);setMsg("profileMsg",err.message||"Unable to update mobile number.","error");
+      }
+    }
+    async function changeProfilePassword(){
+      const a=document.getElementById("profileNewPassword").value,b=document.getElementById("profileConfirmPassword").value;
+      if(a.length<6){setMsg("profileMsg","Password must be at least 6 characters.","error");return;}if(a!==b){setMsg("profileMsg","Passwords do not match.","error");return;}
+      try{await window.firebaseCloud.updatePassword(a);setMsg("profileMsg","Password changed successfully.","ok");markClean();document.getElementById("profileNewPassword").value="";document.getElementById("profileConfirmPassword").value="";}catch(err){setMsg("profileMsg","For security, Firebase may require you to login again before changing the password. Please logout and login, then try again.","error");}
+    }
+    document.getElementById("loginBtn").onclick=attemptLogin;
+    document.getElementById("signUpBtn").onclick=()=>{setMsg("signupMsg","");openModal("signupModal");};
+    document.getElementById("forgotPasswordBtn").onclick=()=>{setMsg("forgotMsg","");openModal("forgotModal");};
+    document.getElementById("signupCreateBtn").onclick=attemptSignUp;
+    /* signup-field-enter-handler */
+    ["signupEmail","signupMobile","signupUsername","signupPassword","signupConfirm"].forEach(id=>{
+      const el=document.getElementById(id);
+      if(el)el.addEventListener("keydown",e=>{
+        if(e.key==="Enter"){e.preventDefault();attemptSignUp();}
+      });
+    });
+
+    document.getElementById("verifyPhoneOtpBtn").onclick=()=>{const mode=document.getElementById("phoneOtpModal").dataset.mode;if(mode==="reset")verifyRecoveryOtp();else if(mode==="profileMobile")verifyProfileMobileOtp();else verifySignupOtp();};
+    document.getElementById("sendEmailResetBtn").onclick=sendEmailReset;
+    document.getElementById("sendMobileOtpBtn").onclick=sendMobileOtp;
+    document.getElementById("saveResetPasswordBtn").onclick=saveResetPassword;
+    document.getElementById("profileBtn").onclick=openProfile;
+    document.addEventListener("click",function(e){
+      const btn=e.target.closest("#profileBtn");
+      if(btn){e.preventDefault();openProfile();}
+    });
+    document.getElementById("changePasswordBtn").onclick=changeProfilePassword;
+    const saveProfileMobileBtn=document.getElementById("saveProfileMobileBtn");
+    if(saveProfileMobileBtn)saveProfileMobileBtn.onclick=saveProfileMobile;
+    /* Explicitly bind modal Close buttons, including the Profile Close button. */
+    document.querySelectorAll("[data-close-modal]").forEach(b=>{
+      b.onclick=e=>{e.preventDefault();closeModal(b.dataset.closeModal);}
+    });
+    const profileCloseBtn=document.querySelector('#profileModal [data-close-modal="profileModal"]');
+    if(profileCloseBtn)profileCloseBtn.onclick=e=>{e.preventDefault();closeModal("profileModal");};
+    document.querySelectorAll(".toggle-pass").forEach(b=>b.onclick=()=>{const i=document.getElementById(b.dataset.target);i.type=i.type==="password"?"text":"password";b.textContent=i.type==="password"?"Show":"Hide";});
+    loginUsername.onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();loginPassword.focus();}};
+    loginPassword.onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();attemptLogin();}};
+    setTimeout(()=>loginUsername.focus(),50);
 
     document.getElementById("homeBtn").onclick=goHome;
     document.getElementById("loginBtn").onclick=attemptLogin;
-    signUpBtn.onclick=attemptSignUp;
+    // Sign Up button opens the registration form.
+    document.getElementById("signUpBtn").onclick=()=>{setMsg("signupMsg","");openModal("signupModal");};
 
     document.getElementById("logoutBtn").onclick=async()=>{
       if(!confirmSwitch("logging out"))return;
@@ -3925,11 +5022,13 @@ html,body{
     loginPassword.onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();attemptLogin();}};
     setTimeout(()=>loginUsername.focus(),50);
 
-    document.getElementById("newVoBtn").onclick=()=>{
+    const openNewVoForm=()=>{
       if(!confirmSwitch("creating a new VO"))return;
       document.getElementById("newVoForm").classList.remove("hidden");
       document.getElementById("newVoName").focus();
     };
+    document.getElementById("homeNewVoBtn").onclick=openNewVoForm;
+    document.getElementById("newVoBtn").onclick=openNewVoForm;
     document.getElementById("cancelVoBtn").onclick=()=>document.getElementById("newVoForm").classList.add("hidden");
     document.getElementById("createVoBtn").onclick=createVO;
     document.getElementById("newVoName").onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();createVO();}};
@@ -3979,7 +5078,17 @@ html,body{
     };
     document.getElementById("resetBtn").onclick=resetAll;
     document.addEventListener("input",function(e){
-      if(e.target.matches("input,textarea") && e.target.id!=="newVoName" && e.target.id!=="loginUsername" && e.target.id!=="loginPassword")markDirty();
+      if(e.target.matches("input,textarea")){
+        /* Profile fields are account settings, not unsaved VO screen data.
+           Editing mobile/password must never set the VO dirty flag. */
+        const profileField=e.target.id==="profileMobileInput" ||
+          e.target.id==="profileNewPassword" ||
+          e.target.id==="profileConfirmPassword";
+        const authField=e.target.id==="newVoName" ||
+          e.target.id==="loginUsername" ||
+          e.target.id==="loginPassword";
+        if(!profileField && !authField) markDirty();
+      }
       const m=e.target.id&&e.target.id.match(/^(prevP|prevI|demandP)-(\d+)$/);
       if(m && typeof window.recalc==="function") window.recalc(Number(m[2]));
     });
