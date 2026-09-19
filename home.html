@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chary's - VO DCB & LL Login</title>
+    <!-- SIGNUP_NO_OTP_VERSION_2026-09-18 -->
+    <link rel="icon" type="image/svg+xml"
+          href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2317365d'/%3E%3Ctext x='32' y='42' text-anchor='middle' font-family='Arial,sans-serif' font-size='25' font-weight='700' fill='white'%3EVO%3C/text%3E%3C/svg%3E">
+    <!-- =========================================================
+         STYLES
+         All screen/UI styling: styles.css
+         PDF print styling: pdf.css (loaded by pdf.js when generating PDFs)
+         ========================================================= -->
+    <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+<!-- =========================================================
+     AUTHENTICATION UI
+     Login / Sign Up / OTP / Forgot Password / Profile modals
+     Logic: auth.js
+     ========================================================= -->
+<section id="loginScreen" aria-label="Login">
+    <div id="loginCard">
+        <h1>Chary's - VO DCB & LL Login</h1>
+        <p>Login to continue</p>
+        <div class="login-field">
+            <label for="loginUsername">Username or Email ID</label>
+            <input id="loginUsername" type="text" autocomplete="username" placeholder="Username or Email ID">
+        </div>
+        <div class="login-field password-wrap">
+            <label for="loginPassword">Password</label>
+            <input id="loginPassword" type="password" autocomplete="current-password" placeholder="Password">
+            <button type="button" class="toggle-pass" data-target="loginPassword">Show</button>
+        </div>
+        <button type="button" class="primary" id="loginBtn">Login</button>
+        <button type="button" class="secondary" id="signUpBtn">Create Account / Sign Up</button>
+        <button type="button" class="auth-link" id="forgotPasswordBtn">Forgot Password?</button>
+        <div id="loginError" aria-live="polite"></div>
+    </div>
+</section>
+
+
+<div id="signupModal" class="auth-modal hidden">
+    <div class="auth-box">
+        <h2>Create Account</h2>
+        <p class="small">Enter your email, mobile number, username and password.</p>
+        <div class="field"><label>Email ID *</label><input id="signupEmail" type="email" autocomplete="email"
+                                                           placeholder="name@example.com"></div>
+        <div class="field"><label>Mobile Number *</label><input id="signupMobile" type="tel" autocomplete="tel"
+                                                                placeholder="+91 9876543210"></div>
+        <div class="field"><label>Username *</label><input id="signupUsername" type="text" autocomplete="username"
+                                                           placeholder="Choose a username"></div>
+        <div class="field password-wrap"><label>Password *</label><input id="signupPassword" type="password"
+                                                                         autocomplete="new-password"
+                                                                         placeholder="Minimum 6 characters">
+            <button type="button" class="toggle-pass" data-target="signupPassword">Show</button>
+        </div>
+        <div class="field password-wrap"><label>Confirm Password *</label><input id="signupConfirm" type="password"
+                                                                                 autocomplete="new-password"
+                                                                                 placeholder="Re-enter password">
+            <button type="button" class="toggle-pass" data-target="signupConfirm">Show</button>
+        </div>
+        <div class="auth-actions">
+            <button type="button" class="success" id="signupCreateBtn">Create Account</button>
+            <button type="button" class="secondary" data-close-modal="signupModal">Cancel</button>
+        </div>
+        <div id="signupMsg" class="auth-msg"></div>
+    </div>
+</div>
+<div id="phoneOtpModal" class="auth-modal hidden">
+    <div class="auth-box">
+        <h2>Verify Mobile Number</h2>
+        <p class="small" id="phoneOtpHelp">Enter the verification code sent to your mobile.</p>
+        <div class="field"><label>Verification Code *</label><input id="phoneOtpCode" type="text" inputmode="numeric"
+                                                                    maxlength="6" placeholder="6-digit code"></div>
+        <div class="auth-actions">
+            <button type="button" class="primary" id="verifyPhoneOtpBtn">Verify Code</button>
+            <button type="button" class="secondary" data-close-modal="phoneOtpModal">Cancel</button>
+        </div>
+        <div id="phoneOtpMsg" class="auth-msg"></div>
+    </div>
+</div>
+<div id="forgotModal" class="auth-modal hidden">
+    <div class="auth-box">
+        <h2>Forgot Password</h2>
+        <p class="small">Enter your registered email ID or username.</p>
+        <div class="field">
+            <label>Registered Email / Username</label>
+            <input id="forgotIdentifier" type="text" autocomplete="username"
+                   placeholder="Email ID or Username">
+        </div>
+        <button type="button" class="primary" id="sendEmailResetBtn">Send Reset Email</button>
+        <div id="forgotMsg" class="auth-msg"></div>
+        <div class="auth-actions">
+            <button type="button" class="secondary" data-close-modal="forgotModal">Close</button>
+        </div>
+    </div>
+</div>
+<div id="resetPasswordModal" class="auth-modal hidden">
+    <div class="auth-box">
+        <h2>Set New Password</h2>
+        <p class="small">Your mobile number has been verified. Set a new password.</p>
+        <div class="field password-wrap"><label>New Password *</label><input id="resetNewPassword" type="password"
+                                                                             autocomplete="new-password"
+                                                                             placeholder="Minimum 6 characters">
+            <button type="button" class="toggle-pass" data-target="resetNewPassword">Show</button>
+        </div>
+        <div class="field password-wrap"><label>Confirm New Password *</label><input id="resetConfirmPassword"
+                                                                                     type="password"
+                                                                                     autocomplete="new-password"
+                                                                                     placeholder="Re-enter password">
+            <button type="button" class="toggle-pass" data-target="resetConfirmPassword">Show</button>
+        </div>
+        <div class="auth-actions">
+            <button type="button" class="success" id="saveResetPasswordBtn">Update Password</button>
+        </div>
+        <div id="resetMsg" class="auth-msg"></div>
+    </div>
+</div>
+<div id="profileModal" class="auth-modal hidden">
+    <div class="auth-box">
+        <h2>My Profile</h2>
+        <div id="profileSummary" class="profile-summary"></div>
+
+        <div class="field">
+            <label>Mobile Number</label>
+            <input id="profileMobileInput" type="tel" autocomplete="tel" placeholder="Mobile Number">
+        </div>
+
+        <h3>Change Password</h3>
+        <div class="field password-wrap">
+            <label>New Password *</label>
+            <input id="profileNewPassword" type="password" autocomplete="new-password"
+                   placeholder="Minimum 6 characters">
+            <button type="button" class="toggle-pass" data-target="profileNewPassword">Show</button>
+        </div>
+        <div class="field password-wrap">
+            <label>Confirm New Password *</label>
+            <input id="profileConfirmPassword" type="password" autocomplete="new-password"
+                   placeholder="Re-enter password">
+            <button type="button" class="toggle-pass" data-target="profileConfirmPassword">Show</button>
+        </div>
+
+        <div class="auth-actions">
+            <button type="button" class="success" id="saveProfileMobileBtn">Save Mobile</button>
+            <button type="button" class="success" id="changePasswordBtn">Change Password</button>
+            <button type="button" class="secondary" data-close-modal="profileModal">Close</button>
+        </div>
+        <div id="profileMsg" class="auth-msg"></div>
+    </div>
+</div>
+
+<div id="appShell" class="hidden">
+    <header>
+        <button type="button" id="homeBtn" title="Go to initial page">Home</button>
+        <h1>Chary's - VO DCB & LL Dashboard</h1>
+        <button type="button" id="profileBtn" title="Profile">Profile</button>
+        <button type="button" id="logoutBtn" title="Logout">Logout</button>
+    </header>
+    <main>
+
+        <section class="card" id="voSelectionSection">
+            <h2>VO Selection &amp; Creation</h2>
+
+            <div class="toolbar" id="voSelectionToolbar">
+                <div class="field" style="flex:0 0 calc(40% - 5px);min-width:0">
+                    <label>Existing VO</label>
+                    <select id="voSelect">
+                        <option value="">-- Select existing VO --</option>
+                    </select>
+                </div>
+                <button type="button" class="primary initial-create-vo" id="homeNewVoBtn">Create New VO</button>
+            </div>
+
+            <div id="newVoForm" class="hidden" style="margin-top:14px">
+                <div class="toolbar">
+                    <div class="field">
+                        <label>New VO Name</label>
+                        <input id="newVoName" placeholder="Enter new VO name">
+                    </div>
+                    <button type="button" class="success" id="createVoBtn">Create VO</button>
+                    <button type="button" class="secondary" id="cancelVoBtn">Cancel</button>
+                </div>
+            </div>
+        </section>
+
+        <section class="card hidden" id="voDetailsSection">
+            <h2>VO Details</h2>
+            <div class="toolbar" id="voDetailsToolbar">
+                <div class="field">
+                    <label>VO Name</label>
+                    <input id="voName" placeholder="VO Name">
+                </div>
+
+                <div class="field">
+                    <label>Village <span style="color:#c62828">*</span></label>
+                    <input id="village" placeholder="Village">
+                </div>
+
+                <div class="field">
+                    <label>Mandal <span style="color:#c62828">*</span></label>
+                    <input id="mandal" placeholder="Mandal">
+                </div>
+
+                <div class="field">
+                    <label>District</label>
+                    <input id="district" placeholder="District">
+                </div>
+            </div>
+
+            <div class="actions" id="voDetailsActions">
+                <button type="button" class="success selected-vo-only" id="saveVoBtn">Save VO</button>
+                <button type="button" class="danger selected-vo-only" id="resetBtn">Delete VO</button>
+                <span id="saveStatus" class="small"></span>
+            </div>
+        </section>
+
+        <section class="card" id="dataManagementSection">
+            <h2>Data Management</h2>
+            <div class="notice">Use these options to back up your data, restore a previous backup, or merge backup data
+                with your current VOs.
+            </div>
+            <div class="actions">
+                <button type="button" class="secondary" id="backupBtn">Download Backup</button>
+                <button type="button" class="secondary" id="importBtn">Restore Backup</button>
+                <button type="button" class="primary" id="importAllBtn">Merge Backup</button>
+            </div>
+        </section>
+
+        <section id="dashboard" class="hidden">
+            <br>
+            <div class="card">
+                <h2>SHG Wise Monthly Collection Data</h2>
+                <div class="notice">Add SHGs here on this month. Type the name and press <b>Enter</b> or click
+                    <b>
+                        Add SHG</b>. The new SHG immediately becomes a row in the table from this month onwards.
+                </div>
+                <div class="toolbar" id="shgToolbar">
+                    <div class="field"><label>Add SHG Name</label><input id="shgNameInput" placeholder="SHG Name"></div>
+                    <button type="button" class="success" id="addShgBtn">Add SHG</button>
+                    <div class="field" style="max-width:180px"><label>Interest Rate (%)</label><input id="shgRateInput"
+                                                                                                      oninput="updateInterestRateLive()"
+                                                                                                      type="number"
+                                                                                                      min="0"
+                                                                                                      max="100"
+                                                                                                      step="0.01"
+                                                                                                      value="12"></div>
+                </div>
+                <div class="months" id="monthTabs"></div>
+                <div class="tablewrap">
+                    <table class="entry">
+                        <thead>
+                        <tr>
+                            <th>S.N</th>
+                            <th>SHG Name</th>
+                            <th>Opening<br>Loan Balance</th>
+                            <th>Previous Due<br>Principal</th>
+                            <th>Previous Due<br>Interest</th>
+                            <th>Current Month<br>Principal</th>
+                            <th>Current Month<br>Interest</th>
+                            <th>Previous + Current <br> Principal</th>
+                            <th>Previous + Current <br> Interest</th>
+                            <th>Principal<br>Collection</th>
+                            <th>Interest<br>Collection</th>
+                            <th>New<br>Loan</th>
+                            <th>Closing<br>Loan Balance</th>
+                            <th>Save</th>
+                            <th>Delete</th>
+                            <!-- <th>Total<br>Collection</th><th>Total Loan<br>Balance</th><th>Save</th>-->
+                        </tr>
+                        </thead>
+                        <tbody id="entryBody"></tbody>
+                    </table>
+                </div>
+                <div class="actions">
+                    <button type="button" class="primary" id="saveAllBtn">Save All SHGs</button>
+                    <button type="button" class="warning" id="monthlyPdfBtn">DCB PDF</button>
+                    <button type="button" class="warning" id="ledgerPdfBtn">Loan Ledger PDF</button>
+                    <button type="button" class="warning" id="cumulativeDcbPdfBtn">Cumulative DCB PDF</button>
+                    <button type="button" class="primary" id="allPdfsBtn">Download VO PDF</button>
+                    <input id="fileInput" type="file" accept=".json" class="hidden">
+                </div>
+            </div>
+        </section>
+    </main>
+</div>
+
+<!-- =========================================================
+     JAVASCRIPT MODULES
+     auth.js   = authentication/account logic
+     pdf.js    = PDF generation logic
+     script.js = main accounting/UI logic
+     ========================================================= -->
+<script type="module" src="./auth.js"></script>
+<script src="./pdf.js"></script>
+<script src="./script.js"></script>
+</body>
+</html>

@@ -1,0 +1,539 @@
+/* =========================================================
+   PDF.CSS
+   Print-window PDF styling only.
+   ========================================================= */
+
+@page{
+  size: A4 landscape;
+  margin: 0;
+}
+/* IMPORTANT: the print window is a separate document, so the main-page
+   box-sizing rule does not carry over. Without this, .page height plus
+   its top padding becomes taller than A4 and the browser inserts an
+   otherwise blank page between report pages. */
+*,*::before,*::after{
+  box-sizing:border-box;
+}
+html,body{
+  margin:0!important;
+  padding:0!important;
+  background:#fff!important;
+  color:#111;
+  font-family:"Gidugu",Arial,sans-serif;
+}
+.page{
+  width:841.89pt;
+  height:595.28pt;
+  position:relative;
+  box-sizing:border-box;
+  padding:28.3465pt;
+  page-break-after:always;
+  break-after:page;
+  overflow:hidden;
+}
+.page:last-child{
+  page-break-after:auto;
+  break-after:auto;
+}
+.combined-blank-page{
+  width:841.89pt;
+  height:595.28pt;
+  min-height:595.28pt;
+  padding:0!important;
+  margin:0!important;
+  border:0!important;
+  background:#fff!important;
+  page-break-after:always;
+  break-after:page;
+  overflow:hidden;
+}
+
+/* ---------------- LOAN LEDGER ---------------- */
+.ledger-page{
+  padding:28.3465pt;
+}
+.ledger-frame{
+  width:var(--ledger-width,785.197pt);
+  margin-left:0;
+  margin-right:0;
+  border:1px solid #555;
+}
+.ledger-blank{
+  height:22pt;
+  border-bottom:1px solid #555;
+}
+.ledger-title-row{
+  height:28pt;
+  display:grid;
+  grid-template-columns:1fr 55pt 50pt;
+  border-bottom:1px solid #555;
+  position:relative;
+  overflow:hidden;
+}
+.ledger-title{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  font-size:17pt;
+<!--  font-weight:700;-->
+  line-height:1;
+  border-right:1px solid #555;
+  white-space:nowrap;
+}
+.page-label{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  font-family:Arial,sans-serif;
+  font-size:8pt;
+  font-weight:700;
+  border-right:0!important;
+  position:relative;
+}
+.page-number{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:17pt;
+  font-weight:100;
+}
+
+/* Page No separator: one red vertical line ONLY inside the title row.
+   It cannot continue into the metadata rows below. */
+.ledger-title-row::after{
+  content:"";
+  position:absolute;
+  top:0;
+  bottom:0;
+  right:50pt;
+  width:1px;
+  background:#c00000;
+  pointer-events:none;
+  z-index:2;
+}
+.ledger-meta{
+  display:grid;
+  width:100%;
+  grid-template-columns:22% 24.45% 53.55%;
+  grid-template-rows:28pt 28pt 20pt;
+}
+.meta-row{
+  display:grid;
+  grid-template-columns:1.05fr 1.18fr 1.05fr 1.18fr 1.05fr 0.72fr;
+  grid-column:1/-1;
+  position:relative;
+  border-bottom:1px solid #555;
+  z-index:1;
+}
+.meta-row > div{
+  position:relative;
+  border-right:1px solid #555;
+  border-bottom:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  min-width:0;
+  overflow:hidden;
+  white-space:nowrap;
+  line-height:1;
+}
+.meta-row > div:last-child{border-right:0}
+.meta-row:last-child{border-bottom:0}
+
+.meta-key{
+  font-size:13pt;
+<!--  font-weight:700;-->
+}
+.meta-value{
+  font-size:13pt;
+  font-weight:100;
+}
+.meta-value.highlight{
+  min-height:0;
+  width:auto;
+  align-self:stretch;
+}
+
+/* SHG name: yellow background ONLY on the value cell. */
+.ledger-meta .meta-row:first-child .meta-value.highlight{
+  background:#ffff00;
+}
+.meta-value-merged{
+  grid-column:4 / 7;
+  border-right:0 !important;
+}
+.meta-empty{
+  font-size:12.5pt;
+}
+.ledger-table{
+  /* Loan Ledger PDF: calibrated outer width. */
+  width:784.500pt;
+  max-width:none;
+  border-collapse:collapse;
+  table-layout:fixed;
+  margin:0;
+}
+/* All 12 Loan Ledger columns start equal.
+   Print-time fitting redistributes them according to actual content. */
+.ledger-table col{width:auto}
+.ledger-table col:first-child{width:24pt!important}
+.ledger-table th,.ledger-table td{
+  border:1px solid #555;
+  padding:0 2pt;
+  text-align:center;
+  vertical-align:middle;
+  overflow:visible;
+}
+.ledger-table th{
+  white-space:normal;
+}
+.ledger-table tbody td{
+  white-space:nowrap !important;
+  overflow:visible !important;
+  font-size:13pt !important;
+  font-weight:400 !important;
+  font-synthesis:none !important;
+  line-height:1 !important;
+}
+.ledger-table thead .group-head{height:28pt}
+.ledger-table thead .sub-head{height:20pt}
+.ledger-table thead .number-head{height:15.7pt}
+.ledger-table thead th{
+  font-size:12pt;
+  font-weight:100;
+  line-height:1;
+}
+.ledger-table .number-head th{
+  background:#b3b3b3;
+  font-family:Arial,sans-serif;
+  font-size:6pt;
+  font-weight:700;
+}
+.ledger-table tbody tr{
+  height:23.17pt;
+}
+.ledger-table tbody td{
+  white-space:nowrap !important;
+  overflow:visible !important;
+  font-size:13pt !important;
+  font-weight:400 !important;
+  font-synthesis:none !important;
+  line-height:1 !important;
+}
+.ledger-table td.date,
+.ledger-table td.date *{
+  <!--font-family:Arial, Helvetica, sans-serif !important;-->
+  font-size:13pt !important;
+  font-weight:100 !important;
+  font-style:normal !important;
+}
+.ledger-table td.name{
+  text-align:left;
+  padding-left:5pt;
+}
+
+/* Keep the last Ledger column perfectly inside the frame.
+   The frame and table have the same fixed width.  For the two header cells
+   in the final column (the rowspan header and the number 13 cell), draw the
+   right edge on the table itself so the border cannot project outside the
+   frame due to collapsed-border rounding. */
+.ledger-table{
+  box-sizing:border-box !important;
+  border-right:1px solid #555 !important;
+}
+.ledger-table tr > :first-child{
+  border-left:0;
+}
+.ledger-table tr > :last-child{
+  border-right:0;
+}
+.ledger-table thead tr.group-head > th:last-child,
+.ledger-table thead tr.number-head > th:last-child{
+  border-right:1px solid #555 !important;
+}
+.ledger-table tbody tr:last-child > td{
+  border-bottom:0;
+}
+
+/* Yellow is a cell fill only; no pseudo-elements or extra yellow rules. */
+.meta-value.highlight::before,
+.meta-value.highlight::after{
+  content:none !important;
+  display:none !important;
+}
+.telugu{font-family:"Gidugu",Arial,sans-serif}
+
+/* ---------------- DCB ---------------- */
+/* DCB uses A4 landscape. Monthly DCB allows max 25 DATA rows/page.
+   Empty rows are never added to the PDF. */
+@page dcb{
+  size:A4 landscape;
+  margin:0;
+}
+.dcb-page{
+  page:dcb;
+  width:841.89pt;
+  height:595.28pt;
+  padding:28.3465pt;
+  overflow:visible;
+}
+.dcb-frame{
+  width:var(--dcb-width,785.197pt);
+  margin-left:0;
+  margin-right:0;
+}
+.dcb-top-blank{
+  height:22pt;
+ <!-- border-bottom:1px solid #555;-->
+}
+/* Default A4 safe-width boundary for Monthly DCB; runtime may use 6 mm fallback. */
+.dcb-page .dcb-frame,
+.dcb-page .dcb-head,
+.dcb-page .dcb-table{
+  box-sizing:border-box !important;
+  margin-left:0 !important;
+  margin-right:0 !important;
+}
+
+/* Final DCB header alignment: header and table share the same frame width. */
+.dcb-frame > .dcb-head,
+.cumulative-dcb-frame > .cumulative-dcb-head{
+  box-sizing:border-box;
+  margin-left:0!important;
+  margin-right:0!important;
+}
+.dcb-head{
+  width:var(--dcb-width,785.197pt);
+  height:24pt;
+  border-collapse:collapse;
+  table-layout:fixed;
+  border:1px solid #555;
+  border-bottom:0;
+  margin:0;
+  box-sizing:border-box;
+}
+.dcb-head col{width:auto}
+.dcb-head th{
+  height:24pt;
+  padding:0 1.5pt;
+  text-align:center;
+  vertical-align:middle;
+  overflow:hidden;
+  border:1px solid #555;
+  border-bottom:0;
+  box-sizing:border-box;
+  font-family:"Gidugu",Arial,sans-serif;
+  font-size:15.5pt;
+  font-weight:100;
+  line-height:1;
+  white-space:nowrap;
+}
+.dcb-head-left,.dcb-head-right{
+  text-align:center;
+  vertical-align:middle;
+}
+.dcb-head-left{
+  border-right:1px solid #555;
+}
+.dcb-table{
+  width:var(--dcb-width,785.197pt);
+  border-collapse:collapse;
+  table-layout:fixed;
+}
+/* Default widths are exactly the previous DCB widths.
+   JavaScript changes ONLY the col widths when a DATA CELL needs more room. */
+/* All 17 DCB columns start equal.
+   Print-time fitting redistributes them according to actual content. */
+.dcb-table col{width:auto}
+.dcb-table col:first-child{width:24pt!important}
+.dcb-table th,.dcb-table td{
+  border:1px solid #555;
+  padding:0 1.5pt;
+  text-align:center;
+  vertical-align:middle;
+  overflow:visible;
+}
+.dcb-table thead .group-head{height:28pt}
+.dcb-table thead .sub-head{height:20pt}
+.dcb-table thead .number-head{height:10pt}
+/* Header text is soft: it may wrap so its column can donate width to long data. */
+.dcb-table thead th{
+  white-space:normal !important;
+  overflow:hidden;
+  word-break:normal;
+  overflow-wrap:normal;
+}
+.dcb-table thead th{
+  /* Same as LL table headings. */
+  font-family:"Gidugu",Arial,sans-serif;
+  font-size:13pt;
+  font-weight:100;
+  line-height:1;
+}
+.dcb-table .number-head td{
+  background:#b3b3b3;
+  /* Same as LL number row. */
+  font-family:Arial,sans-serif;
+  font-size:6pt;
+  font-weight:700;
+  line-height:1;
+}
+.dcb-table tbody tr.data-row{
+  height:var(--dcb-data-row-height,18.6pt);
+  min-height:var(--dcb-data-row-height,18.6pt);
+  max-height:var(--dcb-data-row-height,18.6pt);
+  break-inside:avoid;
+  page-break-inside:avoid;
+}
+.dcb-table tbody td{
+  /* One consistent base style for EVERY DCB data row. */
+  font-family:"Gidugu",Arial,sans-serif !important;
+  font-size:13pt !important;
+  font-weight:400 !important;
+  font-synthesis:none !important;
+  line-height:1 !important;
+  white-space:nowrap !important;
+  overflow:visible !important;
+}
+.dcb-table tbody td.shg-name{
+  text-align:left;
+  padding-left:4pt;
+  font-family:"Gidugu",Arial,sans-serif !important;
+  font-size:13pt !important;
+  font-weight:400 !important;
+  font-synthesis:none !important;
+}
+.dcb-table tbody tr.total{
+  height:24pt;
+}
+.dcb-table tbody tr.total td{
+  font-family:"Gidugu",Arial,sans-serif !important;
+  font-size:13pt !important;
+  font-weight:400 !important;
+  font-synthesis:none !important;
+  white-space:nowrap !important;
+  overflow:visible !important;
+}
+
+/* ---------------- CUMULATIVE DCB ---------------- */
+@page cumulativeDcb{size:A4 landscape;margin:0}
+.cumulative-dcb-page{
+  page:cumulativeDcb;width:841.89pt;height:595.28pt;padding:28.3465pt;
+  overflow:visible;
+}
+.cumulative-dcb-frame{
+  width:var(--cumulative-dcb-width,785.197pt);margin-left:0;
+  margin-right:0;
+}
+.cumulative-dcb-head{
+  box-sizing:border-box;
+  width:var(--cumulative-dcb-width);
+  height:24pt;
+  border-collapse:collapse;
+  table-layout:fixed;
+  border:1px solid #555;
+  border-bottom:0;
+  margin:0;
+}
+.cumulative-dcb-head col{width:auto}
+.cumulative-dcb-head th{
+  height:24pt;
+  padding:0 1.5pt;
+  text-align:center;
+  vertical-align:middle;
+  overflow:hidden;
+  border:1px solid #555;
+  border-bottom:0;
+  box-sizing:border-box;
+  font-family:"Gidugu",Arial,sans-serif;
+  font-size:15.5pt;
+  font-weight:100;
+  line-height:1;
+  white-space:nowrap;
+}
+.cumulative-dcb-head-left,.cumulative-dcb-head-right{
+  text-align:center;
+  vertical-align:middle;
+}
+.cumulative-dcb-head-left{
+  border-right:1px solid #555;
+}
+.cumulative-dcb-table{
+  width:var(--cumulative-dcb-width);border-collapse:collapse;table-layout:fixed;
+}
+.cumulative-dcb-table col{width:auto}
+.cumulative-dcb-table col:first-child{width:24pt!important}
+.cumulative-dcb-table th,.cumulative-dcb-table td{
+  border:1px solid #555;padding:0 1.5pt;text-align:center;
+  vertical-align:middle;overflow:visible;
+}
+.cumulative-dcb-table thead .group-head{height:28pt}
+.cumulative-dcb-table thead .sub-head{height:20pt}
+.cumulative-dcb-table thead .number-head{height:10pt}
+/* Cumulative DCB headers are soft and may wrap when data needs width. */
+.cumulative-dcb-table thead th{
+  white-space:normal !important;
+  overflow:hidden;
+  word-break:normal;
+  overflow-wrap:normal;
+}
+.cumulative-dcb-table thead th{
+  font-family:"Gidugu",Arial,sans-serif;font-size:13pt;font-weight:100;line-height:1;
+}
+.cumulative-dcb-table .number-head td{
+  background:#b3b3b3;font-family:Arial,sans-serif;font-size:6pt;font-weight:700;line-height:1;
+}
+/*
+ * Exactly 25 DATA rows are allocated on a normal cumulative-DCD page.
+ * There are no filler rows; if fewer than 25 SHGs exist, only real rows print.
+ */
+.cumulative-dcb-table tbody tr.data-row{
+  height:var(--cumulative-dcb-data-row-height,18pt);
+  min-height:var(--cumulative-dcb-data-row-height,18pt);
+  max-height:var(--cumulative-dcb-data-row-height,18pt);
+  break-inside:avoid;
+  page-break-inside:avoid;
+}
+.cumulative-dcb-table tbody td{
+  font-family:"Gidugu",Arial,sans-serif !important;
+  font-size:13pt !important;
+  font-weight:400 !important;
+  font-synthesis:none !important;
+  line-height:1 !important;
+  white-space:nowrap !important;
+  overflow:visible !important;
+  height:var(--cumulative-dcb-data-row-height,18pt);
+  max-height:var(--cumulative-dcb-data-row-height,18pt);
+}
+.cumulative-dcb-table tbody td.shg-name{
+  text-align:left;padding-left:4pt;font-family:"Gidugu",Arial,sans-serif !important;
+}
+/*
+ * Total is NOT counted as one of the 25 data rows.
+ * It appears after row 25 on the final page.
+ */
+.cumulative-dcb-table tbody tr.total{
+  height:20pt;
+  min-height:20pt;
+  max-height:20pt;
+}
+.cumulative-dcb-table tbody tr{
+  break-inside:avoid;
+  page-break-inside:avoid;
+}
+.cumulative-dcb-page{
+  break-after:page;
+  page-break-after:always;
+}
+.cumulative-dcb-page:last-child{
+  break-after:auto;
+  page-break-after:auto;
+}
+.cumulative-dcb-table tbody tr.total td{
+  font-family:"Gidugu",Arial,sans-serif !important;font-size:13pt !important;
+  font-weight:400 !important;font-synthesis:none !important;
+  white-space:nowrap !important;overflow:visible !important;
+}
