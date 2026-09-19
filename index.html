@@ -2222,8 +2222,9 @@ button > *{position:relative;z-index:1;}
             raw.prevPrincipal=pc.balancePrincipal;
             raw.prevInterest=pc.balanceInterest;
           }
-          const baseData=s.months[MONTHS[startIdx+1] ? MONTHS[startIdx+1][0] : MONTHS[startIdx][0]]||blank();
-          raw.demandPrincipal=baseData.demandPrincipal;
+          /* IMPORTANT: preserve this month's edited Current Month Principal.
+           * It is initialized from the previous month only when this month
+           * has no saved value; once edited, the edited value is saved here. */
         }
         raw.demandInterest=monthlyInterest(raw.opening,s.interestRate);
 
@@ -2254,13 +2255,17 @@ button > *{position:relative;z-index:1;}
     function hasValue(x){return x!==undefined&&x!==null&&String(x).trim()!=="";}
     function monthIsConsidered(d){
       if(!d)return false;
-      /* A saved month normally has both collection fields. For a SHG created
-       * after April, the creation month is allowed to contain ONLY a New Loan,
-       * so that month must participate in the SHG history when New Loan is non-zero. */
-      const hasCollections=hasValue(d.principalCollection)&&hasValue(d.interestCollection);
-      const hasAnyCollection=hasValue(d.principalCollection)||hasValue(d.interestCollection);
-      const hasNewLoan=Number(d.newLoan)||0;
-      return hasCollections || hasAnyCollection || hasNewLoan!==0;
+      /* IMPORTANT: keep a month as soon as the user has entered ANY data in it.
+       * Previously this function only kept collection/new-loan values, so
+       * switching to another month could delete a partially entered month
+       * (for example Opening Balance or Demand Principal). */
+      const hasText=hasValue(d.principalCollection)||hasValue(d.interestCollection);
+      const numericFields=[
+        d.opening,d.prevPrincipal,d.prevInterest,d.demandPrincipal,
+        d.demandInterest,d.newLoan
+      ];
+      const hasNumeric=numericFields.some(x=>Number(x)!==0);
+      return hasText || hasNumeric;
     }
     function lastConsideredMonth(shg,idx){
       if(!shg||!shg.months)return null;
@@ -2372,7 +2377,24 @@ button > *{position:relative;z-index:1;}
 
     function renderMonths(){
      const box=document.getElementById("monthTabs");box.innerHTML="";
-     MONTHS.forEach((m,i)=>{const b=document.createElement("button");b.type="button";b.textContent=m[0];if(i===monthIndex)b.classList.add("active");b.onclick=()=>{if(i===monthIndex)return;monthIndex=i;refresh();};box.appendChild(b);});
+     MONTHS.forEach((m,i)=>{
+       const b=document.createElement("button");
+       b.type="button";
+       b.textContent=m[0];
+       if(i===monthIndex)b.classList.add("active");
+       b.onclick=()=>{
+         if(i===monthIndex)return;
+
+         /* Auto-save the month currently on screen before changing tabs.
+          * This prevents entered SHG values from disappearing just because
+          * the user moved to another month. */
+         if(dirty && !saveCurrentScreen())return;
+
+         monthIndex=i;
+         refresh();
+       };
+       box.appendChild(b);
+     });
     }
 
     function getRowData(i){
@@ -2462,7 +2484,13 @@ button > *{position:relative;z-index:1;}
        * full starting month and its starting fields are enabled like April.
        * From the month after that, values are derived from the SHG's own
        * history. Earlier months are not rendered and need no data. */
-      let opening=d.opening, prevP=d.prevPrincipal, prevI=d.prevInterest, demandP=d.demandPrincipal;
+      let opening=d.opening, prevP=d.prevPrincipal, prevI=d.prevInterest;
+      /* Current Month Principal is initialized from the immediately previous
+       * month's saved Current Month Principal, but once this month has its
+       * own saved value, that value remains editable and must be preserved. */
+      let demandP=hasValue(saved&&saved.demandPrincipal)
+        ? Number(saved.demandPrincipal)||0
+        : (monthIndex>0 ? previousMonthDemandPrincipal(s,monthIndex) : Number(d.demandPrincipal)||0);
       const creationMonth=(!april && monthIndex===startIdx && startIdx>0);
       const nextMonthStart=(!april && monthIndex===startIdx+1 && startIdx>0);
       if(creationMonth){
@@ -2484,8 +2512,8 @@ button > *{position:relative;z-index:1;}
           prevP=pc.balancePrincipal;
           prevI=pc.balanceInterest;
         }
-        const baseData=s.months[MONTHS[startIdx+1] ? MONTHS[startIdx+1][0] : MONTHS[startIdx][0]]||blank();
-        demandP=baseData.demandPrincipal;
+        /* Current Month Principal is the value entered for this month.
+         * Do not replace it with another month's value. */
       }
       // This Month Interest is always calculated from Opening Loan Balance and the SHG rate.
       const demandI=monthlyInterest(opening,s.interestRate);
@@ -2552,8 +2580,7 @@ button > *{position:relative;z-index:1;}
      }else if(!april){
        const prev=safePrevMonth(v.shgs[i],monthIndex);
        if(prev){const pc=calc(prev);opening=pc.totalLoanBalance;prevP=pc.balancePrincipal;prevI=pc.balanceInterest;}
-       const baseData=v.shgs[i].months[MONTHS[startIdx+1] ? MONTHS[startIdx+1][0] : MONTHS[startIdx][0]]||blank();
-       demandP=baseData.demandPrincipal;
+       /* Keep this month's entered Current Month Principal. */
      }
      const demandI=monthlyInterest(opening,rate);
      const interestEl=document.getElementById("demandI-"+i);
@@ -2569,6 +2596,12 @@ button > *{position:relative;z-index:1;}
         }
       });
     }
+    function previousMonthDemandPrincipal(shg,idx){
+     if(!shg||idx<=0||!shg.months)return 0;
+     const prev=shg.months[MONTHS[idx-1][0]];
+     return prev && hasValue(prev.demandPrincipal) ? Number(prev.demandPrincipal)||0 : 0;
+    }
+
     function safePrevMonth(shg,idx){
      if(!shg||idx<=0)return null;
      return shg.months[MONTHS[idx-1][0]]||null;
@@ -2612,8 +2645,8 @@ button > *{position:relative;z-index:1;}
        const prev=lastConsideredMonth(s,monthIndex);
        const pc=prev?calc(prev.data):null;
        if(pc){raw.opening=pc.totalLoanBalance;raw.prevPrincipal=pc.balancePrincipal;raw.prevInterest=pc.balanceInterest;}
-       const baseData=s.months[MONTHS[startIdx+1] ? MONTHS[startIdx+1][0] : MONTHS[startIdx][0]]||blank();
-       raw.demandPrincipal=baseData.demandPrincipal;
+       /* IMPORTANT: keep this month's edited Current Month Principal.
+        * The next month will inherit this saved value. */
      }
      // Always calculate this month's interest from the effective opening balance.
      raw.demandInterest=monthlyInterest(raw.opening,s.interestRate);
@@ -2694,10 +2727,8 @@ button > *{position:relative;z-index:1;}
             }
 
             if(!nextMonthStart){
-              /* After the first full month, keep that SHG's own starting-month
-               * demand principal as the recurring monthly principal demand. */
-              const baseData=s.months[MONTHS[startIdx+1] ? MONTHS[startIdx+1][0] : MONTHS[startIdx][0]]||blank();
-              d.demandPrincipal=Number(baseData.demandPrincipal)||0;
+              /* IMPORTANT: keep this month's own saved/edited Current Month
+               * Principal. Never overwrite it while saving all months. */
             }
           }
 
@@ -4559,15 +4590,21 @@ html,body{
           const x={...d,opening};
           const c=calc(x);
 
+          /* Monthly DCB PDF:
+           * "ఈ నెల డిమాండ్ అసలు" / Current Month Principal must
+           * display the value entered for this same month and SHG.
+           */
+          const currentMonthPrincipal = Number(d.demandPrincipal)||0;
+
           const vals=[
             opening,
             d.prevPrincipal,
             d.prevInterest,
-            d.demandPrincipal,
+            currentMonthPrincipal,
             d.demandInterest,
-            d.prevPrincipal+d.demandPrincipal,
+            d.prevPrincipal+currentMonthPrincipal,
             d.prevInterest+d.demandInterest,
-            d.prevPrincipal+d.demandPrincipal+d.prevInterest+d.demandInterest,
+            d.prevPrincipal+currentMonthPrincipal+d.prevInterest+d.demandInterest,
             d.principalCollection,
             d.interestCollection,
             c.totalCollection,
@@ -4741,7 +4778,7 @@ html,body{
        * 14 New Loan
        * 15 Closing Loan Balance
        */
-      const columnCount=15;
+      const columnCount=13;
       const widths=Array(columnCount).fill(totalWidth/columnCount);
       const colStyle=widths.map(w=>`<col style="width:${w.toFixed(3)}pt">`).join("");
       const pageStyle=
@@ -4749,8 +4786,8 @@ html,body{
         `--cumulative-dcb-left:${MARGIN.toFixed(3)}pt;`+
         `--cumulative-dcb-right:${MARGIN.toFixed(3)}pt;`;
 
-      /* Numeric columns 3 through 15 = 13 columns. */
-      const totals=Array(13).fill(0);
+      /* Numeric columns 3 through 13 = 11 displayed columns. */
+      const totals=Array(11).fill(0);
       const rows=[];
       let cumulativeSerial=0;
 
@@ -4848,10 +4885,10 @@ html,body{
           ? Number(latestCalc.totalLoanBalance)||0
           : opening-collectP+newLoan;
 
-        /* Exactly 13 numeric cells after S.No + SHG Name. */
+        /* Previous Due ("గత బకాయి") is intentionally omitted from the
+         * cumulative PDF display. The existing calculations above are unchanged. */
         const vals=[
           opening,
-          previousP,previousI,
           combinedP,combinedI,totalDemand,
           collectP,collectI,totalCollection,
           balanceP,balanceI,
@@ -4880,7 +4917,7 @@ html,body{
       const totalCells=totals.map(n=>`<td>${fmt(n)}</td>`).join("");
       const nums=[
         "1","2","3","4","5","6","7","8","9","10",
-        "11","12","13","14","15"
+        "11","12","13"
       ];
 
       let out="";
@@ -4915,10 +4952,6 @@ html,body{
                     <th rowspan="2"><span class="telugu">SHG పేరు</span></th>
                     <th rowspan="2"><span class="telugu">ప్రారంభ<br>అప్పు నిల్వ</span></th>
 
-                    <th colspan="2">
-                      <span class="telugu">గత బకాయి</span>
-                    </th>
-
                     <th colspan="3">
                       <span class="telugu">గత బకాయి తో కలిపి <br>ఇప్పటి వరకు డిమాండ్</span>
                     </th>
@@ -4941,10 +4974,6 @@ html,body{
                   </tr>
 
                   <tr class="sub-head">
-                    <!-- Previous Due -->
-                    <th><span class="telugu">అసలు</span></th>
-                    <th><span class="telugu">వడ్డీ</span></th>
-
                     <!-- Previous + Current Demand -->
                     <th><span class="telugu">అసలు</span></th>
                     <th><span class="telugu">వడ్డీ</span></th>
