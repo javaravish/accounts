@@ -545,6 +545,25 @@ button > *{position:relative;z-index:1;}
             overflow:hidden!important;
           }
         }
+        /* Mobile + Tablet only: smaller Show/Hide password button */
+@media screen and (max-width:900px){
+  .auth-box .password-wrap .toggle-pass,
+  #loginCard .password-wrap .toggle-pass{
+    min-height:28px !important;
+    height:28px !important;
+    padding:4px 6px !important;
+    font-size:9px !important;
+    line-height:1 !important;
+    width:auto !important;
+    min-width:0 !important;
+    right:4px !important;
+  }
+
+  .auth-box .password-wrap input,
+  #loginCard .password-wrap input{
+    padding-right:60px !important;
+  }
+}
     </style>
 
     <style id="mobile-friendly-ui">
