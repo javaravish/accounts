@@ -708,7 +708,7 @@ button > *{position:relative;z-index:1;}
 
           input,
           select{
-            min-height:42px;
+            <!--min-height:42px;-->
             font-size:16px; /* avoids iOS input zoom */
           }
 
@@ -3461,9 +3461,20 @@ button > *{position:relative;z-index:1;}
               frame.style.boxSizing="border-box";
             }
 
-            table.style.setProperty("width",`${widthPt.toFixed(4)}pt`,"important");
-            table.style.setProperty("max-width",`${widthPt.toFixed(4)}pt`,"important");
-            table.style.setProperty("min-width",`${widthPt.toFixed(4)}pt`,"important");
+            /* LOAN LEDGER ONLY:
+             * The browser's collapsed-border rendering needs a small
+             * sub-point correction so the final table edge lands exactly on
+             * the .ledger-frame right border.
+             *
+             * 10 mm stage: 785.197pt frame -> 784.500pt Ledger table.
+             * DCB and Cumulative DCB are completely unchanged.
+             */
+            const tableWidthPt = isLedger
+              ? Math.max(0.1, widthPt - 0.697)
+              : widthPt;
+            table.style.setProperty("width",`${tableWidthPt.toFixed(4)}pt`,"important");
+            table.style.setProperty("max-width",`${tableWidthPt.toFixed(4)}pt`,"important");
+            table.style.setProperty("min-width",`${tableWidthPt.toFixed(4)}pt`,"important");
             table.style.marginLeft="0";
             table.style.marginRight="0";
             table.style.boxSizing="border-box";
@@ -3770,7 +3781,9 @@ button > *{position:relative;z-index:1;}
 
             setStage(M10,W10);
             let required=requiredByColumn(table,13);
-            let widths=redistribute(required,W10);
+            /* W10 is the frame's outer width. The table is inside the frame,
+             * so reserve its 1px left + 1px right borders. */
+            let widths=redistribute(required,Math.max(0.1,W10-2));
             setWidths(table,widths);
             void table.offsetWidth;
 
@@ -3782,7 +3795,8 @@ button > *{position:relative;z-index:1;}
             setStage(M8,W8);
             setCommonDataFont(table,13);
             required=requiredByColumn(table,13);
-            widths=redistribute(required,W8);
+            /* Same frame-content-width correction for the 8 mm fallback. */
+            widths=redistribute(required,Math.max(0.1,W8-2));
             setWidths(table,widths);
             void table.offsetWidth;
 
@@ -4090,7 +4104,8 @@ html,body{
   font-size:12.5pt;
 }
 .ledger-table{
-  width:var(--ledger-width,785.197pt);
+  /* Loan Ledger PDF: calibrated outer width. */
+  width:784.500pt;
   max-width:none;
   border-collapse:collapse;
   table-layout:fixed;
@@ -4155,13 +4170,24 @@ html,body{
   padding-left:5pt;
 }
 
-/* The frame supplies the single outer border.  Do not draw a second
-   table border on the left, right, or bottom edges. */
+/* Keep the last Ledger column perfectly inside the frame.
+   The frame and table have the same fixed width.  For the two header cells
+   in the final column (the rowspan header and the number 13 cell), draw the
+   right edge on the table itself so the border cannot project outside the
+   frame due to collapsed-border rounding. */
+.ledger-table{
+  box-sizing:border-box !important;
+  border-right:1px solid #555 !important;
+}
 .ledger-table tr > :first-child{
   border-left:0;
 }
 .ledger-table tr > :last-child{
   border-right:0;
+}
+.ledger-table thead tr.group-head > th:last-child,
+.ledger-table thead tr.number-head > th:last-child{
+  border-right:1px solid #555 !important;
 }
 .ledger-table tbody tr:last-child > td{
   border-bottom:0;
