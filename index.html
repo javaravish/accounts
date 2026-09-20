@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chary's - VO DCB & LL</title>
+    <title>Chary's - DCB & LL</title>
     <!-- SIGNUP_NO_OTP_VERSION_2026-09-18 -->
     <link rel="icon" type="image/svg+xml"
           href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2317365d'/%3E%3Ctext x='32' y='42' text-anchor='middle' font-family='Arial,sans-serif' font-size='25' font-weight='700' fill='white'%3EVO%3C/text%3E%3C/svg%3E">
@@ -1554,12 +1554,40 @@ button > *{position:relative;z-index:1;}
         }
     </style>
 
+
+    <style id="dual-system-login-ui">
+        /* Selected system = BLUE; unselected system = LIGHT GREY. */
+        #loginSystemChoice{display:flex !important;gap:8px !important;margin:0 0 14px !important;}
+        #loginSystemChoice button{
+          flex:1 1 0 !important;min-height:42px !important;
+          border:1px solid #c7d0da !important;background:#e6ebf1 !important;color:#263445 !important;
+          box-shadow:none !important;transform:none !important;filter:none !important;animation:none !important;
+          transition:background .18s ease,color .18s ease,border-color .18s ease,transform .12s ease,box-shadow .18s ease !important;
+        }
+        #loginSystemChoice button.login-system-selected{
+          background:#1769aa !important;border-color:#1769aa !important;color:#fff !important;
+          box-shadow:0 4px 10px rgba(23,105,170,.28) !important;
+        }
+        #loginSystemChoice button.login-system-selected:hover{
+          background:#1769aa !important;border-color:#1769aa !important;color:#fff !important;transform:translateY(-1px) !important;
+        }
+        #loginSystemChoice button:not(.login-system-selected):hover{
+          background:#dce3eb !important;border-color:#aeb8c4 !important;color:#263445 !important;transform:translateY(-1px) !important;
+        }
+        #selectedLoginSystem{color:#17365d !important;}
+        @media(max-width:600px){#loginSystemChoice{gap:7px!important;}#loginSystemChoice button{font-size:13px!important;padding:9px 7px!important;}}
+    </style>
 </head>
 <body>
 <section id="loginScreen" aria-label="Login">
     <div id="loginCard">
-        <h1>Chary's - VO DCB & LL Login</h1>
-        <p>Login to continue</p>
+        <h1 id="loginTitle">Chary's - DCB & LL Login</h1>
+        <p>Choose the system you want to access, then login.</p>
+        <div class="login-system-choice" id="loginSystemChoice" style="display:flex;gap:8px;margin:0 0 14px;">
+            <button type="button" class="primary" id="loginVoBtn" style="flex:1;">VO Login</button>
+            <button type="button" class="secondary" id="loginMsBtn" style="flex:1;">MS Login</button>
+        </div>
+        <div id="selectedLoginSystem" class="small" style="text-align:center;margin:-4px 0 12px;font-weight:bold;color:#17365d;">Login to VO → SHG</div>
         <div class="login-field">
             <label for="loginUsername">Username or Email ID</label>
             <input id="loginUsername" type="text" autocomplete="username" placeholder="Username or Email ID">
@@ -1580,13 +1608,14 @@ button > *{position:relative;z-index:1;}
 <div id="signupModal" class="auth-modal hidden">
     <div class="auth-box">
         <h2>Create Account</h2>
-        <p class="small">Enter your email, mobile number, username and password.</p>
+        <p class="small">Enter your email, mobile number, username, password and choose the system you are registering for.</p>
         <div class="field"><label>Email ID *</label><input id="signupEmail" type="email" autocomplete="email"
                                                            placeholder="name@example.com"></div>
         <div class="field"><label>Mobile Number *</label><input id="signupMobile" type="tel" autocomplete="tel"
                                                                 placeholder="+91 9876543210"></div>
         <div class="field"><label>Username *</label><input id="signupUsername" type="text" autocomplete="username"
                                                            placeholder="Choose a username"></div>
+        <div class="field"><label>Register Access *</label><select id="signupSystem"><option value="VO">VO → SHG</option><option value="MS">MS → VO</option></select></div>
         <div class="field password-wrap"><label>Password *</label><input id="signupPassword" type="password"
                                                                          autocomplete="new-password"
                                                                          placeholder="Minimum 6 characters">
@@ -1664,6 +1693,13 @@ button > *{position:relative;z-index:1;}
             <input id="profileMobileInput" type="tel" autocomplete="tel" placeholder="Mobile Number">
         </div>
 
+        <h3>System Access</h3>
+        <div class="profile-summary" id="profileAccessSummary"></div>
+        <div class="auth-actions" id="profileAccessActions">
+            <button type="button" class="primary" id="registerVOAccessBtn">Register for VO</button>
+            <button type="button" class="primary" id="registerMSAccessBtn">Register for MS</button>
+        </div>
+
         <h3>Change Password</h3>
         <div class="field password-wrap">
             <label>New Password *</label>
@@ -1687,46 +1723,55 @@ button > *{position:relative;z-index:1;}
     </div>
 </div>
 
+<div id="systemSelectModal" class="auth-modal hidden">
+    <div class="auth-box">
+        <h2>Select System</h2>
+        <p class="small">Your account is registered for more than one system. Choose which registered system you want to open.</p>
+        <div class="auth-actions" id="systemSelectActions"></div>
+        <div id="systemSelectMsg" class="auth-msg"></div>
+    </div>
+</div>
+
 <div id="appShell" class="hidden">
     <header>
         <button type="button" id="homeBtn" title="Go to initial page">Home</button>
-        <h1>Chary's - VO DCB & LL Dashboard</h1>
+        <h1 id="appTitle">Chary's - DCB & LL Dashboard</h1>
         <button type="button" id="profileBtn" title="Profile">Profile</button>
         <button type="button" id="logoutBtn" title="Logout">Logout</button>
     </header>
     <main>
 
         <section class="card" id="voSelectionSection">
-            <h2>VO Selection &amp; Creation</h2>
+            <h2 id="parentSelectionTitle">System Selection &amp; Creation</h2>
 
             <div class="toolbar" id="voSelectionToolbar">
                 <div class="field" style="flex:0 0 calc(40% - 5px);min-width:0">
-                    <label>Existing VO</label>
+                    <label id="existingParentLabel">Existing</label>
                     <select id="voSelect">
-                        <option value="">-- Select existing VO --</option>
+                        <option value="" id="existingParentOption">-- Select existing --</option>
                     </select>
                 </div>
-                <button type="button" class="primary initial-create-vo" id="homeNewVoBtn">Create New VO</button>
+                <button type="button" class="primary initial-create-vo" id="homeNewVoBtn">Create New</button>
             </div>
 
             <div id="newVoForm" class="hidden" style="margin-top:14px">
                 <div class="toolbar">
                     <div class="field">
-                        <label>New VO Name</label>
-                        <input id="newVoName" placeholder="Enter new VO name">
+                        <label id="newParentLabel">New Name</label>
+                        <input id="newVoName" placeholder="Enter new name">
                     </div>
-                    <button type="button" class="success" id="createVoBtn">Create VO</button>
+                    <button type="button" class="success" id="createVoBtn">Create</button>
                     <button type="button" class="secondary" id="cancelVoBtn">Cancel</button>
                 </div>
             </div>
         </section>
 
         <section class="card hidden" id="voDetailsSection">
-            <h2>VO Details</h2>
+            <h2 id="parentDetailsTitle">Details</h2>
             <div class="toolbar" id="voDetailsToolbar">
                 <div class="field">
-                    <label>VO Name</label>
-                    <input id="voName" placeholder="VO Name">
+                    <label id="parentNameLabel">Name</label>
+                    <input id="voName" placeholder="Name">
                 </div>
 
                 <div class="field">
@@ -1746,7 +1791,7 @@ button > *{position:relative;z-index:1;}
             </div>
 
             <div class="actions" id="voDetailsActions">
-                <button type="button" class="success selected-vo-only" id="saveVoBtn">Save VO</button>
+                <button type="button" class="success selected-vo-only" id="saveVoBtn">Save</button>
                 <button type="button" class="danger selected-vo-only" id="resetBtn">Delete VO</button>
                 <span id="saveStatus" class="small"></span>
             </div>
@@ -1767,14 +1812,14 @@ button > *{position:relative;z-index:1;}
         <section id="dashboard" class="hidden">
             <br>
             <div class="card">
-                <h2>SHG Wise Monthly Collection Data</h2>
+                <h2 id="childMonthlyTitle">Child Wise Monthly Collection Data</h2>
                 <div class="notice">Add SHGs here on this month. Type the name and press <b>Enter</b> or click
                     <b>
                         Add SHG</b>. The new SHG immediately becomes a row in the table from this month onwards.
                 </div>
                 <div class="toolbar" id="shgToolbar">
-                    <div class="field"><label>Add SHG Name</label><input id="shgNameInput" placeholder="SHG Name"></div>
-                    <button type="button" class="success" id="addShgBtn">Add SHG</button>
+                    <div class="field"><label id="addChildLabel">Add Child Name</label><input id="shgNameInput" placeholder="Child Name"></div>
+                    <button type="button" class="success" id="addShgBtn">Add Child</button>
                     <div class="field" style="max-width:180px"><label>Interest Rate (%)</label><input id="shgRateInput"
                                                                                                       oninput="updateInterestRateLive()"
                                                                                                       type="number"
@@ -1789,7 +1834,7 @@ button > *{position:relative;z-index:1;}
                         <thead>
                         <tr>
                             <th>S.N</th>
-                            <th>SHG Name</th>
+                            <th id="childTableNameHead">Child Name</th>
                             <th>Opening<br>Loan Balance</th>
                             <th>Previous Due<br>Principal</th>
                             <th>Previous Due<br>Interest</th>
@@ -1810,11 +1855,11 @@ button > *{position:relative;z-index:1;}
                     </table>
                 </div>
                 <div class="actions">
-                    <button type="button" class="primary" id="saveAllBtn">Save All SHGs</button>
+                    <button type="button" class="primary" id="saveAllBtn">Save All</button>
                     <button type="button" class="warning" id="monthlyPdfBtn">DCB PDF</button>
                     <button type="button" class="warning" id="ledgerPdfBtn">Loan Ledger PDF</button>
                     <button type="button" class="warning" id="cumulativeDcbPdfBtn">Cumulative DCB PDF</button>
-                    <button type="button" class="primary" id="allPdfsBtn">Download VO PDF</button>
+                    <button type="button" class="primary" id="allPdfsBtn">Download PDF</button>
                     <input id="fileInput" type="file" accept=".json" class="hidden">
                 </div>
             </div>
@@ -1965,6 +2010,8 @@ button > *{position:relative;z-index:1;}
     forceLogoutOnRefresh();
 
     let currentUser = null;
+    let activeMode = "VO";
+    let accountAccess = {VO:false,MS:false};
     let cloudLoaded = false;
     let saveTimer = null;
 
@@ -2053,21 +2100,29 @@ button > *{position:relative;z-index:1;}
       }
     }
 
-    async function loadCloudDb(){
+    async function loadCloudDb(mode){
       if(!currentUser) return null;
       const snap = await getDoc(userDocRef());
       if(!snap.exists()) return null;
-      const data = snap.data();
-      return data && Array.isArray(data.vos) ? data : {vos:[]};
+      const data = snap.data()||{};
+      const field = mode === "MS" ? "msData" : "voData";
+      if(data[field] && Array.isArray(data[field].vos)) return data[field];
+      // Backward compatibility: existing VO users have the old `vos` field.
+      if(mode === "VO" && Array.isArray(data.vos)) return {vos:data.vos};
+      return null;
     }
 
-    async function saveCloudDb(db){
+    async function saveCloudDb(db,mode){
       if(!currentUser) return;
-      await setDoc(userDocRef(), {
-        vos: Array.isArray(db.vos) ? db.vos : [],
+      const field = mode === "MS" ? "msData" : "voData";
+      const payload={
+        [field]: {vos:Array.isArray(db.vos)?db.vos:[]},
         updatedAt: new Date().toISOString(),
         ownerUid: currentUser.uid
-      }, {merge:true});
+      };
+      // Keep legacy VO data synchronized for existing deployments.
+      if(mode === "VO") payload.vos=Array.isArray(db.vos)?db.vos:[];
+      await setDoc(userDocRef(),payload,{merge:true});
     }
 
     function queueCloudSave(db){
@@ -2075,7 +2130,7 @@ button > *{position:relative;z-index:1;}
       clearTimeout(saveTimer);
       saveTimer=setTimeout(async()=>{
         try{
-          await saveCloudDb(db);
+          await saveCloudDb(db,activeMode);
           const el=document.getElementById("saveStatus");
           if(el) el.textContent="Data Saved";
         }catch(err){
@@ -2090,15 +2145,87 @@ button > *{position:relative;z-index:1;}
     async function saveNowBeforeLogout(db){
       clearTimeout(saveTimer);
       if(!currentUser || !cloudLoaded) return false;
-      await saveCloudDb(db);
+      await saveCloudDb(db,activeMode);
       const el=document.getElementById("saveStatus");
       if(el) el.textContent="Data Saved before logout";
       return true;
     }
 
+    async function readAccountAccess(user){
+      const snap=await getDoc(doc(firestore,"users",user.uid));
+      const data=snap.exists()?(snap.data()||{}):{};
+      let access=data.access||{};
+      const pending=String(sessionStorage.getItem("pendingRegistrationSystem")||"").toUpperCase();
+      // New accounts may be created directly for either system.
+      if(access.VO!==true && access.MS!==true){
+        access=(pending==="MS")?{VO:false,MS:true}:{VO:true,MS:false};
+        await setDoc(doc(firestore,"users",user.uid),{access,updatedAt:new Date().toISOString()},{merge:true});
+      }
+      if(pending==="VO" || pending==="MS") sessionStorage.removeItem("pendingRegistrationSystem");
+      return {VO:access.VO===true,MS:access.MS===true};
+    }
+
+    async function registerSystemAccess(mode){
+      if(!currentUser || !["VO","MS"].includes(mode)) throw new Error("Invalid system.");
+      const ref=doc(firestore,"users",currentUser.uid);
+      const snap=await getDoc(ref);
+      const data=snap.exists()?(snap.data()||{}):{};
+      const access={...(data.access||{})};
+      access[mode]=true;
+      await setDoc(ref,{access,updatedAt:new Date().toISOString(),profile:data.profile||{email:currentUser.email||""}},{merge:true});
+      accountAccess=access;
+      return access;
+    }
+
+    async function enterAccountingMode(mode){
+      if(!accountAccess[mode]) throw new Error("This account is not registered for "+mode+".");
+      activeMode=mode;
+      cloudLoaded=false;
+      const cloud=await loadCloudDb(mode);
+      const localKey=mode === "MS" ? "ms_shg_accounting_v18" : "vo_shg_accounting_v18";
+      const localRaw=localStorage.getItem(localKey);
+      const localDb=localRaw ? (()=>{try{return JSON.parse(localRaw)}catch(e){return {vos:[]}}})() : {vos:[]};
+      let initial=cloud||{vos:[]};
+      if(!cloud && localDb && Array.isArray(localDb.vos) && localDb.vos.length){
+        const useLocal=confirm("No cloud data was found for this "+mode+" system.\n\nExisting data was found on this device.\n\nPress OK to upload it, or Cancel to start empty.");
+        if(useLocal) initial=localDb;
+      }
+      if(!cloud) await saveCloudDb(initial,mode);
+      window.dispatchEvent(new CustomEvent("firebase-cloud-ready",{detail:{db:initial,hasCloud:!!cloud,mode}}));
+      cloudLoaded=true;
+      const loginScreen=document.getElementById("loginScreen");
+      const appShell=document.getElementById("appShell");
+      if(loginScreen)loginScreen.classList.add("hidden");
+      if(appShell)appShell.classList.remove("hidden");
+      const modal=document.getElementById("systemSelectModal");
+      if(modal)modal.classList.add("hidden");
+      return true;
+    }
+
+    function showSystemSelector(access){
+      const modal=document.getElementById("systemSelectModal");
+      const box=document.getElementById("systemSelectActions");
+      if(!modal||!box)return;
+      box.innerHTML="";
+      ["VO","MS"].forEach(mode=>{
+        if(!access[mode])return;
+        const b=document.createElement("button");
+        b.type="button"; b.className="primary";
+        b.textContent=mode === "VO" ? "Open VO → SHG" : "Open MS → VO";
+        b.onclick=()=>enterAccountingMode(mode).catch(err=>{const m=document.getElementById("systemSelectMsg");if(m){m.textContent=err.message||"Unable to open system.";m.className="auth-msg error";}});
+        box.appendChild(b);
+      });
+      modal.classList.remove("hidden");
+    }
+
     window.firebaseCloud = {
       get currentUser(){ return currentUser; },
       get cloudLoaded(){ return cloudLoaded; },
+      get activeMode(){ return activeMode; },
+      get accountAccess(){ return {...accountAccess}; },
+      getAccountAccess: ()=>({...accountAccess}),
+      registerSystemAccess,
+      enterAccountingMode,
       signIn: (email,password)=>signInWithEmailAndPassword(auth,email,password),
       signUp: (email,password)=>createUserWithEmailAndPassword(auth,email,password),
       deleteCurrentUser: ()=>currentUser ? deleteUser(currentUser) : Promise.resolve(),
@@ -2124,77 +2251,126 @@ button > *{position:relative;z-index:1;}
       if(!user){
         clearInactivityTimer();
         cloudLoaded=false;
+        accountAccess={VO:false,MS:false};
         const loginScreen=document.getElementById("loginScreen");
         const appShell=document.getElementById("appShell");
         if(loginScreen)loginScreen.classList.remove("hidden");
         if(appShell)appShell.classList.add("hidden");
+        const selector=document.getElementById("systemSelectModal");
+        if(selector)selector.classList.add("hidden");
         return;
       }
 
       startInactivityTimer();
-
       const loginScreen=document.getElementById("loginScreen");
       const appShell=document.getElementById("appShell");
       const loginError=document.getElementById("loginError");
 
       try{
-        const cloud=await loadCloudDb();
-        const localRaw=localStorage.getItem("vo_shg_accounting_v18");
-        const localDb=localRaw ? (()=>{try{return JSON.parse(localRaw)}catch(e){return {vos:[]}}})() : {vos:[]};
+        accountAccess=await readAccountAccess(user);
 
-        if(cloud){
-          window.dispatchEvent(new CustomEvent("firebase-cloud-ready",{detail:{db:cloud,hasCloud:true}}));
-        }else{
-          let initial={vos:[]};
-          if(localDb && Array.isArray(localDb.vos) && localDb.vos.length){
-            const useLocal=confirm(
-              "No cloud data was found for this account.\n\n"+
-              "Existing data was found on this device.\n\n"+
-              "Press OK to upload this existing data to this Firebase account, or Cancel to start this account with an empty database."
-            );
-            if(useLocal) initial=localDb;
-          }
-          await saveCloudDb(initial);
-          window.dispatchEvent(new CustomEvent("firebase-cloud-ready",{detail:{db:initial,hasCloud:false}}));
-        }
-
-        // Older accounts may not have username/email lookup documents yet.
-        // Migrate them once the user is authenticated.
+        // Migrate older accounts: keep username/email indexes and make VO access explicit.
         try{
-          const currentCloud=await loadCloudDb();
+          const currentCloud=await loadCloudDb("VO");
           if(currentCloud){
             await migrateAccountIndexes(user,currentCloud);
             await ensureAccountLookupForUser(user,currentCloud);
           }
-        }catch(indexErr){
-          console.warn("Account index migration failed:",indexErr);
+        }catch(indexErr){ console.warn("Account index migration failed:",indexErr); }
+
+        const modes=Object.keys(accountAccess).filter(k=>accountAccess[k]);
+        if(modes.length===0) throw new Error("This account has no registered system access.");
+
+        /*
+         * The login screen is system-specific. If the user selected MS Login,
+         * a VO-only account must NOT be silently opened into VO. Likewise for
+         * VO Login. This is the access gate that makes the two login choices
+         * genuinely separate while still using one Firebase identity.
+         */
+        if(window.selectedLoginSystem && accountAccess[window.selectedLoginSystem]!==true){
+          // Authentication succeeded, but this Firebase account is not registered
+          // for the system selected on the login screen. Treat the system choice
+          // as a real access gate: show the login error and return to the login
+          // screen. The user can log into their registered system and use Profile
+          // -> Register for the other system to add the separate access.
+          const missingSystem=window.selectedLoginSystem;
+          loginError.textContent=`This account is not registered for ${missingSystem} access. Please complete ${missingSystem} registration first.`;
+          try{ await signOut(auth); }catch(signoutErr){ console.warn("Sign-out after access denial failed:",signoutErr); }
+          return;
         }
 
-        cloudLoaded=true;
         loginScreen.classList.add("hidden");
-        appShell.classList.remove("hidden");
+        appShell.classList.add("hidden");
+
+        // Open the system chosen on the login screen directly. The selector
+        // is still available from Profile when the user wants to switch.
+        if(window.selectedLoginSystem && accountAccess[window.selectedLoginSystem]===true){
+          await enterAccountingMode(window.selectedLoginSystem);
+        }else if(modes.length===1){
+          await enterAccountingMode(modes[0]);
+        }else{
+          showSystemSelector(accountAccess);
+        }
         loginError.textContent="";
         document.getElementById("loginPassword").value="";
         document.getElementById("loginUsername").blur();
       }catch(err){
         console.error(err);
-        loginError.textContent="Session time out. Please login again.";
+        loginError.textContent=err.message||"Session time out. Please login again.";
         await signOut(auth);
       }
-    });
+    });;
 </script>
 
 <script>
     (function(){
     "use strict";
-    const KEY="vo_shg_accounting_v18";
+    let currentMode = "VO";
     const MONTHS=[["Apr-26","April-2026"],["May-26","May-2026"],["Jun-26","June-2026"],["Jul-26","July-2026"],["Aug-26","August-2026"],["Sep-26","September-2026"],["Oct-26","October-2026"],["Nov-26","November-2026"],["Dec-26","December-2026"],["Jan-27","January-2027"],["Feb-27","February-2027"],["Mar-27","March-2027"]];
     let db=readDb(), selectedVOId=null, monthIndex=0, dirty=false;
+    function modeConfig(){ return currentMode === "MS" ? {parent:"MS",child:"VO",parentPlural:"MS",childPlural:"VO"} : {parent:"VO",child:"SHG",parentPlural:"VO",childPlural:"SHGs"}; }
+    function modeKey(){ return currentMode === "MS" ? "ms_shg_accounting_v18" : "vo_shg_accounting_v18"; }
+    function applyAccountingLabels(){
+      const c=modeConfig();
+      const set=(id,text)=>{const e=document.getElementById(id);if(e)e.textContent=text;};
+      const setAttr=(id,attr,text)=>{const e=document.getElementById(id);if(e)e.setAttribute(attr,text);};
+      set("loginTitle",`Chary's - ${c.parent} DCB & LL Login`);
+      set("appTitle",`Chary's - ${c.parent} DCB & LL Dashboard`);
+      set("parentSelectionTitle",`${c.parent} Selection & Creation`);
+      set("existingParentLabel",`Existing ${c.parent}`);
+      set("existingParentOption",`-- Select existing ${c.parent} --`);
+      set("homeNewVoBtn",`Create New ${c.parent}`);
+      set("newParentLabel",`New ${c.parent} Name`);
+      setAttr("newVoName","placeholder",`Enter new ${c.parent} name`);
+      set("createVoBtn",`Create ${c.parent}`);
+      set("parentDetailsTitle",`${c.parent} Details`);
+      set("parentNameLabel",`${c.parent} Name`);
+      setAttr("voName","placeholder",`${c.parent} Name`);
+      set("saveVoBtn",`Save ${c.parent}`);
+      set("childMonthlyTitle",`${c.child} Wise Monthly Collection Data`);
+      set("addChildLabel",`Add ${c.child} Name`);
+      setAttr("shgNameInput","placeholder",`${c.child} Name`);
+      set("addChildBold",`Add ${c.child}`);
+      set("addShgBtn",`Add ${c.child}`);
+      set("childTableNameHead",`${c.child} Name`);
+      set("saveAllBtn",`Save All ${c.childPlural}`);
+      set("allPdfsBtn",`Download ${c.parent} PDF`);
+      const h=document.querySelector('link[rel="icon"]');
+      if(h)h.href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2317365d'/%3E%3Ctext x='32' y='42' text-anchor='middle' font-family='Arial,sans-serif' font-size='25' font-weight='700' fill='white'%3E${c.parent}%3C/text%3E%3C/svg%3E";
+      document.title=`Chary's - ${c.parent} DCB & LL`;
+    }
 
     window.addEventListener("firebase-cloud-ready",function(e){
+      currentMode=(e.detail&&e.detail.mode)||"VO";
+      localStorage.setItem(modeKey(),JSON.stringify(e.detail.db||{vos:[]}));
+      applyAccountingLabels();
+    });
+
+    window.addEventListener("firebase-cloud-ready",function(e){
+      currentMode=(e.detail&&e.detail.mode)||currentMode||"VO";
       const cloudDb=e.detail&&e.detail.db;
       db=(cloudDb&&Array.isArray(cloudDb.vos))?cloudDb:{vos:[]};
-      localStorage.setItem(KEY,JSON.stringify(db));
+      localStorage.setItem(modeKey(),JSON.stringify(db));
       selectedVOId=null;
       monthIndex=0;
       markClean();
@@ -2221,13 +2397,13 @@ button > *{position:relative;z-index:1;}
 
     function readDb(){
       try{
-        const x=JSON.parse(localStorage.getItem(KEY));
+        const x=JSON.parse(localStorage.getItem(modeKey()));
         if(x&&Array.isArray(x.vos))return x;
       }catch(e){}
       return{vos:[]};
     }
     function writeDb(){
-      localStorage.setItem(KEY,JSON.stringify(db));
+      localStorage.setItem(modeKey(),JSON.stringify(db));
       if(window.firebaseCloud) window.firebaseCloud.queueCloudSave(db);
     }
 
@@ -2240,10 +2416,10 @@ button > *{position:relative;z-index:1;}
           if(!saved){
             // Even if validation prevents the normal Save VO action,
             // preserve the current database locally before logout.
-            localStorage.setItem(KEY,JSON.stringify(db));
+            localStorage.setItem(modeKey(),JSON.stringify(db));
           }
         }else{
-          localStorage.setItem(KEY,JSON.stringify(db));
+          localStorage.setItem(modeKey(),JSON.stringify(db));
         }
 
         if(window.firebaseCloud && window.firebaseCloud.saveNowBeforeLogout){
@@ -2264,7 +2440,7 @@ button > *{position:relative;z-index:1;}
     function saveCurrentScreen(){
       const v=vo();if(!v)return false;
       const name=document.getElementById("voName").value.trim(),village=document.getElementById("village").value.trim(),mandal=document.getElementById("mandal").value.trim();
-      if(!name){alert("VO Name is required.");document.getElementById("voName").focus();return false;}
+      if(!name){alert(`${modeConfig().parent} Name is required.`);document.getElementById("voName").focus();return false;}
       if(!village){alert("Village is required.");document.getElementById("village").focus();return false;}
       if(!mandal){alert("Mandal is required.");document.getElementById("mandal").focus();return false;}
       v.name=name;v.village=village;v.mandal=mandal;v.district=document.getElementById("district").value.trim();
@@ -2394,7 +2570,7 @@ button > *{position:relative;z-index:1;}
     }
 
     function refreshVOSelect(){
-     const s=document.getElementById("voSelect");s.innerHTML='<option value="">-- Select existing VO --</option>';
+     const s=document.getElementById("voSelect");s.innerHTML='<option value="" id="existingParentOption">-- Select existing --</option>';
      db.vos.forEach(v=>{const o=document.createElement("option");o.value=v.id;o.textContent=v.name||"(Unnamed VO)";s.appendChild(o);});
      s.value=selectedVOId||"";
     }
@@ -2432,8 +2608,8 @@ button > *{position:relative;z-index:1;}
 
     function createVO(){
       const name=document.getElementById("newVoName").value.trim();
-      if(!name){alert("Enter a VO name.");return;}
-      if(db.vos.some(x=>String(x.name||"").trim().toLowerCase()===name.toLowerCase())){alert("A VO with this name already exists. Select it from the dropdown.");return;}
+      if(!name){alert(`Enter a ${modeConfig().parent} name.`);return;}
+      if(db.vos.some(x=>String(x.name||"").trim().toLowerCase()===name.toLowerCase())){alert(`A ${modeConfig().parent} with this name already exists. Select it from the dropdown.`);return;}
       const v={id:"VO-"+Date.now()+"-"+Math.random().toString(36).slice(2),name:name,village:"",mandal:"",district:"",shgs:[]};
       db.vos.push(v);selectedVOId=v.id;monthIndex=0;
       document.getElementById("newVoName").value="";
@@ -2460,17 +2636,17 @@ button > *{position:relative;z-index:1;}
     }
 
     function addSHG(){
-      const v=vo();if(!v){alert("Please create or select a VO first.");return;}
+      const v=vo();if(!v){alert(`Please create or select a ${modeConfig().parent} first.`);return;}
       const input=document.getElementById("shgNameInput");
       const rateInput=document.getElementById("shgRateInput");
       const name=input.value.trim();
       const rate=Number(rateInput.value);
-      if(!name){alert("Type SHG name first.");input.focus();return;}
+      if(!name){alert(`Type ${modeConfig().child} name first.`);input.focus();return;}
       if(!Number.isFinite(rate)||rate<0||rate>100){alert("Enter a valid interest rate between 0 and 100%.");rateInput.focus();return;}
-      if(v.shgs.some(s=>String(s.name||"").trim().toLowerCase()===name.toLowerCase())){alert("That SHG already exists in this VO.");input.select();return;}
+      if(v.shgs.some(s=>String(s.name||"").trim().toLowerCase()===name.toLowerCase())){alert(`That ${modeConfig().child} already exists in this ${modeConfig().parent}.`);input.select();return;}
       v.shgs.push({id:"SHG-"+Date.now()+"-"+Math.random().toString(36).slice(2),name:name,interestRate:rate,startMonthIndex:monthIndex,months:{}});
       input.value="";v.interestRate=rate;markDirty();renderRows();
-      document.getElementById("saveStatus").textContent="SHG added — save to keep changes";
+      document.getElementById("saveStatus").textContent=`${modeConfig().child} added — save to keep changes`;
       input.focus();
     }
 
@@ -2535,7 +2711,7 @@ button > *{position:relative;z-index:1;}
       ].join(";");
       document.body.appendChild(probe);
 
-      probe.textContent="SHG Name";
+      probe.textContent=pdfChildLabel()+" Name";
       let width=probe.getBoundingClientRect().width;
 
       inputs.forEach(input=>{
@@ -2710,8 +2886,8 @@ button > *{position:relative;z-index:1;}
     window.deleteSHG=function(i){
       const v=vo();
       if(!v||!v.shgs[i])return;
-      const name=String(v.shgs[i].name||"").trim()||("SHG "+(i+1));
-      if(!confirm("Delete "+name+"?\n\nThis will permanently remove this SHG and all of its monthly data from the current VO."))return;
+      const name=String(v.shgs[i].name||"").trim()||(modeConfig().child+" "+(i+1));
+      if(!confirm("Delete "+name+"?\n\nThis will permanently remove this "+modeConfig().child+" and all of its monthly data from the current "+modeConfig().parent+"."))return;
       v.shgs.splice(i,1);
       writeDb();
       markClean();
@@ -2725,11 +2901,11 @@ button > *{position:relative;z-index:1;}
      const s=v.shgs[i],name=document.getElementById("name-"+i).value.trim();
      const startIdx=Number.isInteger(s.startMonthIndex)?s.startMonthIndex:0;
      const april=(monthIndex===0);
-     if(!name){alert("SHG name cannot be blank.");return;}
+     if(!name){alert(`${modeConfig().child} name cannot be blank.`);return;}
      const rateEl=document.getElementById("shgRateInput"),rate=rateEl?Number(rateEl.value):Number(v.interestRate!==undefined?v.interestRate:(s.interestRate||0));
      if(!Number.isFinite(rate)||rate<0||rate>100){alert("Enter a valid interest rate between 0 and 100%.");if(rateEl)rateEl.focus();return;}
      v.interestRate=rate;v.shgs.forEach(x=>x.interestRate=rate);
-     if(monthIndex<startIdx){alert("This SHG was created in "+MONTHS[startIdx][1]+". Previous months do not require data.");return;}
+     if(monthIndex<startIdx){alert(`This ${modeConfig().child} was created in ${MONTHS[startIdx][1]}. Previous months do not require data.`);return;}
      const raw=getRowData(i);
      const creationMonth=(!april && monthIndex===startIdx && startIdx>0);
      const nextMonthStart=(!april && monthIndex===startIdx+1 && startIdx>0);
@@ -2758,13 +2934,13 @@ button > *{position:relative;z-index:1;}
 
     window.removeSHG=function(i){
       const v=vo();if(!v||!v.shgs[i])return;
-      const name=v.shgs[i].name||("SHG "+(i+1));
-      if(!confirm('Remove SHG "'+name+'"?\n\nAll monthly data for this SHG will be deleted from this VO.'))return;
+      const name=v.shgs[i].name||(modeConfig().child+" "+(i+1));
+      if(!confirm('Remove '+modeConfig().child+' "'+name+'"?\n\nAll monthly data for this '+modeConfig().child+' will be deleted from this '+modeConfig().parent+'.'))return;
       v.shgs.splice(i,1);
       writeDb();
       markDirty();
       renderRows();
-      document.getElementById("saveStatus").textContent="SHG removed — save to keep changes";
+      document.getElementById("saveStatus").textContent=`${modeConfig().child} removed — save to keep changes`;
     };
 
     function saveAll(){
@@ -2841,7 +3017,7 @@ button > *{position:relative;z-index:1;}
       refreshVOSelect();
       markClean();
       document.getElementById("saveStatus").textContent="All entered months saved";
-      alert("All SHGs and all entered months have been saved.");
+      alert(`All ${modeConfig().childPlural} and all entered months have been saved.`);
     }
 
     function saveVO(){
@@ -2849,11 +3025,22 @@ button > *{position:relative;z-index:1;}
       const name=document.getElementById("voName").value.trim();
       const village=document.getElementById("village").value.trim();
       const mandal=document.getElementById("mandal").value.trim();
-      if(!name){alert("VO Name is required.");document.getElementById("voName").focus();return;}
+      if(!name){alert(`${modeConfig().parent} Name is required.`);document.getElementById("voName").focus();return;}
       if(!village){alert("Village is required.");document.getElementById("village").focus();return;}
       if(!mandal){alert("Mandal is required.");document.getElementById("mandal").focus();return;}
-      v.name=name;v.village=village;v.mandal=mandal;v.district=document.getElementById("district").value.trim();
-      writeDb();refreshVOSelect();markClean();document.getElementById("saveStatus").textContent="VO details saved";
+
+      /*
+       * Save VO must perform the same complete save as "Save All SHGs".
+       * saveAll() first captures the current SHG/month from the screen and
+       * then persists every entered month for every SHG in this VO.
+       * No calculation logic is changed here.
+       */
+      v.name=name;
+      v.village=village;
+      v.mandal=mandal;
+      v.district=document.getElementById("district").value.trim();
+
+      saveAll();
     }
 
     function exportBackup(){
@@ -2861,7 +3048,7 @@ button > *{position:relative;z-index:1;}
             u=URL.createObjectURL(blob),
             a=document.createElement("a");
       a.href=u;
-      a.download="vo-shg-backup.json";
+      a.download=(currentMode==="MS"?"ms-vo-backup.json":"vo-shg-backup.json");
       a.click();
       URL.revokeObjectURL(u);
     }
@@ -3016,10 +3203,13 @@ button > *{position:relative;z-index:1;}
         markClean();
         refresh();
 
-        alert("Current VO deleted. Other VOs are unchanged.");
+        alert(`Current ${modeConfig().parent} deleted. Other ${modeConfig().parentPlural} are unchanged.`);
       }
     }
 
+
+    function pdfParentLabel(){return modeConfig().parent;}
+    function pdfChildLabel(){return modeConfig().child;}
 
     /*
      * UNIVERSAL PDF TABLE FITTING ENGINE
@@ -3036,7 +3226,7 @@ button > *{position:relative;z-index:1;}
      * DCB / Cumulative DCB exact fallback:
      * 1. 10 mm left/right + all data 13pt.
      * 2. If insufficient, 8 mm left/right + all data 13pt.
-     * 3. If still insufficient, SHG Name only becomes 10pt.
+     * 3. If still insufficient, Child Name only becomes 10pt.
      * 4. If still insufficient, only the SHG Name row/cell that needs it wraps.
      * S.No is fixed and never donates space. All other columns donate spare
      * available width before any fallback stage.
@@ -4772,7 +4962,7 @@ html,body{
                   <tbody>
                     <tr>
                       <th colspan="10" class="dcb-head-left telugu">
-                        VO : ${esc(v.name)},&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;గ్రామం : ${esc(v.village||"")},&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;మండలం : ${esc(v.mandal||"")}
+                        ${pdfParentLabel()} : ${esc(v.name)},&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;గ్రామం : ${esc(v.village||"")},&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;మండలం : ${esc(v.mandal||"")}
                       </th>
                       <th colspan="7" class="dcb-head-right">
                         DCB-${m[0].toUpperCase()}
@@ -4788,7 +4978,7 @@ html,body{
                   <thead>
                     <tr class="group-head">
                       <th rowspan="2">S.N</th>
-                      <th rowspan="2"><span class="telugu">SHG పేరు</span></th>
+                      <th rowspan="2"><span class="telugu">${pdfChildLabel()} పేరు</span></th>
                       <th rowspan="2"><span class="telugu">ప్రారంభ<br>అప్పు నిల్వ</span></th>
                       <th colspan="2"><span class="telugu">గత నెల బకాయి<br>వివరాలు</span></th>
                       <th colspan="2"><span class="telugu">ఈ నెల డిమాండ్</span></th>
@@ -4858,7 +5048,7 @@ html,body{
     function cumulativeDcbPDF(asPart=false){
       const v=vo();
       if(!v||!v.shgs.length){
-        if(!asPart) alert("Select a VO with SHGs.");
+        if(!asPart) alert(`Select a ${pdfParentLabel()} with ${pdfChildLabel()}s.`);
         return "";
       }
 
@@ -5034,7 +5224,7 @@ html,body{
                 <tbody>
                   <tr>
                     <th colspan="8" class="cumulative-dcb-head-left telugu">
-                      VO : ${esc(v.name)},&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;గ్రామం : ${esc(v.village||"")},&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;మండలం : ${esc(v.mandal||"")}
+                      ${pdfParentLabel()} : ${esc(v.name)},&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;గ్రామం : ${esc(v.village||"")},&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;మండలం : ${esc(v.mandal||"")}
                     </th>
                     <th colspan="7" class="cumulative-dcb-head-right">
                       Cumulative DCB 2026-27
@@ -5048,7 +5238,7 @@ html,body{
                 <thead>
                   <tr class="group-head">
                     <th rowspan="2">S.N</th>
-                    <th rowspan="2"><span class="telugu">SHG పేరు</span></th>
+                    <th rowspan="2"><span class="telugu">${pdfChildLabel()} పేరు</span></th>
                     <th rowspan="2"><span class="telugu">ప్రారంభ<br>అప్పు నిల్వ</span></th>
 
                     <th colspan="3">
@@ -5141,7 +5331,7 @@ html,body{
       const v=vo();
 
       if(!v||!v.shgs.length){
-        if(!asPart) alert("Select a VO with SHGs.");
+        if(!asPart) alert(`Select a ${pdfParentLabel()} with ${pdfChildLabel()}s.`);
         return "";
       }
 
@@ -5194,14 +5384,14 @@ html,body{
               <div class="ledger-blank"></div>
 
               <div class="ledger-title-row">
-                <div class="ledger-title telugu">${esc(v.name||"")} VO - అప్పు లెడ్జర్ 2026-27</div>
+                <div class="ledger-title telugu">${esc(v.name||"")} ${pdfParentLabel()} - అప్పు లెడ్జర్ 2026-27</div>
                 <div class="page-label">Page No:</div>
                 <div class="page-number">${ledgerSerial}</div>
               </div>
 
               <div class="ledger-meta">
                 <div class="meta-row">
-                  <div class="meta-key telugu">SHG పేరు :</div>
+                  <div class="meta-key telugu">${pdfChildLabel()} పేరు :</div>
                   <div class="meta-value highlight telugu">${esc(s.name)}</div>
                   <div class="meta-key telugu">గ్రామం పేరు :</div>
                   <div class="meta-value telugu meta-value-merged">${esc(v.village||"")}</div>
@@ -5278,7 +5468,7 @@ html,body{
     function allPdfsPDF(){
       const v=vo();
       if(!v||!v.shgs.length){
-        alert("Select a VO with SHGs.");
+        alert(`Select a ${pdfParentLabel()} with ${pdfChildLabel()}s.`);
         return;
       }
 
@@ -5305,7 +5495,7 @@ html,body{
         return;
       }
 
-      printReport("VO",body);
+      printReport(pdfParentLabel(),body);
     }
 
     /* Firebase Login / Sign Up gate.
@@ -5322,7 +5512,7 @@ html,body{
       if(code.includes("invalid-credential")||code.includes("wrong-password")||code.includes("user-not-found"))
         return "Invalid username/email or password.";
       if(code.includes("email-already-in-use"))
-        return "This email already has an account. Please Login.";
+        return "This email already has an account. Login and register the other system.";
       if(code.includes("invalid-email"))
         return "Enter a valid email address.";
       if(code.includes("weak-password"))
@@ -5349,26 +5539,66 @@ html,body{
       return p;
     }
 
-    async function lookupUsername(username){
+    window.selectedLoginSystem="VO";
+
+    function setSelectedLoginSystem(system){
+      const mode=String(system||"VO").toUpperCase();
+      if(!["VO","MS"].includes(mode))return;
+      window.selectedLoginSystem=mode;
+      const voBtn=document.getElementById("loginVoBtn");
+      const msBtn=document.getElementById("loginMsBtn");
+      const selectedLabel=document.getElementById("selectedLoginSystem");
+      if(voBtn){voBtn.classList.toggle("login-system-selected",mode==="VO");voBtn.setAttribute("aria-pressed",mode==="VO"?"true":"false");}
+      if(msBtn){msBtn.classList.toggle("login-system-selected",mode==="MS");msBtn.setAttribute("aria-pressed",mode==="MS"?"true":"false");}
+      if(selectedLabel)selectedLabel.textContent=mode==="MS"?"Login to MS → VO":"Login to VO → SHG";
+      const signupSystem=document.getElementById("signupSystem");
+      if(signupSystem)signupSystem.value=mode;
+      const loginError=document.getElementById("loginError");
+      if(loginError)loginError.textContent="";
+    }
+
+    async function lookupUsername(username,system=window.selectedLoginSystem){
       const key=String(username||"").trim().toLowerCase();
-      if(!key)return null;
-      const snap=await window.firebaseCloud.getDoc(
-        window.firebaseCloud.doc(window.firebaseCloud.getFirestore(),"usernames",key)
+      const mode=String(system||"VO").toUpperCase();
+      if(!key || !["VO","MS"].includes(mode))return null;
+      const scopedKey=mode+"_"+key;
+      const scopedSnap=await window.firebaseCloud.getDoc(
+        window.firebaseCloud.doc(window.firebaseCloud.getFirestore(),"usernames",scopedKey)
       );
-      return snap.exists()?snap.data():null;
+      if(scopedSnap.exists())return scopedSnap.data();
+
+      // Backward compatibility for old VO accounts whose username index was
+      // stored without a system prefix.
+      if(mode==="VO") {
+        const legacySnap=await window.firebaseCloud.getDoc(
+          window.firebaseCloud.doc(window.firebaseCloud.getFirestore(),"usernames",key)
+        );
+        if(legacySnap.exists())return legacySnap.data();
+      }
+      return null;
     }
 
     async function saveProfile(uid,data){
       const emailKey=String(data.email||"").trim().toLowerCase();
 
+      const userRef=window.firebaseCloud.doc(window.firebaseCloud.getFirestore(),"users",uid);
+      const existingSnap=await window.firebaseCloud.getDoc(userRef);
+      const existingData=existingSnap.exists()?existingSnap.data()||{}:{};
+      const existingAccess=existingData.access||{};
+      const access={
+        VO:existingAccess.VO===true || data.system==="VO",
+        MS:existingAccess.MS===true || data.system==="MS"
+      };
+
       await window.firebaseCloud.setDoc(
-        window.firebaseCloud.doc(window.firebaseCloud.getFirestore(),"users",uid),
+        userRef,
         {
           profile:{
             email:data.email,
             mobile:data.mobile,
             username:data.username
           },
+          access,
           updatedAt:new Date().toISOString()
         },
         {merge:true}
@@ -5393,26 +5623,24 @@ html,body{
       return snap.exists()?snap.data():null;
     }
 
-    async function reserveUsername(uid,email,username){
+    async function reserveUsername(uid,email,username,system){
       const key=String(username||"").trim().toLowerCase();
+      const mode=String(system||"VO").toUpperCase();
       if(!key)throw new Error("Username is required.");
+      if(!["VO","MS"].includes(mode))throw new Error("Invalid registration system.");
       const db=window.firebaseCloud.getFirestore();
-      const ref=window.firebaseCloud.doc(db,"usernames",key);
+      const ref=window.firebaseCloud.doc(db,"usernames",mode+"_"+key);
 
-      // Atomic create-only reservation. An existing username can never be
-      // overwritten by another account.
+      // Username uniqueness is scoped to the registration system. The same
+      // username is therefore allowed for VO and MS.
       await window.firebaseCloud.runTransaction(db,async(transaction)=>{
         const snap=await transaction.get(ref);
-
         if(snap.exists()){
           const owner=snap.data()||{};
-          if(String(owner.uid||"")===String(uid||"")){
-            return;
-          }
+          if(String(owner.uid||"")===String(uid||""))return;
           throw new Error("USERNAME_ALREADY_EXISTS");
         }
-
-        transaction.set(ref,{uid,email},{merge:false});
+        transaction.set(ref,{uid,email,system:mode},{merge:false});
       });
     }
 
@@ -5421,6 +5649,7 @@ html,body{
     async function attemptLogin(){
       const identifier=loginUsername.value.trim();
       const password=loginPassword.value;
+      const system=window.selectedLoginSystem;
 
       if(!identifier||!password){
         loginError.textContent="Enter your username/email and password.";
@@ -5433,7 +5662,7 @@ html,body{
         let email=identifier;
 
         if(!identifier.includes("@")){
-          const rec=await lookupUsername(identifier);
+          const rec=await lookupUsername(identifier,system);
           if(!rec||!rec.email){
             loginError.textContent="Invalid username/email or password.";
             return;
@@ -5442,6 +5671,10 @@ html,body{
         }
 
         await window.firebaseCloud.signIn(email,password);
+        // onAuthStateChanged handles both cases:
+        //   1. selected system is already registered -> open it
+        //   2. selected system is not registered -> show a system-specific
+        //      access error and return to the login screen.
       }catch(err){
         console.error(err);
         loginError.textContent=friendlyAuthError(err);
@@ -5464,6 +5697,7 @@ html,body{
       const username=document.getElementById("signupUsername").value.trim();
       const pw=document.getElementById("signupPassword").value;
       const cp=document.getElementById("signupConfirm").value;
+      const system=(document.getElementById("signupSystem")?.value||"VO").toUpperCase();
 
       if(!email||!mobile||!username||!pw||!cp)
         throw new Error("Fill all required fields.");
@@ -5478,7 +5712,8 @@ html,body{
       if(pw!==cp)
         throw new Error("Passwords do not match.");
 
-      return {email,mobile,username,pw};
+      if(!["VO","MS"].includes(system)) throw new Error("Select a valid registration system.");
+      return {email,mobile,username,pw,system};
     }
 
     async function openProfile(){
@@ -5508,6 +5743,7 @@ html,body{
         );
         const data=snap.exists()?snap.data():{};
         const profile=data.profile||{};
+        const access=data.access||{VO:true,MS:false};
 
         if(summary){
           summary.innerHTML=
@@ -5515,6 +5751,13 @@ html,body{
             "<div><b>Username:</b> "+String(profile.username||"")+"</div>";
         }
         if(mobileInput)mobileInput.value=profile.mobile||"";
+        const accessSummary=document.getElementById("profileAccessSummary");
+        if(accessSummary)accessSummary.innerHTML=
+          `<div><b>VO Access:</b> ${access.VO===true?"Registered":"Not registered"}</div>`+
+          `<div><b>MS Access:</b> ${access.MS===true?"Registered":"Not registered"}</div>`;
+        const rv=document.getElementById("registerVOAccessBtn"), rm=document.getElementById("registerMSAccessBtn");
+        if(rv){rv.disabled=access.VO===true;rv.textContent=access.VO===true?"VO Registered":"Register for VO";}
+        if(rm){rm.disabled=access.MS===true;rm.textContent=access.MS===true?"MS Registered":"Register for MS";}
         if(modal)modal.classList.remove("hidden");
       }catch(err){
         console.error(err);
@@ -5575,6 +5818,7 @@ html,body{
           msg.className="auth-msg ok";
         }
       }catch(err){
+        sessionStorage.removeItem("pendingRegistrationSystem");
         console.error(err);
         if(msg){
           msg.textContent=friendlyAuthError(err);
@@ -5706,56 +5950,90 @@ html,body{
         const usernameKey=String(data.username||"").trim().toLowerCase();
 
         if(msg){
-          msg.textContent="Checking username...";
+          msg.textContent=`Checking ${data.system} registration...`;
           msg.className="auth-msg";
         }
 
-        // Quick check if Firestore rules permit the lookup. The transaction
-        // below remains the authoritative uniqueness check.
-        try{
-          const existing=await lookupUsername(usernameKey);
-          if(existing)throw new Error("USERNAME_ALREADY_EXISTS");
-        }catch(e){
-          if(String(e.message||"")!=="USERNAME_ALREADY_EXISTS" &&
-             !String(e.code||"").includes("permission-denied"))throw e;
-          if(String(e.message||"")==="USERNAME_ALREADY_EXISTS")throw e;
-        }
-
+        /*
+         * Do not reject an existing username before authenticating the user.
+         * A previous interrupted registration may already have created the
+         * system-scoped username document for THIS SAME Firebase UID.
+         * reserveUsername() safely allows that owner to reuse the reservation.
+         * It rejects the username only when another UID owns it.
+         */
         if(msg){
-          msg.textContent="Creating account...";
+          msg.textContent="Checking registration...";
           msg.className="auth-msg";
         }
 
-        const cred=await window.firebaseCloud.signUp(data.email,data.pw);
-        const user=cred&&cred.user ? cred.user : window.firebaseCloud.currentUser;
-        if(!user)throw new Error("Account was created but the user could not be loaded.");
+        /*
+         * Firebase Auth permits only one account per email. Therefore an
+         * existing VO user registering for MS (or vice versa) must reuse the
+         * same Firebase account instead of attempting to create another one.
+         * The password entered here authenticates that existing account.
+         */
+        let user=null;
+        let existingEmailAccount=false;
 
         try{
-          await reserveUsername(user.uid,data.email,usernameKey);
-        }catch(e){
-          try{await window.firebaseCloud.deleteCurrentUser();}catch(delErr){console.error(delErr);}
-          if(String(e.message||"")==="USERNAME_ALREADY_EXISTS"){
-            throw new Error("Username already exists. Please choose another username.");
+          const cred=await window.firebaseCloud.signUp(data.email,data.pw);
+          user=cred&&cred.user ? cred.user : window.firebaseCloud.currentUser;
+        }catch(authErr){
+          if(String(authErr&&authErr.code||"")==="auth/email-already-in-use"){
+            existingEmailAccount=true;
+            if(msg){
+              msg.textContent="Existing account found. Verifying password and registering the additional system...";
+              msg.className="auth-msg";
+            }
+            user=await window.firebaseCloud.signIn(data.email,data.pw);
+            user=user&&user.user ? user.user : user;
+          }else{
+            throw authErr;
           }
-          throw new Error("Unable to reserve username. Please check your Firestore rules.");
+        }
+
+        if(!user)throw new Error("Account could not be loaded.");
+
+        const access=await window.firebaseCloud.getAccountAccess();
+        if(access[data.system]===true){
+          throw new Error(`This account is already registered for ${data.system}.`);
+        }
+
+        try{
+          await reserveUsername(user.uid,data.email,usernameKey,data.system);
+        }catch(e){
+          if(String(e.message||"")==="USERNAME_ALREADY_EXISTS")
+            throw new Error(`Username already exists for ${data.system} under another account. Please choose another username for this system.`);
+          throw e;
         }
 
         await saveProfile(user.uid,data);
+        sessionStorage.removeItem("pendingRegistrationSystem");
 
+        if(msg){
+          msg.textContent=`${data.system} registration completed successfully.`;
+          msg.className="auth-msg ok";
+        }
+
+        // Close signup and let the normal auth-state flow open the correct
+        // system (or the system selector when both are registered).
         closeModal("signupModal");
         ["signupEmail","signupMobile","signupUsername","signupPassword","signupConfirm"].forEach(id=>{
           const el=document.getElementById(id);
           if(el)el.value="";
         });
+        const sys=document.getElementById("signupSystem");
+        if(sys)sys.value=window.selectedLoginSystem;
+
+        // If this was an existing account, it is already signed in. If this
+        // was a brand-new account, Firebase is also signed in automatically.
+        // onAuthStateChanged will handle the dashboard transition.
 
       }catch(err){
+        sessionStorage.removeItem("pendingRegistrationSystem");
         console.error(err);
         if(msg){
-          msg.textContent=(err && err.code === "auth/email-already-in-use")
-            ?"Email already exists. Please choose another username."
-            :(String(err.message||"")==="USERNAME_ALREADY_EXISTS"
-              ?"Username already exists. Please choose another username."
-              :(err.message||friendlyAuthError(err)));
+          msg.textContent=err.message||friendlyAuthError(err);
           msg.className="auth-msg error";
         }
       }finally{
@@ -5763,10 +6041,16 @@ html,body{
       }
     }
 
+    document.getElementById("loginVoBtn").onclick=()=>setSelectedLoginSystem("VO");
+    document.getElementById("loginMsBtn").onclick=()=>setSelectedLoginSystem("MS");
+    // Initial state: VO is selected and therefore BLUE.
+    setSelectedLoginSystem(window.selectedLoginSystem);
+
     document.getElementById("loginBtn").onclick=attemptLogin;
     document.getElementById("signUpBtn").onclick=()=>{
       const msg=document.getElementById("signupMsg");
       if(msg){msg.textContent="";msg.className="auth-msg";}
+      const sys=document.getElementById("signupSystem"); if(sys)sys.value=window.selectedLoginSystem;
       openModal("signupModal");
     };
     document.getElementById("signupCreateBtn").onclick=attemptSignUp;
@@ -5803,8 +6087,48 @@ html,body{
       });
     });
 
+    async function registerOtherSystem(mode){
+      const msg=document.getElementById("profileMsg");
+      try{
+        const user=window.firebaseCloud && window.firebaseCloud.currentUser;
+        if(!user)throw new Error("Please login again.");
+
+        const snap=await window.firebaseCloud.getDoc(
+          window.firebaseCloud.doc(window.firebaseCloud.getFirestore(),"users",user.uid)
+        );
+        const data=snap.exists()?(snap.data()||{}):{};
+        const profile=data.profile||{};
+        const username=String(profile.username||"").trim();
+        const email=String(profile.email||user.email||"").trim();
+        if(!username)throw new Error("Username is required before registering another system.");
+
+        if(msg){msg.textContent=`Registering this account for ${mode}...`;msg.className="auth-msg";}
+
+        // Reserve the same username independently for the second system.
+        // The same username is valid in VO and MS because reservations are
+        // stored as VO_username and MS_username.
+        await reserveUsername(user.uid,email,username,mode);
+        await window.firebaseCloud.registerSystemAccess(mode);
+
+        if(msg){msg.textContent=`${mode} registration completed. You can now access ${mode}.`;msg.className="auth-msg ok";}
+        await openProfile();
+        const access=window.firebaseCloud.accountAccess||{};
+        const modes=["VO","MS"].filter(x=>access[x]);
+        if(modes.length>1){
+          const modal=document.getElementById("systemSelectModal");
+          if(modal)modal.classList.remove("hidden");
+        }else{
+          await window.firebaseCloud.enterAccountingMode(mode);
+        }
+      }catch(err){
+        if(msg){msg.textContent=err.message||"Registration failed.";msg.className="auth-msg error";}
+      }
+    }
+
     const profileBtnEl=document.getElementById("profileBtn");
     if(profileBtnEl)profileBtnEl.onclick=openProfile;
+    document.getElementById("registerVOAccessBtn")?.addEventListener("click",()=>registerOtherSystem("VO"));
+    document.getElementById("registerMSAccessBtn")?.addEventListener("click",()=>registerOtherSystem("MS"));
 
     const saveProfileMobileBtn=document.getElementById("saveProfileMobileBtn");
     if(saveProfileMobileBtn)saveProfileMobileBtn.onclick=saveProfileMobile;
