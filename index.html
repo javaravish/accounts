@@ -2274,17 +2274,22 @@ button > *{position:relative;z-index:1;}
     function hasValue(x){return x!==undefined&&x!==null&&String(x).trim()!=="";}
     function monthIsConsidered(d){
       if(!d)return false;
-      /* IMPORTANT: keep a month as soon as the user has entered ANY data in it.
-       * Previously this function only kept collection/new-loan values, so
-       * switching to another month could delete a partially entered month
-       * (for example Opening Balance or Demand Principal). */
-      const hasText=hasValue(d.principalCollection)||hasValue(d.interestCollection);
-      const numericFields=[
-        d.opening,d.prevPrincipal,d.prevInterest,d.demandPrincipal,
-        d.demandInterest,d.newLoan
-      ];
-      const hasNumeric=numericFields.some(x=>Number(x)!==0);
-      return hasText || hasNumeric;
+
+      /*
+       * A month is considered entered ONLY when Principal Collection
+       * or Interest Collection has a value entered.
+       *
+       * IMPORTANT:
+       * - Blank / empty collection fields => month is NOT considered.
+       * - 0 is a valid entered collection value => month IS considered.
+       * - Opening Balance, Previous Due, Demand, and New Loan do NOT
+       *   independently make a month eligible for PDF output.
+       * - This does not change calc() or any calculation formula.
+       */
+      const principalEntered = hasValue(d.principalCollection);
+      const interestEntered  = hasValue(d.interestCollection);
+
+      return principalEntered || interestEntered;
     }
     function lastConsideredMonth(shg,idx){
       if(!shg||!shg.months)return null;
