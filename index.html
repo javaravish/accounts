@@ -1251,6 +1251,18 @@ button > *{position:relative;z-index:1;}
             display:none !important;
           }
         }
+
+        /* MS Login: Village is not part of MS details. Keep the remaining
+           MS fields aligned as three equal columns on desktop. */
+        @media screen and (min-width:901px){
+          #voDetailsToolbar.ms-mode{
+            grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+          }
+          #voDetailsToolbar.ms-mode > .field:nth-of-type(1){grid-column:1 !important;}
+          #voDetailsToolbar.ms-mode > .field:nth-of-type(2){grid-column:1 !important;}
+          #voDetailsToolbar.ms-mode > .field:nth-of-type(3){grid-column:2 !important;}
+          #voDetailsToolbar.ms-mode > .field:nth-of-type(4){grid-column:3 !important;}
+        }
     </style>
 
 
@@ -1774,8 +1786,8 @@ button > *{position:relative;z-index:1;}
                     <input id="voName" placeholder="Name">
                 </div>
 
-                <div class="field">
-                    <label>Village <span style="color:#c62828">*</span></label>
+                <div class="field" id="villageField">
+                    <label id="villageLabel">Village <span style="color:#c62828">*</span></label>
                     <input id="village" placeholder="Village">
                 </div>
 
@@ -1785,7 +1797,7 @@ button > *{position:relative;z-index:1;}
                 </div>
 
                 <div class="field">
-                    <label>District</label>
+                    <label id="districtLabel">District</label>
                     <input id="district" placeholder="District">
                 </div>
             </div>
@@ -2346,6 +2358,17 @@ button > *{position:relative;z-index:1;}
       set("parentDetailsTitle",`${c.parent} Details`);
       set("parentNameLabel",`${c.parent} Name`);
       setAttr("voName","placeholder",`${c.parent} Name`);
+
+      const isMS=currentMode==="MS";
+      const villageField=document.getElementById("villageField");
+      const villageLabel=document.getElementById("villageLabel");
+      const districtLabel=document.getElementById("districtLabel");
+      const detailsToolbar=document.getElementById("voDetailsToolbar");
+      if(villageField)villageField.classList.toggle("hidden",isMS);
+      if(detailsToolbar)detailsToolbar.classList.toggle("ms-mode",isMS);
+      if(villageLabel)villageLabel.innerHTML=isMS?"Village":"Village <span style=\"color:#c62828\">*</span>";
+      if(districtLabel)districtLabel.innerHTML=isMS?"District <span style=\"color:#c62828\">*</span>":"District";
+
       set("saveVoBtn",`Save ${c.parent}`);
       set("childMonthlyTitle",`${c.child} Wise Monthly Collection Data`);
       set("addChildLabel",`Add ${c.child} Name`);
@@ -2441,9 +2464,11 @@ button > *{position:relative;z-index:1;}
       const v=vo();if(!v)return false;
       const name=document.getElementById("voName").value.trim(),village=document.getElementById("village").value.trim(),mandal=document.getElementById("mandal").value.trim();
       if(!name){alert(`${modeConfig().parent} Name is required.`);document.getElementById("voName").focus();return false;}
-      if(!village){alert("Village is required.");document.getElementById("village").focus();return false;}
+      if(currentMode!=="MS" && !village){alert("Village is required.");document.getElementById("village").focus();return false;}
       if(!mandal){alert("Mandal is required.");document.getElementById("mandal").focus();return false;}
-      v.name=name;v.village=village;v.mandal=mandal;v.district=document.getElementById("district").value.trim();
+      const district=document.getElementById("district").value.trim();
+      if(currentMode==="MS" && !district){alert("District is required for MS.");document.getElementById("district").focus();return false;}
+      v.name=name;v.village=village;v.mandal=mandal;v.district=district;
 
       const rateInput=document.getElementById("shgRateInput");
       const currentRate=rateInput?Number(rateInput.value):12;
@@ -2624,7 +2649,7 @@ button > *{position:relative;z-index:1;}
       // Data Management belongs only on the Home / initial page.
       document.getElementById("dataManagementSection").classList.add("hidden");
       markDirty();
-      setTimeout(()=>document.getElementById("village").focus(),50);
+      setTimeout(()=>document.getElementById(currentMode==="MS"?"mandal":"village").focus(),50);
     }
 
     function updateInterestRateLive(){
@@ -3026,8 +3051,10 @@ button > *{position:relative;z-index:1;}
       const village=document.getElementById("village").value.trim();
       const mandal=document.getElementById("mandal").value.trim();
       if(!name){alert(`${modeConfig().parent} Name is required.`);document.getElementById("voName").focus();return;}
-      if(!village){alert("Village is required.");document.getElementById("village").focus();return;}
+      if(currentMode!=="MS" && !village){alert("Village is required.");document.getElementById("village").focus();return;}
       if(!mandal){alert("Mandal is required.");document.getElementById("mandal").focus();return;}
+      const district=document.getElementById("district").value.trim();
+      if(currentMode==="MS" && !district){alert("District is required for MS.");document.getElementById("district").focus();return;}
 
       /*
        * Save VO must perform the same complete save as "Save All SHGs".
@@ -3038,7 +3065,7 @@ button > *{position:relative;z-index:1;}
       v.name=name;
       v.village=village;
       v.mandal=mandal;
-      v.district=document.getElementById("district").value.trim();
+      v.district=district;
 
       saveAll();
     }
@@ -3210,6 +3237,24 @@ button > *{position:relative;z-index:1;}
 
     function pdfParentLabel(){return modeConfig().parent;}
     function pdfChildLabel(){return modeConfig().child;}
+
+    /*
+     * PDF location rules are intentionally tied ONLY to the active login
+     * system.  MS Login and VO Login must never share the same location
+     * ordering/fields.
+     *
+     * MS Login PDFs:  MS -> Mandal -> District
+     * VO Login PDFs:  VO -> Village -> Mandal
+     */
+    function isMsLoginPdf(){return currentMode==="MS";}
+    function pdfLocationLabelTelugu(){return isMsLoginPdf()?"జిల్లా":"గ్రామం";}
+    function pdfLocationValue(v){return isMsLoginPdf()?(v.district||""):(v.village||"");}
+    function pdfHeaderLocationText(v){
+      if(isMsLoginPdf()){
+        return `${pdfParentLabel()} : ${esc(v.name||"")},&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;మండలం : ${esc(v.mandal||"")},&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;జిల్లా : ${esc(v.district||"")}`;
+      }
+      return `${pdfParentLabel()} : ${esc(v.name||"")},&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;${pdfLocationLabelTelugu()} : ${esc(pdfLocationValue(v))},&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;మండలం : ${esc(v.mandal||"")}`;
+    }
 
     /*
      * UNIVERSAL PDF TABLE FITTING ENGINE
@@ -4303,6 +4348,8 @@ html,body{
   overflow:hidden;
 }
 
+/* MS PDF metadata order: MS -> Mandal -> District.
+   VO PDF metadata order remains unchanged. */
 /* ---------------- LOAN LEDGER ---------------- */
 .ledger-page{
   padding:28.3465pt;
@@ -4855,6 +4902,11 @@ html,body{
       };
     }
 
+    /* MS LOGIN PDF RULE (STRICT):
+     * Monthly DCB + Cumulative DCB header: MS -> Mandal -> District.
+     * Loan Ledger first metadata row: child name + Mandal + District.
+     * These rules are active only while currentMode === "MS".
+     */
     function monthlyPDF(asPart=false){
       const v=vo();
       if(!v)return;
@@ -4962,7 +5014,7 @@ html,body{
                   <tbody>
                     <tr>
                       <th colspan="10" class="dcb-head-left telugu">
-                        ${pdfParentLabel()} : ${esc(v.name)},&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;గ్రామం : ${esc(v.village||"")},&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;మండలం : ${esc(v.mandal||"")}
+                        ${pdfHeaderLocationText(v)}
                       </th>
                       <th colspan="7" class="dcb-head-right">
                         DCB-${m[0].toUpperCase()}
@@ -5224,7 +5276,7 @@ html,body{
                 <tbody>
                   <tr>
                     <th colspan="8" class="cumulative-dcb-head-left telugu">
-                      ${pdfParentLabel()} : ${esc(v.name)},&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;గ్రామం : ${esc(v.village||"")},&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;మండలం : ${esc(v.mandal||"")}
+                      ${pdfHeaderLocationText(v)}
                     </th>
                     <th colspan="7" class="cumulative-dcb-head-right">
                       Cumulative DCB 2026-27
@@ -5393,8 +5445,17 @@ html,body{
                 <div class="meta-row">
                   <div class="meta-key telugu">${pdfChildLabel()} పేరు :</div>
                   <div class="meta-value highlight telugu">${esc(s.name)}</div>
-                  <div class="meta-key telugu">గ్రామం పేరు :</div>
-                  <div class="meta-value telugu meta-value-merged">${esc(v.village||"")}</div>
+                  ${isMsLoginPdf() ? `
+                    <!-- MS Login ONLY: Mandal and District are on the same row.
+                         Order is strictly MS -> Mandal -> District. -->
+                    <div class="meta-key telugu">మండలం :</div>
+                    <div class="meta-value telugu">${esc(v.mandal||"")}</div>
+                    <div class="meta-key telugu">జిల్లా :</div>
+                    <div class="meta-value telugu">${esc(v.district||"")}</div>
+                  ` : `
+                    <div class="meta-key telugu">${pdfLocationLabelTelugu()} పేరు :</div>
+                    <div class="meta-value telugu meta-value-merged">${esc(pdfLocationValue(v))}</div>
+                  `}
                 </div>
 
                 <div class="meta-row">
