@@ -1,0 +1,250 @@
+/* Mobile/tablet only:
+           Existing VO selector, VO Name, Village and Mandal are equal-width.
+           District remains full-width. */
+        @media screen and (max-width:900px){
+          #voDetailsToolbar.show-details{
+            display:grid !important;
+            grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;
+            column-gap:10px !important;
+            row-gap:10px !important;
+            width:100% !important;
+            max-width:100% !important;
+            align-items:start !important;
+          }
+
+          #voDetailsToolbar.show-details > .field{
+            width:100% !important;
+            min-width:0 !important;
+            max-width:none !important;
+            flex:none !important;
+            margin:0 !important;
+          }
+
+          #voDetailsToolbar.show-details > .field:nth-of-type(1),
+          #voDetailsToolbar.show-details > .field:nth-of-type(2),
+          #voDetailsToolbar.show-details > .field:nth-of-type(3),
+          #voDetailsToolbar.show-details > .field:nth-of-type(4){
+            grid-column:auto !important;
+          }
+
+          #voDetailsToolbar.show-details > .field:nth-of-type(5){
+            grid-column:1 / -1 !important;
+          }
+
+          /* The Existing VO dropdown must be exactly the same width as the
+             neighboring VO Name/Village/Mandal text boxes. */
+          #voDetailsToolbar.show-details > .field:nth-of-type(1) > select,
+          #voDetailsToolbar.show-details > .field:nth-of-type(2) > input,
+          #voDetailsToolbar.show-details > .field:nth-of-type(3) > input,
+          #voDetailsToolbar.show-details > .field:nth-of-type(4) > input,
+          #voDetailsToolbar.show-details > .field:nth-of-type(5) > input{
+            display:block !important;
+            width:100% !important;
+            min-width:0 !important;
+            max-width:none !important;
+            box-sizing:border-box !important;
+          }
+        }
+
+/* Mobile/tablet only:
+           Save VO | Delete VO
+           Create New VO (full width below)
+        */
+        @media screen and (max-width:900px){
+          #voDetailsToolbar.show-details + .actions{
+            display:grid !important;
+            grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;
+            gap:8px !important;
+            width:100% !important;
+            align-items:stretch !important;
+          }
+
+          #voDetailsToolbar.show-details + .actions > button.selected-vo-only{
+            width:100% !important;
+            min-width:0 !important;
+            margin:0 !important;
+          }
+
+
+          #voDetailsToolbar.show-details + .actions #saveStatus{
+            grid-column:1 / -1 !important;
+          }
+        }
+
+/* Mobile/tablet only:
+           District uses the same single-column width as Existing VO,
+           instead of spanning the full row. */
+        @media screen and (max-width:900px){
+          #voDetailsToolbar.show-details{
+            grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;
+          }
+
+          #voDetailsToolbar.show-details > .field:nth-of-type(5){
+            grid-column:1 !important;
+            width:100% !important;
+          }
+
+          #voDetailsToolbar.show-details > .field:nth-of-type(5) > input{
+            width:100% !important;
+            min-width:0 !important;
+            max-width:none !important;
+            box-sizing:border-box !important;
+          }
+        }
+
+/* Mobile/tablet only:
+           Existing VO = full width
+           VO Name | Village
+           Mandal  | District
+        */
+        @media screen and (max-width:900px){
+          #voDetailsToolbar.show-details{
+            display:grid !important;
+            grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;
+            column-gap:10px !important;
+            row-gap:10px !important;
+            width:100% !important;
+            max-width:100% !important;
+            align-items:start !important;
+          }
+
+          #voDetailsToolbar.show-details > .field{
+            width:100% !important;
+            min-width:0 !important;
+            max-width:none !important;
+            flex:none !important;
+            margin:0 !important;
+          }
+
+          /* Existing VO full width */
+          #voDetailsToolbar.show-details > .field:nth-of-type(1){
+            grid-column:1 / -1 !important;
+          }
+
+          /* VO Name | Village */
+          #voDetailsToolbar.show-details > .field:nth-of-type(2),
+          #voDetailsToolbar.show-details > .field:nth-of-type(3){
+            grid-column:auto !important;
+          }
+
+          /* Mandal | District */
+          #voDetailsToolbar.show-details > .field:nth-of-type(4),
+          #voDetailsToolbar.show-details > .field:nth-of-type(5){
+            grid-column:auto !important;
+          }
+
+          #voDetailsToolbar.show-details > .field > input,
+          #voDetailsToolbar.show-details > .field > select{
+            display:block !important;
+            width:100% !important;
+            min-width:0 !important;
+            max-width:none !important;
+            box-sizing:border-box !important;
+            margin:0 !important;
+          }
+        }
+
+/* Mobile/tablet only:
+           Download Backup | Restore Backup
+           Merge Backup = full width below
+        */
+        @media screen and (max-width:900px){
+          #dataManagementSection .actions{
+            display:grid !important;
+            grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;
+            gap:10px !important;
+            width:100% !important;
+          }
+
+          #dataManagementSection .actions > button{
+            width:100% !important;
+            min-width:0 !important;
+            min-height:54px !important;
+            margin:0 !important;
+          }
+
+          #dataManagementSection .actions #importAllBtn{
+            grid-column:1 / -1 !important;
+          }
+        }
+
+/* Mobile/tablet only:
+           New VO Name = full width
+           Create VO | Cancel = side by side
+        */
+        @media screen and (max-width:900px){
+          #newVoForm .toolbar{
+            display:grid !important;
+            grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;
+            column-gap:10px !important;
+            row-gap:10px !important;
+            width:100% !important;
+            max-width:100% !important;
+            align-items:end !important;
+          }
+
+          #newVoForm .toolbar > .field{
+            grid-column:1 / -1 !important;
+            width:100% !important;
+            min-width:0 !important;
+            max-width:none !important;
+            flex:none !important;
+            margin:0 !important;
+          }
+
+          #newVoForm .toolbar > #createVoBtn,
+          #newVoForm .toolbar > #cancelVoBtn{
+            grid-column:auto !important;
+            width:100% !important;
+            min-width:0 !important;
+            max-width:none !important;
+            margin:0 !important;
+            box-sizing:border-box !important;
+          }
+
+          #newVoForm .toolbar > .field > input{
+            display:block !important;
+            width:100% !important;
+            min-width:0 !important;
+            max-width:none !important;
+            box-sizing:border-box !important;
+            margin:0 !important;
+          }
+        }
+
+/* Mobile/tablet only:
+           SHG Name text box | Add SHG button side by side
+        */
+        @media screen and (max-width:900px){
+          #shgToolbar{
+            display:grid !important;
+            grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;
+            column-gap:10px !important;
+            row-gap:10px !important;
+            width:100% !important;
+            max-width:100% !important;
+            align-items:end !important;
+          }
+
+          #shgToolbar > .field{
+            width:100% !important;
+            min-width:0 !important;
+            max-width:none !important;
+            flex:none !important;
+            margin:0 !important;
+          }
+
+          #shgToolbar > .field input,
+          #shgToolbar > .field select{
+            width:100% !important;
+            min-width:0 !important;
+            max-width:none !important;
+            box-sizing:border-box !important;
+          }
+
+          #shgToolbar > button{
+            width:100% !important;
+            min-width:0 !important;
+            margin:0 !important;
+          }
+        }

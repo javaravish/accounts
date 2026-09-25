@@ -1,19 +1,20 @@
-/* =========================================================
-   SCRIPT.JS
-   Main SHG/DCB application, UI, data and calculation logic.
-   PDF generation is kept in pdf.js.
-   ========================================================= */
+"use strict";
 
-(function(){
-    "use strict";
-    const KEY="vo_shg_accounting_v18";
+/* =========================================================
+   ACCOUNTING CORE
+   Shared VO/MS state, CRUD, calculations, SHG/VO table rendering,
+   backup/restore, and Firebase-cloud synchronization bridge.
+   PDF generation and authentication are in separate files.
+   ========================================================= */
+let currentMode = "VO";
     const MONTHS=[["Apr-26","April-2026"],["May-26","May-2026"],["Jun-26","June-2026"],["Jul-26","July-2026"],["Aug-26","August-2026"],["Sep-26","September-2026"],["Oct-26","October-2026"],["Nov-26","November-2026"],["Dec-26","December-2026"],["Jan-27","January-2027"],["Feb-27","February-2027"],["Mar-27","March-2027"]];
     let db=readDb(), selectedVOId=null, monthIndex=0, dirty=false;
-
     window.addEventListener("firebase-cloud-ready",function(e){
+      currentMode=(e.detail&&e.detail.mode)||currentMode||"VO";
       const cloudDb=e.detail&&e.detail.db;
       db=(cloudDb&&Array.isArray(cloudDb.vos))?cloudDb:{vos:[]};
-      localStorage.setItem(KEY,JSON.stringify(db));
+      localStorage.setItem(modeKey(),JSON.stringify(db));
+      applyAccountingLabels();
       selectedVOId=null;
       monthIndex=0;
       markClean();
@@ -40,13 +41,13 @@
 
     function readDb(){
       try{
-        const x=JSON.parse(localStorage.getItem(KEY));
+        const x=JSON.parse(localStorage.getItem(modeKey()));
         if(x&&Array.isArray(x.vos))return x;
       }catch(e){}
       return{vos:[]};
     }
     function writeDb(){
-      localStorage.setItem(KEY,JSON.stringify(db));
+      localStorage.setItem(modeKey(),JSON.stringify(db));
       if(window.firebaseCloud) window.firebaseCloud.queueCloudSave(db);
     }
 
@@ -59,10 +60,10 @@
           if(!saved){
             // Even if validation prevents the normal Save VO action,
             // preserve the current database locally before logout.
-            localStorage.setItem(KEY,JSON.stringify(db));
+            localStorage.setItem(modeKey(),JSON.stringify(db));
           }
         }else{
-          localStorage.setItem(KEY,JSON.stringify(db));
+          localStorage.setItem(modeKey(),JSON.stringify(db));
         }
 
         if(window.firebaseCloud && window.firebaseCloud.saveNowBeforeLogout){
@@ -83,10 +84,12 @@
     function saveCurrentScreen(){
       const v=vo();if(!v)return false;
       const name=document.getElementById("voName").value.trim(),village=document.getElementById("village").value.trim(),mandal=document.getElementById("mandal").value.trim();
-      if(!name){alert("VO Name is required.");document.getElementById("voName").focus();return false;}
-      if(!village){alert("Village is required.");document.getElementById("village").focus();return false;}
+      if(!name){alert(`${modeConfig().parent} Name is required.`);document.getElementById("voName").focus();return false;}
+      if(currentMode!=="MS" && !village){alert("Village is required.");document.getElementById("village").focus();return false;}
       if(!mandal){alert("Mandal is required.");document.getElementById("mandal").focus();return false;}
-      v.name=name;v.village=village;v.mandal=mandal;v.district=document.getElementById("district").value.trim();
+      const district=document.getElementById("district").value.trim();
+      if(currentMode==="MS" && !district){alert("District is required for MS.");document.getElementById("district").focus();return false;}
+      v.name=name;v.village=village;v.mandal=mandal;v.district=district;
 
       const rateInput=document.getElementById("shgRateInput");
       const currentRate=rateInput?Number(rateInput.value):12;
@@ -168,17 +171,22 @@
     function hasValue(x){return x!==undefined&&x!==null&&String(x).trim()!=="";}
     function monthIsConsidered(d){
       if(!d)return false;
-      /* IMPORTANT: keep a month as soon as the user has entered ANY data in it.
-       * Previously this function only kept collection/new-loan values, so
-       * switching to another month could delete a partially entered month
-       * (for example Opening Balance or Demand Principal). */
-      const hasText=hasValue(d.principalCollection)||hasValue(d.interestCollection);
-      const numericFields=[
-        d.opening,d.prevPrincipal,d.prevInterest,d.demandPrincipal,
-        d.demandInterest,d.newLoan
-      ];
-      const hasNumeric=numericFields.some(x=>Number(x)!==0);
-      return hasText || hasNumeric;
+
+      /*
+       * A month is considered entered ONLY when Principal Collection
+       * or Interest Collection has a value entered.
+       *
+       * IMPORTANT:
+       * - Blank / empty collection fields => month is NOT considered.
+       * - 0 is a valid entered collection value => month IS considered.
+       * - Opening Balance, Previous Due, Demand, and New Loan do NOT
+       *   independently make a month eligible for PDF output.
+       * - This does not change calc() or any calculation formula.
+       */
+      const principalEntered = hasValue(d.principalCollection);
+      const interestEntered  = hasValue(d.interestCollection);
+
+      return principalEntered || interestEntered;
     }
     function lastConsideredMonth(shg,idx){
       if(!shg||!shg.months)return null;
@@ -208,7 +216,7 @@
     }
 
     function refreshVOSelect(){
-     const s=document.getElementById("voSelect");s.innerHTML='<option value="">-- Select existing VO --</option>';
+     const s=document.getElementById("voSelect");s.innerHTML='<option value="" id="existingParentOption">-- Select existing --</option>';
      db.vos.forEach(v=>{const o=document.createElement("option");o.value=v.id;o.textContent=v.name||"(Unnamed VO)";s.appendChild(o);});
      s.value=selectedVOId||"";
     }
@@ -246,8 +254,8 @@
 
     function createVO(){
       const name=document.getElementById("newVoName").value.trim();
-      if(!name){alert("Enter a VO name.");return;}
-      if(db.vos.some(x=>String(x.name||"").trim().toLowerCase()===name.toLowerCase())){alert("A VO with this name already exists. Select it from the dropdown.");return;}
+      if(!name){alert(`Enter a ${modeConfig().parent} name.`);return;}
+      if(db.vos.some(x=>String(x.name||"").trim().toLowerCase()===name.toLowerCase())){alert(`A ${modeConfig().parent} with this name already exists. Select it from the dropdown.`);return;}
       const v={id:"VO-"+Date.now()+"-"+Math.random().toString(36).slice(2),name:name,village:"",mandal:"",district:"",shgs:[]};
       db.vos.push(v);selectedVOId=v.id;monthIndex=0;
       document.getElementById("newVoName").value="";
@@ -262,7 +270,7 @@
       // Data Management belongs only on the Home / initial page.
       document.getElementById("dataManagementSection").classList.add("hidden");
       markDirty();
-      setTimeout(()=>document.getElementById("village").focus(),50);
+      setTimeout(()=>document.getElementById(currentMode==="MS"?"mandal":"village").focus(),50);
     }
 
     function updateInterestRateLive(){
@@ -274,17 +282,17 @@
     }
 
     function addSHG(){
-      const v=vo();if(!v){alert("Please create or select a VO first.");return;}
+      const v=vo();if(!v){alert(`Please create or select a ${modeConfig().parent} first.`);return;}
       const input=document.getElementById("shgNameInput");
       const rateInput=document.getElementById("shgRateInput");
       const name=input.value.trim();
       const rate=Number(rateInput.value);
-      if(!name){alert("Type SHG name first.");input.focus();return;}
+      if(!name){alert(`Type ${modeConfig().child} name first.`);input.focus();return;}
       if(!Number.isFinite(rate)||rate<0||rate>100){alert("Enter a valid interest rate between 0 and 100%.");rateInput.focus();return;}
-      if(v.shgs.some(s=>String(s.name||"").trim().toLowerCase()===name.toLowerCase())){alert("That SHG already exists in this VO.");input.select();return;}
+      if(v.shgs.some(s=>String(s.name||"").trim().toLowerCase()===name.toLowerCase())){alert(`That ${modeConfig().child} already exists in this ${modeConfig().parent}.`);input.select();return;}
       v.shgs.push({id:"SHG-"+Date.now()+"-"+Math.random().toString(36).slice(2),name:name,interestRate:rate,startMonthIndex:monthIndex,months:{}});
       input.value="";v.interestRate=rate;markDirty();renderRows();
-      document.getElementById("saveStatus").textContent="SHG added — save to keep changes";
+      document.getElementById("saveStatus").textContent=`${modeConfig().child} added — save to keep changes`;
       input.focus();
     }
 
@@ -349,7 +357,7 @@
       ].join(";");
       document.body.appendChild(probe);
 
-      probe.textContent="SHG Name";
+      probe.textContent=pdfChildLabel()+" Name";
       let width=probe.getBoundingClientRect().width;
 
       inputs.forEach(input=>{
@@ -524,8 +532,8 @@
     window.deleteSHG=function(i){
       const v=vo();
       if(!v||!v.shgs[i])return;
-      const name=String(v.shgs[i].name||"").trim()||("SHG "+(i+1));
-      if(!confirm("Delete "+name+"?\n\nThis will permanently remove this SHG and all of its monthly data from the current VO."))return;
+      const name=String(v.shgs[i].name||"").trim()||(modeConfig().child+" "+(i+1));
+      if(!confirm("Delete "+name+"?\n\nThis will permanently remove this "+modeConfig().child+" and all of its monthly data from the current "+modeConfig().parent+"."))return;
       v.shgs.splice(i,1);
       writeDb();
       markClean();
@@ -539,11 +547,11 @@
      const s=v.shgs[i],name=document.getElementById("name-"+i).value.trim();
      const startIdx=Number.isInteger(s.startMonthIndex)?s.startMonthIndex:0;
      const april=(monthIndex===0);
-     if(!name){alert("SHG name cannot be blank.");return;}
+     if(!name){alert(`${modeConfig().child} name cannot be blank.`);return;}
      const rateEl=document.getElementById("shgRateInput"),rate=rateEl?Number(rateEl.value):Number(v.interestRate!==undefined?v.interestRate:(s.interestRate||0));
      if(!Number.isFinite(rate)||rate<0||rate>100){alert("Enter a valid interest rate between 0 and 100%.");if(rateEl)rateEl.focus();return;}
      v.interestRate=rate;v.shgs.forEach(x=>x.interestRate=rate);
-     if(monthIndex<startIdx){alert("This SHG was created in "+MONTHS[startIdx][1]+". Previous months do not require data.");return;}
+     if(monthIndex<startIdx){alert(`This ${modeConfig().child} was created in ${MONTHS[startIdx][1]}. Previous months do not require data.`);return;}
      const raw=getRowData(i);
      const creationMonth=(!april && monthIndex===startIdx && startIdx>0);
      const nextMonthStart=(!april && monthIndex===startIdx+1 && startIdx>0);
@@ -572,13 +580,13 @@
 
     window.removeSHG=function(i){
       const v=vo();if(!v||!v.shgs[i])return;
-      const name=v.shgs[i].name||("SHG "+(i+1));
-      if(!confirm('Remove SHG "'+name+'"?\n\nAll monthly data for this SHG will be deleted from this VO.'))return;
+      const name=v.shgs[i].name||(modeConfig().child+" "+(i+1));
+      if(!confirm('Remove '+modeConfig().child+' "'+name+'"?\n\nAll monthly data for this '+modeConfig().child+' will be deleted from this '+modeConfig().parent+'.'))return;
       v.shgs.splice(i,1);
       writeDb();
       markDirty();
       renderRows();
-      document.getElementById("saveStatus").textContent="SHG removed — save to keep changes";
+      document.getElementById("saveStatus").textContent=`${modeConfig().child} removed — save to keep changes`;
     };
 
     function saveAll(){
@@ -655,7 +663,7 @@
       refreshVOSelect();
       markClean();
       document.getElementById("saveStatus").textContent="All entered months saved";
-      alert("All SHGs and all entered months have been saved.");
+      alert(`All ${modeConfig().childPlural} and all entered months have been saved.`);
     }
 
     function saveVO(){
@@ -663,11 +671,24 @@
       const name=document.getElementById("voName").value.trim();
       const village=document.getElementById("village").value.trim();
       const mandal=document.getElementById("mandal").value.trim();
-      if(!name){alert("VO Name is required.");document.getElementById("voName").focus();return;}
-      if(!village){alert("Village is required.");document.getElementById("village").focus();return;}
+      if(!name){alert(`${modeConfig().parent} Name is required.`);document.getElementById("voName").focus();return;}
+      if(currentMode!=="MS" && !village){alert("Village is required.");document.getElementById("village").focus();return;}
       if(!mandal){alert("Mandal is required.");document.getElementById("mandal").focus();return;}
-      v.name=name;v.village=village;v.mandal=mandal;v.district=document.getElementById("district").value.trim();
-      writeDb();refreshVOSelect();markClean();document.getElementById("saveStatus").textContent="VO details saved";
+      const district=document.getElementById("district").value.trim();
+      if(currentMode==="MS" && !district){alert("District is required for MS.");document.getElementById("district").focus();return;}
+
+      /*
+       * Save VO must perform the same complete save as "Save All SHGs".
+       * saveAll() first captures the current SHG/month from the screen and
+       * then persists every entered month for every SHG in this VO.
+       * No calculation logic is changed here.
+       */
+      v.name=name;
+      v.village=village;
+      v.mandal=mandal;
+      v.district=district;
+
+      saveAll();
     }
 
     function exportBackup(){
@@ -675,7 +696,7 @@
             u=URL.createObjectURL(blob),
             a=document.createElement("a");
       a.href=u;
-      a.download="vo-shg-backup.json";
+      a.download=(currentMode==="MS"?"ms-vo-backup.json":"vo-shg-backup.json");
       a.click();
       URL.revokeObjectURL(u);
     }
@@ -830,659 +851,6 @@
         markClean();
         refresh();
 
-        alert("Current VO deleted. Other VOs are unchanged.");
+        alert(`Current ${modeConfig().parent} deleted. Other ${modeConfig().parentPlural} are unchanged.`);
       }
     }
-
-
-    /* Firebase Login / Sign Up gate.
-       Mobile number + username are stored in the user's Profile only.
-       No SMS/OTP is used. */
-    const loginScreen=document.getElementById("loginScreen");
-    const appShell=document.getElementById("appShell");
-    const loginUsername=document.getElementById("loginUsername");
-    const loginPassword=document.getElementById("loginPassword");
-    const loginError=document.getElementById("loginError");
-
-    function friendlyAuthError(err){
-      const code=String(err&&err.code||"");
-      if(code.includes("invalid-credential")||code.includes("wrong-password")||code.includes("user-not-found"))
-        return "Invalid username/email or password.";
-      if(code.includes("email-already-in-use"))
-        return "This email already has an account. Please Login.";
-      if(code.includes("invalid-email"))
-        return "Enter a valid email address.";
-      if(code.includes("weak-password"))
-        return "Password must be at least 6 characters.";
-      if(code.includes("too-many-requests"))
-        return "Too many attempts. Please try again later.";
-      if(code.includes("invalid-email"))
-        return "Enter a valid email address.";
-      if(code.includes("operation-not-allowed"))
-        return "Password reset is not enabled for this account.";
-      if(code.includes("permission-denied"))
-        return "Firebase permission denied. Check your Firestore rules.";
-      if(code.includes("unavailable"))
-        return "Firebase is temporarily unavailable. Please try again.";
-      if(code.includes("permission-denied")||code.includes("Missing or insufficient permissions"))
-        return "Firebase Firestore permissions are blocking this operation.";
-      return err&&err.message ? err.message : "Authentication failed. Please try again.";
-    }
-
-    function normalizePhone(v){
-      let p=String(v||"").trim().replace(/[\s()-]/g,"");
-      if(/^0\d{10}$/.test(p)) p="+91"+p.slice(1);
-      if(/^\d{10}$/.test(p)) p="+91"+p;
-      return p;
-    }
-
-    async function lookupUsername(username){
-      const key=String(username||"").trim().toLowerCase();
-      if(!key)return null;
-      const snap=await window.firebaseCloud.getDoc(
-        window.firebaseCloud.doc(window.firebaseCloud.getFirestore(),"usernames",key)
-      );
-      return snap.exists()?snap.data():null;
-    }
-
-    async function saveProfile(uid,data){
-      const emailKey=String(data.email||"").trim().toLowerCase();
-
-      await window.firebaseCloud.setDoc(
-        window.firebaseCloud.doc(window.firebaseCloud.getFirestore(),"users",uid),
-        {
-          profile:{
-            email:data.email,
-            mobile:data.mobile,
-            username:data.username
-          },
-          updatedAt:new Date().toISOString()
-        },
-        {merge:true}
-      );
-
-      // Public lookup record contains no password. It allows Forgot Password
-      // to resolve a registered email without relying on Firebase's
-      // anti-enumeration sign-in-method API.
-      await window.firebaseCloud.setDoc(
-        window.firebaseCloud.doc(window.firebaseCloud.getFirestore(),"accountLookup","email_"+emailKey),
-        {uid,email:data.email,username:data.username},
-        {merge:true}
-      );
-    }
-
-    async function lookupEmail(email){
-      const key=String(email||"").trim().toLowerCase();
-      if(!key)return null;
-      const snap=await window.firebaseCloud.getDoc(
-        window.firebaseCloud.doc(window.firebaseCloud.getFirestore(),"accountLookup","email_"+key)
-      );
-      return snap.exists()?snap.data():null;
-    }
-
-    async function reserveUsername(uid,email,username){
-      const key=String(username||"").trim().toLowerCase();
-      if(!key)throw new Error("Username is required.");
-      const db=window.firebaseCloud.getFirestore();
-      const ref=window.firebaseCloud.doc(db,"usernames",key);
-
-      // Atomic create-only reservation. An existing username can never be
-      // overwritten by another account.
-      await window.firebaseCloud.runTransaction(db,async(transaction)=>{
-        const snap=await transaction.get(ref);
-
-        if(snap.exists()){
-          const owner=snap.data()||{};
-          if(String(owner.uid||"")===String(uid||"")){
-            return;
-          }
-          throw new Error("USERNAME_ALREADY_EXISTS");
-        }
-
-        transaction.set(ref,{uid,email},{merge:false});
-      });
-    }
-
-
-
-    async function attemptLogin(){
-      const identifier=loginUsername.value.trim();
-      const password=loginPassword.value;
-
-      if(!identifier||!password){
-        loginError.textContent="Enter your username/email and password.";
-        return;
-      }
-
-      loginError.textContent="Signing in...";
-
-      try{
-        let email=identifier;
-
-        if(!identifier.includes("@")){
-          const rec=await lookupUsername(identifier);
-          if(!rec||!rec.email){
-            loginError.textContent="Invalid username/email or password.";
-            return;
-          }
-          email=rec.email;
-        }
-
-        await window.firebaseCloud.signIn(email,password);
-      }catch(err){
-        console.error(err);
-        loginError.textContent=friendlyAuthError(err);
-      }
-    }
-
-    function openModal(id){
-      const el=document.getElementById(id);
-      if(el)el.classList.remove("hidden");
-    }
-
-    function closeModal(id){
-      const el=document.getElementById(id);
-      if(el)el.classList.add("hidden");
-    }
-
-    function validateAccountForm(){
-      const email=document.getElementById("signupEmail").value.trim();
-      const mobile=normalizePhone(document.getElementById("signupMobile").value);
-      const username=document.getElementById("signupUsername").value.trim();
-      const pw=document.getElementById("signupPassword").value;
-      const cp=document.getElementById("signupConfirm").value;
-
-      if(!email||!mobile||!username||!pw||!cp)
-        throw new Error("Fill all required fields.");
-      if(!/^\S+@\S+\.\S+$/.test(email))
-        throw new Error("Enter a valid email address.");
-      if(!/^\+\d{8,15}$/.test(mobile))
-        throw new Error("Enter a valid mobile number.");
-      if(!/^[A-Za-z0-9._-]{3,30}$/.test(username))
-        throw new Error("Username must be 3-30 characters and use letters, numbers, dot, underscore or hyphen.");
-      if(pw.length<6)
-        throw new Error("Password must be at least 6 characters.");
-      if(pw!==cp)
-        throw new Error("Passwords do not match.");
-
-      return {email,mobile,username,pw};
-    }
-
-    async function openProfile(){
-      const modal=document.getElementById("profileModal");
-      const summary=document.getElementById("profileSummary");
-      const mobileInput=document.getElementById("profileMobileInput");
-      const msg=document.getElementById("profileMsg");
-
-      if(msg){
-        msg.textContent="";
-        msg.className="auth-msg";
-      }
-
-      const user=window.firebaseCloud && window.firebaseCloud.currentUser;
-      if(!user){
-        if(msg){
-          msg.textContent="Please login again to open Profile.";
-          msg.className="auth-msg error";
-        }
-        if(modal)modal.classList.remove("hidden");
-        return;
-      }
-
-      try{
-        const snap=await window.firebaseCloud.getDoc(
-          window.firebaseCloud.doc(window.firebaseCloud.getFirestore(),"users",user.uid)
-        );
-        const data=snap.exists()?snap.data():{};
-        const profile=data.profile||{};
-
-        if(summary){
-          summary.innerHTML=
-            "<div><b>Email:</b> "+String(profile.email||user.email||"")+"</div>"+
-            "<div><b>Username:</b> "+String(profile.username||"")+"</div>";
-        }
-        if(mobileInput)mobileInput.value=profile.mobile||"";
-        if(modal)modal.classList.remove("hidden");
-      }catch(err){
-        console.error(err);
-        if(summary)summary.textContent="";
-        if(msg){
-          msg.textContent=friendlyAuthError(err);
-          msg.className="auth-msg error";
-        }
-        if(modal)modal.classList.remove("hidden");
-      }
-    }
-
-    async function saveProfileMobile(){
-      const user=window.firebaseCloud && window.firebaseCloud.currentUser;
-      const input=document.getElementById("profileMobileInput");
-      const msg=document.getElementById("profileMsg");
-      if(!user){
-        if(msg)msg.textContent="Please login again.";
-        return;
-      }
-
-      const mobile=normalizePhone(input ? input.value : "");
-      if(!/^\+\d{8,15}$/.test(mobile)){
-        if(msg){
-          msg.textContent="Enter a valid mobile number.";
-          msg.className="auth-msg error";
-        }
-        return;
-      }
-
-      try{
-        if(msg){
-          msg.textContent="Saving mobile number...";
-          msg.className="auth-msg";
-        }
-
-        const snap=await window.firebaseCloud.getDoc(
-          window.firebaseCloud.doc(window.firebaseCloud.getFirestore(),"users",user.uid)
-        );
-        const existing=snap.exists()?snap.data():{};
-        const profile=existing.profile||{};
-
-        await window.firebaseCloud.setDoc(
-          window.firebaseCloud.doc(window.firebaseCloud.getFirestore(),"users",user.uid),
-          {
-            profile:{
-              email:profile.email||user.email||"",
-              username:profile.username||"",
-              mobile:mobile
-            },
-            updatedAt:new Date().toISOString()
-          },
-          {merge:true}
-        );
-
-        if(msg){
-          msg.textContent="Mobile number saved.";
-          msg.className="auth-msg ok";
-        }
-      }catch(err){
-        console.error(err);
-        if(msg){
-          msg.textContent=friendlyAuthError(err);
-          msg.className="auth-msg error";
-        }
-      }
-    }
-
-    async function changeProfilePassword(){
-      const user=window.firebaseCloud && window.firebaseCloud.currentUser;
-      const pw=document.getElementById("profileNewPassword");
-      const cp=document.getElementById("profileConfirmPassword");
-      const msg=document.getElementById("profileMsg");
-
-      if(!user){
-        if(msg)msg.textContent="Please login again.";
-        return;
-      }
-
-      const newPw=pw?pw.value:"";
-      const confirmPw=cp?cp.value:"";
-
-      if(newPw.length<6){
-        if(msg){
-          msg.textContent="Password must be at least 6 characters.";
-          msg.className="auth-msg error";
-        }
-        return;
-      }
-      if(newPw!==confirmPw){
-        if(msg){
-          msg.textContent="Passwords do not match.";
-          msg.className="auth-msg error";
-        }
-        return;
-      }
-
-      try{
-        if(msg){
-          msg.textContent="Changing password...";
-          msg.className="auth-msg";
-        }
-        await window.firebaseCloud.updatePassword(newPw);
-        if(pw)pw.value="";
-        if(cp)cp.value="";
-        if(msg){
-          msg.textContent="Password changed successfully.";
-          msg.className="auth-msg ok";
-        }
-      }catch(err){
-        console.error(err);
-        if(msg){
-          msg.textContent=friendlyAuthError(err);
-          msg.className="auth-msg error";
-        }
-      }
-    }
-
-    async function sendEmailReset(){
-      const input=document.getElementById("forgotIdentifier");
-      const msg=document.getElementById("forgotMsg");
-      const identifier=input ? input.value.trim() : "";
-
-      if(!identifier){
-        msg.textContent="Enter your registered email or username.";
-        msg.className="auth-msg error";
-        return;
-      }
-
-      msg.textContent="Checking account...";
-      msg.className="auth-msg";
-
-      try{
-        let email="";
-
-        if(identifier.includes("@")){
-          const emailKey=identifier.toLowerCase();
-
-          // Our accountLookup is the application's registration directory.
-          // Never call Firebase password-reset until this confirms that the
-          // email was registered by this application.
-          const rec=await lookupEmail(emailKey);
-
-          if(!rec || !rec.email){
-            msg.textContent="No account was found with that email address.";
-            msg.className="auth-msg error";
-            return;
-          }
-
-          email=rec.email;
-        }else{
-          const rec=await lookupUsername(identifier);
-
-          if(!rec || !rec.email){
-            msg.textContent="No account was found with that username.";
-            msg.className="auth-msg error";
-            return;
-          }
-
-          email=rec.email;
-        }
-
-        // Only a confirmed registered account reaches this line.
-        await window.firebaseCloud.sendPasswordResetEmail(email);
-
-        msg.textContent="Password reset email sent. Please check your email inbox (and Spam/Junk).";
-        msg.className="auth-msg ok";
-      }catch(err){
-        console.error("Forgot password failed:",err);
-
-        if(String(err&&err.code||"").includes("permission-denied")){
-          msg.textContent="Unable to verify the account. Please check your Firestore rules.";
-        }else if(String(err&&err.code||"").includes("invalid-email")){
-          msg.textContent="Enter a valid email address.";
-        }else{
-          msg.textContent="No account was found with that email address.";
-        }
-        msg.className="auth-msg error";
-      }
-    }
-
-    async function attemptSignUp(){
-      const btn=document.getElementById("signupCreateBtn");
-      const msg=document.getElementById("signupMsg");
-      if(btn)btn.disabled=true;
-
-      try{
-        const data=validateAccountForm();
-        const usernameKey=String(data.username||"").trim().toLowerCase();
-
-        if(msg){
-          msg.textContent="Checking username...";
-          msg.className="auth-msg";
-        }
-
-        // Quick check if Firestore rules permit the lookup. The transaction
-        // below remains the authoritative uniqueness check.
-        try{
-          const existing=await lookupUsername(usernameKey);
-          if(existing)throw new Error("USERNAME_ALREADY_EXISTS");
-        }catch(e){
-          if(String(e.message||"")!=="USERNAME_ALREADY_EXISTS" &&
-             !String(e.code||"").includes("permission-denied"))throw e;
-          if(String(e.message||"")==="USERNAME_ALREADY_EXISTS")throw e;
-        }
-
-        if(msg){
-          msg.textContent="Creating account...";
-          msg.className="auth-msg";
-        }
-
-        const cred=await window.firebaseCloud.signUp(data.email,data.pw);
-        const user=cred&&cred.user ? cred.user : window.firebaseCloud.currentUser;
-        if(!user)throw new Error("Account was created but the user could not be loaded.");
-
-        try{
-          await reserveUsername(user.uid,data.email,usernameKey);
-        }catch(e){
-          try{await window.firebaseCloud.deleteCurrentUser();}catch(delErr){console.error(delErr);}
-          if(String(e.message||"")==="USERNAME_ALREADY_EXISTS"){
-            throw new Error("Username already exists. Please choose another username.");
-          }
-          throw new Error("Unable to reserve username. Please check your Firestore rules.");
-        }
-
-        await saveProfile(user.uid,data);
-
-        closeModal("signupModal");
-        ["signupEmail","signupMobile","signupUsername","signupPassword","signupConfirm"].forEach(id=>{
-          const el=document.getElementById(id);
-          if(el)el.value="";
-        });
-
-      }catch(err){
-        console.error(err);
-        if(msg){
-          msg.textContent=(err && err.code === "auth/email-already-in-use")
-            ?"Email already exists. Please choose another username."
-            :(String(err.message||"")==="USERNAME_ALREADY_EXISTS"
-              ?"Username already exists. Please choose another username."
-              :(err.message||friendlyAuthError(err)));
-          msg.className="auth-msg error";
-        }
-      }finally{
-        if(btn)btn.disabled=false;
-      }
-    }
-
-    document.getElementById("loginBtn").onclick=attemptLogin;
-    document.getElementById("signUpBtn").onclick=()=>{
-      const msg=document.getElementById("signupMsg");
-      if(msg){msg.textContent="";msg.className="auth-msg";}
-      openModal("signupModal");
-    };
-    document.getElementById("signupCreateBtn").onclick=attemptSignUp;
-    document.getElementById("forgotPasswordBtn").onclick=()=>{
-      const msg=document.getElementById("forgotMsg");
-      if(msg){msg.textContent="";msg.className="auth-msg";}
-      openModal("forgotModal");
-    };
-    document.getElementById("sendEmailResetBtn").onclick=sendEmailReset;
-    // Modal controls: use delegated handling so every Close/Cancel button works,
-    // including buttons added dynamically.
-    document.addEventListener("click",function(e){
-      const closeBtn=e.target.closest("[data-close-modal]");
-      if(closeBtn){
-        e.preventDefault();
-        e.stopPropagation();
-        closeModal(closeBtn.dataset.closeModal);
-        return;
-      }
-
-      const toggle=e.target.closest(".toggle-pass");
-      if(toggle){
-        const input=document.getElementById(toggle.dataset.target);
-        if(input){
-          input.type=input.type==="password"?"text":"password";
-          toggle.textContent=input.type==="password"?"Show":"Hide";
-        }
-      }
-    });
-
-    document.querySelectorAll(".auth-modal").forEach(function(modal){
-      modal.addEventListener("click",function(e){
-        if(e.target===modal)closeModal(modal.id);
-      });
-    });
-
-    const profileBtnEl=document.getElementById("profileBtn");
-    if(profileBtnEl)profileBtnEl.onclick=openProfile;
-
-    const saveProfileMobileBtn=document.getElementById("saveProfileMobileBtn");
-    if(saveProfileMobileBtn)saveProfileMobileBtn.onclick=saveProfileMobile;
-
-    const changePasswordBtn=document.getElementById("changePasswordBtn");
-    if(changePasswordBtn)changePasswordBtn.onclick=changeProfilePassword;
-
-
-    loginUsername.onkeydown=e=>{
-      if(e.key==="Enter"){e.preventDefault();loginPassword.focus();}
-    };
-    loginPassword.onkeydown=e=>{
-      if(e.key==="Enter"){e.preventDefault();attemptLogin();}
-    };
-
-    document.getElementById("homeBtn").onclick=goHome;
-
-    document.getElementById("logoutBtn").onclick=async()=>{
-      const btn=document.getElementById("logoutBtn");
-      if(btn) btn.disabled=true;
-      try{
-        // IMPORTANT: save all current data before ending the Firebase session.
-        await window.saveAppDataBeforeLogout();
-        await window.firebaseCloud.logout();
-      }catch(err){
-        console.error(err);
-        alert("Logout failed. Please try again.");
-      }finally{
-        if(btn) btn.disabled=false;
-      }
-    };
-    loginUsername.onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();loginPassword.focus();}};
-    loginPassword.onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();attemptLogin();}};
-    setTimeout(()=>loginUsername.focus(),50);
-
-    const openNewVoForm=()=>{
-      if(!confirmSwitch("creating a new VO"))return;
-      document.getElementById("newVoForm").classList.remove("hidden");
-      document.getElementById("newVoName").focus();
-    };
-
-    // Both Create New VO buttons use the same handler.
-    // The Home-page button was previously missing its click binding.
-    const homeNewVoBtn=document.getElementById("homeNewVoBtn");
-    if(homeNewVoBtn)homeNewVoBtn.onclick=openNewVoForm;
-
-    document.getElementById("cancelVoBtn").onclick=()=>document.getElementById("newVoForm").classList.add("hidden");
-    document.getElementById("createVoBtn").onclick=createVO;
-    document.getElementById("newVoName").onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();createVO();}};
-    document.getElementById("voSelect").onchange=e=>{
-      const id=e.target.value;if(!id||id===selectedVOId)return;
-      selectedVOId=id;monthIndex=0;refresh();
-      document.getElementById("voDetailsSection").classList.remove("hidden");
-      const homeNewVoBtn=document.getElementById("homeNewVoBtn");
-      if(homeNewVoBtn)homeNewVoBtn.style.removeProperty("display");
-      document.getElementById("dataManagementSection").classList.add("hidden");
-      markClean();
-    };
-    document.getElementById("saveVoBtn").onclick=saveVO;
-    document.getElementById("addShgBtn").onclick=addSHG;
-    document.getElementById("shgNameInput").onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();addSHG();}};
-    document.getElementById("saveAllBtn").onclick=saveAll;
-    /*
-     * PDF report module is loaded separately from the main application logic.
-     * The existing PDF functions receive the same application dependencies.
-     */
-    const pdfReports=window.createVOPDF({
-      MONTHS,
-      blank,
-      calc,
-      esc,
-      fmt,
-      monthIsConsidered,
-      vo
-    });
-    const {
-      monthlyPDF,
-      cumulativeDcbPDF,
-      ledgerPDF,
-      allPdfsPDF
-    }=pdfReports;
-
-    /*
-     * PDF button handlers.
-     *
-     * IMPORTANT:
-     * monthlyPDF(), cumulativeDcbPDF() and ledgerPDF() accept an internal
-     * `asPart` argument for the "All 3 PDFs" combined report.
-     * Assigning the functions directly to onclick passes the browser Event
-     * object as that first argument, making `asPart` truthy and preventing
-     * the individual PDF from calling printReport().
-     *
-     * Use wrapper functions so individual buttons ALWAYS call with false.
-     */
-    document.getElementById("monthlyPdfBtn").onclick=()=>monthlyPDF(false);
-    document.getElementById("cumulativeDcbPdfBtn").onclick=()=>cumulativeDcbPDF(false);
-    document.getElementById("ledgerPdfBtn").onclick=()=>ledgerPDF(false);
-    document.getElementById("allPdfsBtn").onclick=()=>allPdfsPDF();
-    document.getElementById("backupBtn").onclick=exportBackup;
-    document.getElementById("importBtn").onclick=()=>{
-      document.getElementById("fileInput").dataset.importMode="replace";
-      document.getElementById("fileInput").click();
-    };
-    document.getElementById("importAllBtn").onclick=()=>{
-      document.getElementById("fileInput").dataset.importMode="merge";
-      document.getElementById("fileInput").click();
-    };
-    document.getElementById("fileInput").onchange=e=>{
-      const file=e.target.files[0];
-      const mode=e.target.dataset.importMode||"replace";
-      if(file){
-        if(mode==="merge")importAllBackup(file);
-        else importBackup(file);
-      }
-      e.target.value="";
-      e.target.dataset.importMode="";
-    };
-    document.getElementById("resetBtn").onclick=resetAll;
-    window.addEventListener("resize",function(){
-      if(document.querySelector("#entryBody input.name"))fitShgNameColumn();
-    });
-
-    document.addEventListener("input",function(e){
-      if(e.target.matches && e.target.matches("#entryBody input.name")){
-        fitShgNameColumn();
-      }
-      if(e.target.matches("input,textarea") && !["newVoName","loginUsername","loginPassword","signupEmail","signupMobile","signupUsername","signupPassword","signupConfirm"].includes(e.target.id))markDirty();
-      const m=e.target.id&&e.target.id.match(/^(prevP|prevI|demandP)-(\d+)$/);
-      if(m && typeof window.recalc==="function") window.recalc(Number(m[2]));
-    });
-
-
-    /* Universal button animation engine: covers static and dynamically-created buttons. */
-    document.addEventListener("click",function(e){
-      const button=e.target.closest("button");
-      if(!button || button.disabled)return;
-
-      const rect=button.getBoundingClientRect();
-      const ripple=document.createElement("span");
-      ripple.className="button-ripple";
-      ripple.style.left=(e.clientX-rect.left)+"px";
-      ripple.style.top=(e.clientY-rect.top)+"px";
-      button.appendChild(ripple);
-      ripple.addEventListener("animationend",()=>ripple.remove(),{once:true});
-
-      /* A visible click bounce for every action without changing its behavior. */
-      button.classList.remove("button-success-flash");
-      void button.offsetWidth;
-      button.classList.add("button-success-flash");
-      setTimeout(()=>button.classList.remove("button-success-flash"),600);
-    },true);
-
-    /* Initial dashboard refresh is performed after successful login. */
-    })();

@@ -1,0 +1,298 @@
+@import url('https://fonts.googleapis.com/css2?family=Gidugu&display=swap');
+                *{box-sizing:border-box}body{margin:0;font-family:Arial,"Noto Sans",sans-serif;background:#f4f6f8;color:#202733}
+        header{background:#17365d;color:#fff;padding:16px 22px}header h1{margin:0;font-size:22px}
+        main{max-width:1500px;margin:18px auto;padding:0 14px}.card{background:#fff;border:1px solid #d5dce4;border-radius:9px;padding:18px;margin-bottom:16px}
+        h2{margin:0 0 14px}.toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:end}.field{min-width:220px;flex:1}
+        /* Compact controls: use about half the page on the desktop. */
+        #voDetailsToolbar:not(.show-details){max-width:40%;}
+        #shgToolbar{max-width:100%;}
+        /* Initial-page/new-VO controls match the Existing VO selector width. */
+        #newVoForm .toolbar{align-items:end;}
+        #newVoForm .field{flex:0 0 40%;min-width:0;}
+        /* Create New VO matches the Existing VO selector in width and height. */
+        .create-vo-field{flex:1;}
+        .create-vo-field button{width:100%;min-height:38px;}
+        /* Main-page Add SHG input matches the Existing VO selector width. */
+        #shgToolbar > .field:first-child{flex:0 0 calc((100% - 40px)/5);max-width:calc((100% - 40px)/5);min-width:220px;}
+        /* Save/Delete belong to the selected-VO screen, not the initial page. */
+        .selected-vo-only{display:none!important;}
+        #voDetailsToolbar.show-details ~ .actions .selected-vo-only{display:inline-block!important;}
+        /* On the Home/initial screen, Create New VO sits beside Existing VO. */
+        #voDetailsToolbar:not(.show-details) .initial-create-vo{
+          display:inline-block!important;
+          flex:0 0 calc(50% - 5px);
+          min-width:0;
+        }
+        #voDetailsToolbar.show-details .initial-create-vo{display:none!important;}
+        /* Header navigation. */
+        header{display:flex;align-items:center;gap:12px;}
+        #homeBtn{background:#e6ebf1;color:#17365d;padding:8px 12px;}
+        #homeBtn + h1{margin:0;}
+        #profileBtn{margin-left:auto;background:#e6ebf1;color:#17365d;padding:8px 12px;white-space:nowrap;}
+        #logoutBtn{margin-left:0;background:#c62828;color:#fff;padding:8px 12px;white-space:nowrap;}
+        @media(max-width:900px){#voDetailsToolbar:not(.show-details),#shgToolbar{max-width:100%;}
+          #newVoForm .field,#shgToolbar > .field:first-child{flex-basis:100%;max-width:100%;}
+        }
+        label{display:block;font-size:12px;font-weight:bold;margin-bottom:5px}
+/* Keep VO Name, Village, Mandal and District hidden on the initial page. */
+#voName,#voName + *,
+#village,#village + *,
+#mandal,#mandal + *,
+#district,#district + *{
+}
+.initial-hidden-field{display:none!important}
+#voDetailsToolbar.show-details .initial-hidden-field{display:block!important}
+
+/* Selected-VO screen: Existing VO, VO Name, Village, Mandal and District use the same field width. */
+#voDetailsToolbar.show-details > .field{
+  flex:0 0 calc((100% - 30px) / 4);
+  max-width:calc((100% - 30px) / 4);
+  min-width:0;
+}
+#voDetailsToolbar.show-details > .field:first-child{
+  flex:0 0 calc((100% - 30px) / 4);
+  max-width:calc((100% - 30px) / 4);
+}
+/* New VO Name input uses the same width as the VO Name field. */
+#newVoForm .field{
+  flex:0 0 calc((100% - 30px) / 4);
+  max-width:calc((100% - 30px) / 4);
+  min-width:0;
+}
+@media(max-width:900px){
+  #voDetailsToolbar.show-details > .field,
+  #voDetailsToolbar.show-details > .field:first-child,
+  #newVoForm .field{
+    flex:1 1 100%;
+    max-width:100%;
+  }
+}
+        input,select{width:100%;padding:9px;border:1px solid #aeb8c4;border-radius:6px;font-size:14px;background:#fff}
+        button{padding:10px 13px;border:0;border-radius:6px;font-weight:bold;cursor:pointer}
+        .primary{background:#1769aa;color:#fff}.success{background:#18864b;color:#fff}.secondary{background:#e6ebf1;color:#263445}.danger{background:#c62828;color:#fff}.warning{background:#b87300;color:#fff}
+        .hidden{display:none!important}.notice{padding:10px;background:#fff8dd;border:1px solid #ead37d;border-radius:6px;font-size:13px;margin-bottom:12px}
+
+        /* Login screen shown before the accounting dashboard. */
+        #loginScreen{
+          min-height:100vh;
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          padding:20px;
+          background:#f4f6f8;
+        }
+        #loginCard{
+          width:min(390px,100%);
+          background:#fff;
+          border:1px solid #d5dce4;
+          border-radius:12px;
+          padding:28px;
+          box-shadow:0 12px 35px rgba(0,0,0,.10);
+        }
+        #loginCard h1{margin:0 0 6px;font-size:24px;color:#17365d;text-align:center}
+        #loginCard p{margin:0 0 20px;text-align:center;color:#667085;font-size:13px}
+        #loginCard .login-field{margin-bottom:14px}
+        #loginCard .login-field label{font-size:13px}
+        #loginCard .login-field input{font-size:15px}
+        #loginBtn,#signUpBtn{width:100%;display:block;margin-left:0;margin-right:0}
+        #loginBtn{margin-top:4px}
+        #signUpBtn{margin-top:8px}
+        #loginError{min-height:18px;margin-top:10px;color:#c62828;font-size:13px;text-align:center;font-weight:bold}
+
+        .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.months{display:flex;gap:5px;flex-wrap:wrap;margin:10px 0}.months button{background:#e6ebf1}.months button.active{background:#1769aa;color:#fff}
+        .tablewrap{overflow:auto}.entry{border-collapse:collapse;width:100%;min-width:1450px}
+
+.entry th:nth-child(2),.entry td:nth-child(2){
+  border-left:0!important;
+}
+/* SHG row Save and Delete buttons must have the same size. */
+.entry td:nth-last-child(2) button,
+.entry td:nth-last-child(1) button,
+.entry .shg-delete-btn{
+  width:100% !important;
+  min-width:80px !important;
+  min-height:32px !important;
+  box-sizing:border-box !important;
+  padding:6px 10px !important;
+  font-size:11px !important;
+  line-height:1.2 !important;
+  white-space:nowrap !important;
+  margin:0 !important;
+}
+
+/* Automatically freeze S.No and SHG Name while horizontally scrolling. */
+.tablewrap{position:relative;overflow:auto;max-width:100%}
+.entry th:first-child,.entry td:first-child{
+  position:sticky;
+  left:0;
+  z-index:3;
+  background:#fff;
+}
+.entry th:nth-child(2),.entry td:nth-child(2){
+  position:sticky;
+  left:55px;
+  z-index:3;
+  background:#fff;
+}
+.entry th:first-child,.entry th:nth-child(2){
+  background:#edf1f5;
+  z-index:5;
+}
+.entry td:first-child,.entry td:nth-child(2){
+  box-shadow:1px 0 0 #c3cad2;
+}
+
+/* Keep the divider between the frozen SHG Name column and Delete
+   visible even after horizontal scrolling. */
+.entry th:nth-child(2),.entry td:nth-child(2){
+  position:sticky;
+  left:55px;
+  z-index:6;
+  background:#fff;
+}
+.entry th:nth-child(2){
+  background:#edf1f5;
+}
+.entry td:nth-child(2)::before,.entry th:nth-child(2)::before{
+  content:"";
+  position:absolute;
+  top:-1px;
+  left:-1px;
+  bottom:-1px;
+  width:1px;
+  background:#c3cad2;
+  pointer-events:none;
+  z-index:10;
+}
+.entry td:nth-child(2)::after,.entry th:nth-child(2)::after{
+  content:"";
+  position:absolute;
+  top:-1px;
+  right:-1px;
+  bottom:-1px;
+  width:1px;
+  background:#c3cad2;
+  pointer-events:none;
+  z-index:10;
+}
+
+/* Keep the two SHG row action columns equal width. */
+.entry th:nth-last-child(2),.entry td:nth-last-child(2),
+.entry th:nth-last-child(1),.entry td:nth-last-child(1){
+  width:92px;
+  min-width:92px;
+  max-width:92px;
+  text-align:center !important;
+}
+
+.entry th,.entry td{border:1px solid #c3cad2;padding:5px;font-size:11px;text-align:right}.entry th{text-align:center;background:#edf1f5}.entry th:first-child,.entry td:first-child{width:55px;min-width:55px;max-width:55px;text-align:center}.entry th:nth-child(2),.entry td:nth-child(2){width:150px;min-width:150px}.entry th:nth-child(3),.entry td:nth-child(3){width:72px;min-width:72px;text-align:center}.entry input{min-width:80px;padding:6px;font-size:11px;text-align:right}.entry .name{min-width:150px;text-align:left;font-weight:bold}
+
+/* Mobile/tablet: SHG Name column auto-fits to the longest name.
+   With no entered name it stays at the SHG Name header width.
+   When a name is entered, the whole column grows to the longest text. */
+@media(max-width:900px){
+  .entry th:nth-child(2),
+  .entry td:nth-child(2){
+    width:auto;
+    min-width:0;
+    max-width:none;
+    white-space:nowrap;
+  }
+  .entry td:nth-child(2) .name{
+    display:block;
+    width:100% !important;
+    min-width:0 !important;
+    max-width:none !important;
+    box-sizing:border-box;
+    text-align:left;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:clip;
+  }
+}
+
+/* Mobile/tablet only: keep the SHG Name table column at the header width initially,
+   and expand it to fit the longest entered SHG name without changing other columns. */
+@media(max-width:900px){
+  .entry th:nth-child(2),
+  .entry td:nth-child(2){
+    width:auto;
+    min-width:0;
+    max-width:none;
+  }
+  .entry td:nth-child(2) .name{
+    width:100%;
+    min-width:0;
+    box-sizing:border-box;
+  }
+}
+input:disabled{background:#eee;color:#555;cursor:not-allowed;}
+        .telugu{font-family:"Gidugu",sans-serif}
+        .calc{font-weight:bold}.entry input.calc{width:100%;min-width:80px;padding:6px;font-size:11px;text-align:right}
+        .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.small{font-size:12px;color:#667085}.ok{color:#18864b;font-weight:bold}
+/* Mobile + tablet only: PDF/action buttons match the requested 2x2 + full-width layout. */
+@media screen and (max-width:900px){
+  #dashboard .actions{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:10px;
+    width:100%;
+  }
+
+  #dashboard .actions > button{
+    width:100%;
+    min-width:0;
+    min-height:54px;
+    margin:0;
+  }
+
+  #dashboard .actions #allPdfsBtn{
+    grid-column:1 / -1;
+  }
+}
+
+        .remove-shg{background:#c62828;color:#fff;padding:6px 9px;font-size:11px}
+        @media(max-width:900px){.grid4{grid-template-columns:repeat(2,1fr)}}@media(max-width:600px){.grid4{grid-template-columns:1fr}}
+
+/*
+ * CUMULATIVE DCB - COMMON DATA FONT
+ * ---------------------------------
+ * Every cumulative DCB DATA cell uses exactly the same font family and
+ * the same font size. The size may change only for the COMPLETE data area,
+ * never for one individual cell.
+ */
+.cumulative-dcb-table tbody td,
+.cumulative-dcb-table tbody td .pdf-cell-text,
+.cumulative-dcb-table tbody tr.total td,
+.cumulative-dcb-table tbody tr.total td .pdf-cell-text{
+  font-family:"Gidugu",Arial,sans-serif !important;
+  font-size:13pt !important;
+  font-weight:400 !important;
+  font-style:normal !important;
+  line-height:1 !important;
+  white-space:nowrap !important;
+  font-synthesis:none !important;
+  overflow:visible !important;
+}
+
+
+/* FINAL CUMULATIVE DCB FONT OVERRIDE */
+.cumulative-dcb-page .cumulative-dcb-table tbody td,
+.cumulative-dcb-page .cumulative-dcb-table tbody td .pdf-cell-text,
+.cumulative-dcb-page .cumulative-dcb-table tbody tr.total td,
+.cumulative-dcb-page .cumulative-dcb-table tbody tr.total td .pdf-cell-text{
+  font-family:"Gidugu",Arial,sans-serif !important;
+}
+
+
+/* FINAL MONTHLY DCB COMMON FONT OVERRIDE */
+.dcb-page .dcb-table tbody td,
+.dcb-page .dcb-table tbody td .pdf-cell-text,
+.dcb-page .dcb-table tbody tr.total td,
+.dcb-page .dcb-table tbody tr.total td .pdf-cell-text{
+  font-family:"Gidugu",Arial,sans-serif !important;
+  font-weight:400 !important;
+  font-style:normal !important;
+  white-space:nowrap !important;
+  overflow:visible !important;
+}

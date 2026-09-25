@@ -1,0 +1,20 @@
+/* Selected system = BLUE; unselected system = LIGHT GREY. */
+        #loginSystemChoice{display:flex !important;gap:8px !important;margin:0 0 14px !important;}
+        #loginSystemChoice button{
+          flex:1 1 0 !important;min-height:42px !important;
+          border:1px solid #c7d0da !important;background:#e6ebf1 !important;color:#263445 !important;
+          box-shadow:none !important;transform:none !important;filter:none !important;animation:none !important;
+          transition:background .18s ease,color .18s ease,border-color .18s ease,transform .12s ease,box-shadow .18s ease !important;
+        }
+        #loginSystemChoice button.login-system-selected{
+          background:#1769aa !important;border-color:#1769aa !important;color:#fff !important;
+          box-shadow:0 4px 10px rgba(23,105,170,.28) !important;
+        }
+        #loginSystemChoice button.login-system-selected:hover{
+          background:#1769aa !important;border-color:#1769aa !important;color:#fff !important;transform:translateY(-1px) !important;
+        }
+        #loginSystemChoice button:not(.login-system-selected):hover{
+          background:#dce3eb !important;border-color:#aeb8c4 !important;color:#263445 !important;transform:translateY(-1px) !important;
+        }
+        #selectedLoginSystem{color:#17365d !important;}
+        @media(max-width:600px){#loginSystemChoice{gap:7px!important;}#loginSystemChoice button{font-size:13px!important;padding:9px 7px!important;}}

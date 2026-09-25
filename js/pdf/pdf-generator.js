@@ -1,26 +1,30 @@
+"use strict";
+
 /* =========================================================
-   PDF.JS
-   Monthly DCB, Cumulative DCB, Loan Ledger and combined PDF logic.
+   PDF GENERATION
+   Monthly DCB, Cumulative DCB, Loan Ledger, print-window layout,
+   table fitting, fonts, page layout and combined PDF orchestration.
    ========================================================= */
+function pdfParentLabel(){return modeConfig().parent;}
+    function pdfChildLabel(){return modeConfig().child;}
 
-(function(global){
-  "use strict";
-
-  /*
-   * PDF REPORT MODULE
-   * Existing PDF-generation logic moved out of the main application file.
-   * The same application helpers are supplied by script.js.
-   */
-  global.createVOPDF = function(deps){
-    const {
-      MONTHS,
-      blank,
-      calc,
-      esc,
-      fmt,
-      monthIsConsidered,
-      vo
-    } = deps;
+    /*
+     * PDF location rules are intentionally tied ONLY to the active login
+     * system.  MS Login and VO Login must never share the same location
+     * ordering/fields.
+     *
+     * MS Login PDFs:  MS -> Mandal -> District
+     * VO Login PDFs:  VO -> Village -> Mandal
+     */
+    function isMsLoginPdf(){return currentMode==="MS";}
+    function pdfLocationLabelTelugu(){return isMsLoginPdf()?"జిల్లా":"గ్రామం";}
+    function pdfLocationValue(v){return isMsLoginPdf()?(v.district||""):(v.village||"");}
+    function pdfHeaderLocationText(v){
+      if(isMsLoginPdf()){
+        return `${pdfParentLabel()} : ${esc(v.name||"")},&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;మండలం : ${esc(v.mandal||"")},&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;జిల్లా : ${esc(v.district||"")}`;
+      }
+      return `${pdfParentLabel()} : ${esc(v.name||"")},&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;${pdfLocationLabelTelugu()} : ${esc(pdfLocationValue(v))},&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;మండలం : ${esc(v.mandal||"")}`;
+    }
 
     /*
      * UNIVERSAL PDF TABLE FITTING ENGINE
@@ -37,7 +41,7 @@
      * DCB / Cumulative DCB exact fallback:
      * 1. 10 mm left/right + all data 13pt.
      * 2. If insufficient, 8 mm left/right + all data 13pt.
-     * 3. If still insufficient, SHG Name only becomes 10pt.
+     * 3. If still insufficient, Child Name only becomes 10pt.
      * 4. If still insufficient, only the SHG Name row/cell that needs it wraps.
      * S.No is fixed and never donates space. All other columns donate spare
      * available width before any fallback stage.
@@ -1068,7 +1072,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Gidugu&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="pdf.css">
+<link rel="stylesheet" href="${new URL("css/pdf-print-window.css", location.href).href}">
 </head>
 <body>${body}</body>
 </html>`);
@@ -1130,6 +1134,11 @@
       };
     }
 
+    /* MS LOGIN PDF RULE (STRICT):
+     * Monthly DCB + Cumulative DCB header: MS -> Mandal -> District.
+     * Loan Ledger first metadata row: child name + Mandal + District.
+     * These rules are active only while currentMode === "MS".
+     */
     function monthlyPDF(asPart=false){
       const v=vo();
       if(!v)return;
@@ -1237,7 +1246,7 @@
                   <tbody>
                     <tr>
                       <th colspan="10" class="dcb-head-left telugu">
-                        VO : ${esc(v.name)},&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;గ్రామం : ${esc(v.village||"")},&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;మండలం : ${esc(v.mandal||"")}
+                        ${pdfHeaderLocationText(v)}
                       </th>
                       <th colspan="7" class="dcb-head-right">
                         DCB-${m[0].toUpperCase()}
@@ -1253,7 +1262,7 @@
                   <thead>
                     <tr class="group-head">
                       <th rowspan="2">S.N</th>
-                      <th rowspan="2"><span class="telugu">SHG పేరు</span></th>
+                      <th rowspan="2"><span class="telugu">${pdfChildLabel()} పేరు</span></th>
                       <th rowspan="2"><span class="telugu">ప్రారంభ<br>అప్పు నిల్వ</span></th>
                       <th colspan="2"><span class="telugu">గత నెల బకాయి<br>వివరాలు</span></th>
                       <th colspan="2"><span class="telugu">ఈ నెల డిమాండ్</span></th>
@@ -1323,7 +1332,7 @@
     function cumulativeDcbPDF(asPart=false){
       const v=vo();
       if(!v||!v.shgs.length){
-        if(!asPart) alert("Select a VO with SHGs.");
+        if(!asPart) alert(`Select a ${pdfParentLabel()} with ${pdfChildLabel()}s.`);
         return "";
       }
 
@@ -1499,7 +1508,7 @@
                 <tbody>
                   <tr>
                     <th colspan="8" class="cumulative-dcb-head-left telugu">
-                      VO : ${esc(v.name)},&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;గ్రామం : ${esc(v.village||"")},&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;మండలం : ${esc(v.mandal||"")}
+                      ${pdfHeaderLocationText(v)}
                     </th>
                     <th colspan="7" class="cumulative-dcb-head-right">
                       Cumulative DCB 2026-27
@@ -1513,11 +1522,11 @@
                 <thead>
                   <tr class="group-head">
                     <th rowspan="2">S.N</th>
-                    <th rowspan="2"><span class="telugu">SHG పేరు</span></th>
+                    <th rowspan="2"><span class="telugu">${pdfChildLabel()} పేరు</span></th>
                     <th rowspan="2"><span class="telugu">ప్రారంభ<br>అప్పు నిల్వ</span></th>
 
                     <th colspan="3">
-                      <span class="telugu">గత బకాయి తో కలిపి <br>ఇప్పటి వరకు డిమాండ్</span>
+                      <span class="telugu">డిమాండ్</span>
                     </th>
 
                     <th colspan="3">
@@ -1606,7 +1615,7 @@
       const v=vo();
 
       if(!v||!v.shgs.length){
-        if(!asPart) alert("Select a VO with SHGs.");
+        if(!asPart) alert(`Select a ${pdfParentLabel()} with ${pdfChildLabel()}s.`);
         return "";
       }
 
@@ -1659,17 +1668,26 @@
               <div class="ledger-blank"></div>
 
               <div class="ledger-title-row">
-                <div class="ledger-title telugu">${esc(v.name||"")} VO - అప్పు లెడ్జర్ 2026-27</div>
+                <div class="ledger-title telugu">${esc(v.name||"")} ${pdfParentLabel()} - అప్పు లెడ్జర్ 2026-27</div>
                 <div class="page-label">Page No:</div>
                 <div class="page-number">${ledgerSerial}</div>
               </div>
 
               <div class="ledger-meta">
                 <div class="meta-row">
-                  <div class="meta-key telugu">SHG పేరు :</div>
+                  <div class="meta-key telugu">${pdfChildLabel()} పేరు :</div>
                   <div class="meta-value highlight telugu">${esc(s.name)}</div>
-                  <div class="meta-key telugu">గ్రామం పేరు :</div>
-                  <div class="meta-value telugu meta-value-merged">${esc(v.village||"")}</div>
+                  ${isMsLoginPdf() ? `
+                    <!-- MS Login ONLY: Mandal and District are on the same row.
+                         Order is strictly MS -> Mandal -> District. -->
+                    <div class="meta-key telugu">మండలం :</div>
+                    <div class="meta-value telugu">${esc(v.mandal||"")}</div>
+                    <div class="meta-key telugu">జిల్లా :</div>
+                    <div class="meta-value telugu">${esc(v.district||"")}</div>
+                  ` : `
+                    <div class="meta-key telugu">${pdfLocationLabelTelugu()} పేరు :</div>
+                    <div class="meta-value telugu meta-value-merged">${esc(pdfLocationValue(v))}</div>
+                  `}
                 </div>
 
                 <div class="meta-row">
@@ -1743,7 +1761,7 @@
     function allPdfsPDF(){
       const v=vo();
       if(!v||!v.shgs.length){
-        alert("Select a VO with SHGs.");
+        alert(`Select a ${pdfParentLabel()} with ${pdfChildLabel()}s.`);
         return;
       }
 
@@ -1770,15 +1788,9 @@
         return;
       }
 
-      printReport("VO",body);
+      printReport(pdfParentLabel(),body);
     }
 
-
-    return {
-      monthlyPDF,
-      cumulativeDcbPDF,
-      ledgerPDF,
-      allPdfsPDF
-    };
-  };
-})(window);
+    /* Firebase Login / Sign Up gate.
+       Mobile number + username are stored in the user's Profile only.
+       No SMS/OTP is used. */

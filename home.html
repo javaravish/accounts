@@ -3,27 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chary's - VO DCB & LL Login</title>
+    <title>Chary's - DCB & LL</title>
     <!-- SIGNUP_NO_OTP_VERSION_2026-09-18 -->
     <link rel="icon" type="image/svg+xml"
           href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2317365d'/%3E%3Ctext x='32' y='42' text-anchor='middle' font-family='Arial,sans-serif' font-size='25' font-weight='700' fill='white'%3EVO%3C/text%3E%3C/svg%3E">
-    <!-- =========================================================
-         STYLES
-         All screen/UI styling: styles.css
-         PDF print styling: pdf.css (loaded by pdf.js when generating PDFs)
-         ========================================================= -->
-    <link rel="stylesheet" href="./styles.css">
+    <link rel="stylesheet" href="css/styles.css">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 </head>
 <body>
-<!-- =========================================================
-     AUTHENTICATION UI
-     Login / Sign Up / OTP / Forgot Password / Profile modals
-     Logic: auth.js
-     ========================================================= -->
+<!-- ==================== LOGIN UI ==================== -->
 <section id="loginScreen" aria-label="Login">
     <div id="loginCard">
-        <h1>Chary's - VO DCB & LL Login</h1>
-        <p>Login to continue</p>
+        <h1 id="loginTitle">Chary's - DCB & LL Login</h1>
+        <p>Choose the system you want to access, then login.</p>
+        <div class="login-system-choice" id="loginSystemChoice" style="display:flex;gap:8px;margin:0 0 14px;">
+            <button type="button" class="primary" id="loginVoBtn" style="flex:1;">VO Login</button>
+            <button type="button" class="secondary" id="loginMsBtn" style="flex:1;">MS Login</button>
+        </div>
+        <div id="selectedLoginSystem" class="small" style="text-align:center;margin:-4px 0 12px;font-weight:bold;color:#17365d;">Login to VO → SHG</div>
         <div class="login-field">
             <label for="loginUsername">Username or Email ID</label>
             <input id="loginUsername" type="text" autocomplete="username" placeholder="Username or Email ID">
@@ -44,13 +63,14 @@
 <div id="signupModal" class="auth-modal hidden">
     <div class="auth-box">
         <h2>Create Account</h2>
-        <p class="small">Enter your email, mobile number, username and password.</p>
+        <p class="small">Enter your email, mobile number, username, password and choose the system you are registering for.</p>
         <div class="field"><label>Email ID *</label><input id="signupEmail" type="email" autocomplete="email"
                                                            placeholder="name@example.com"></div>
         <div class="field"><label>Mobile Number *</label><input id="signupMobile" type="tel" autocomplete="tel"
                                                                 placeholder="+91 9876543210"></div>
         <div class="field"><label>Username *</label><input id="signupUsername" type="text" autocomplete="username"
                                                            placeholder="Choose a username"></div>
+        <div class="field"><label>Register Access *</label><select id="signupSystem"><option value="VO">VO → SHG</option><option value="MS">MS → VO</option></select></div>
         <div class="field password-wrap"><label>Password *</label><input id="signupPassword" type="password"
                                                                          autocomplete="new-password"
                                                                          placeholder="Minimum 6 characters">
@@ -128,6 +148,13 @@
             <input id="profileMobileInput" type="tel" autocomplete="tel" placeholder="Mobile Number">
         </div>
 
+        <h3>System Access</h3>
+        <div class="profile-summary" id="profileAccessSummary"></div>
+        <div class="auth-actions" id="profileAccessActions">
+            <button type="button" class="primary" id="registerVOAccessBtn">Register for VO</button>
+            <button type="button" class="primary" id="registerMSAccessBtn">Register for MS</button>
+        </div>
+
         <h3>Change Password</h3>
         <div class="field password-wrap">
             <label>New Password *</label>
@@ -151,50 +178,62 @@
     </div>
 </div>
 
+<div id="systemSelectModal" class="auth-modal hidden">
+    <div class="auth-box">
+        <h2>Select System</h2>
+        <p class="small">Your account is registered for more than one system. Choose which registered system you want to open.</p>
+        <div class="auth-actions" id="systemSelectActions"></div>
+        <div id="systemSelectMsg" class="auth-msg"></div>
+    </div>
+</div>
+
+<!-- ==================== ACCOUNTING APP SHELL ==================== -->
 <div id="appShell" class="hidden">
     <header>
         <button type="button" id="homeBtn" title="Go to initial page">Home</button>
-        <h1>Chary's - VO DCB & LL Dashboard</h1>
+        <h1 id="appTitle">Chary's - DCB & LL Dashboard</h1>
         <button type="button" id="profileBtn" title="Profile">Profile</button>
         <button type="button" id="logoutBtn" title="Logout">Logout</button>
     </header>
+    <!-- ==================== ACCOUNTING HTML / DASHBOARD UI ==================== -->
     <main>
 
         <section class="card" id="voSelectionSection">
-            <h2>VO Selection &amp; Creation</h2>
+            <h2 id="parentSelectionTitle">System Selection &amp; Creation</h2>
 
             <div class="toolbar" id="voSelectionToolbar">
                 <div class="field" style="flex:0 0 calc(40% - 5px);min-width:0">
-                    <label>Existing VO</label>
+                    <label id="existingParentLabel">Existing</label>
                     <select id="voSelect">
-                        <option value="">-- Select existing VO --</option>
+                        <option value="" id="existingParentOption">-- Select existing --</option>
                     </select>
                 </div>
-                <button type="button" class="primary initial-create-vo" id="homeNewVoBtn">Create New VO</button>
+                <button type="button" class="primary initial-create-vo" id="homeNewVoBtn">Create New</button>
             </div>
 
             <div id="newVoForm" class="hidden" style="margin-top:14px">
                 <div class="toolbar">
                     <div class="field">
-                        <label>New VO Name</label>
-                        <input id="newVoName" placeholder="Enter new VO name">
+                        <label id="newParentLabel">New Name</label>
+                        <input id="newVoName" placeholder="Enter new name">
                     </div>
-                    <button type="button" class="success" id="createVoBtn">Create VO</button>
+                    <button type="button" class="success" id="createVoBtn">Create</button>
                     <button type="button" class="secondary" id="cancelVoBtn">Cancel</button>
                 </div>
             </div>
         </section>
 
+        <!-- Parent details: shared HTML; VO/MS behavior is selected by mode-config.js -->
         <section class="card hidden" id="voDetailsSection">
-            <h2>VO Details</h2>
+            <h2 id="parentDetailsTitle">Details</h2>
             <div class="toolbar" id="voDetailsToolbar">
                 <div class="field">
-                    <label>VO Name</label>
-                    <input id="voName" placeholder="VO Name">
+                    <label id="parentNameLabel">Name</label>
+                    <input id="voName" placeholder="Name">
                 </div>
 
-                <div class="field">
-                    <label>Village <span style="color:#c62828">*</span></label>
+                <div class="field" id="villageField">
+                    <label id="villageLabel">Village <span style="color:#c62828">*</span></label>
                     <input id="village" placeholder="Village">
                 </div>
 
@@ -204,13 +243,13 @@
                 </div>
 
                 <div class="field">
-                    <label>District</label>
+                    <label id="districtLabel">District</label>
                     <input id="district" placeholder="District">
                 </div>
             </div>
 
             <div class="actions" id="voDetailsActions">
-                <button type="button" class="success selected-vo-only" id="saveVoBtn">Save VO</button>
+                <button type="button" class="success selected-vo-only" id="saveVoBtn">Save</button>
                 <button type="button" class="danger selected-vo-only" id="resetBtn">Delete VO</button>
                 <span id="saveStatus" class="small"></span>
             </div>
@@ -228,17 +267,18 @@
             </div>
         </section>
 
+        <!-- ==================== CHILD / COLLECTION HTML ==================== -->
         <section id="dashboard" class="hidden">
             <br>
             <div class="card">
-                <h2>SHG Wise Monthly Collection Data</h2>
+                <h2 id="childMonthlyTitle">Child Wise Monthly Collection Data</h2>
                 <div class="notice">Add SHGs here on this month. Type the name and press <b>Enter</b> or click
                     <b>
                         Add SHG</b>. The new SHG immediately becomes a row in the table from this month onwards.
                 </div>
                 <div class="toolbar" id="shgToolbar">
-                    <div class="field"><label>Add SHG Name</label><input id="shgNameInput" placeholder="SHG Name"></div>
-                    <button type="button" class="success" id="addShgBtn">Add SHG</button>
+                    <div class="field"><label id="addChildLabel">Add Child Name</label><input id="shgNameInput" placeholder="Child Name"></div>
+                    <button type="button" class="success" id="addShgBtn">Add Child</button>
                     <div class="field" style="max-width:180px"><label>Interest Rate (%)</label><input id="shgRateInput"
                                                                                                       oninput="updateInterestRateLive()"
                                                                                                       type="number"
@@ -253,7 +293,7 @@
                         <thead>
                         <tr>
                             <th>S.N</th>
-                            <th>SHG Name</th>
+                            <th id="childTableNameHead">Child Name</th>
                             <th>Opening<br>Loan Balance</th>
                             <th>Previous Due<br>Principal</th>
                             <th>Previous Due<br>Interest</th>
@@ -274,26 +314,30 @@
                     </table>
                 </div>
                 <div class="actions">
-                    <button type="button" class="primary" id="saveAllBtn">Save All SHGs</button>
+                    <button type="button" class="primary" id="saveAllBtn">Save All</button>
                     <button type="button" class="warning" id="monthlyPdfBtn">DCB PDF</button>
                     <button type="button" class="warning" id="ledgerPdfBtn">Loan Ledger PDF</button>
                     <button type="button" class="warning" id="cumulativeDcbPdfBtn">Cumulative DCB PDF</button>
-                    <button type="button" class="primary" id="allPdfsBtn">Download VO PDF</button>
+                    <button type="button" class="primary" id="allPdfsBtn">Download PDF</button>
                     <input id="fileInput" type="file" accept=".json" class="hidden">
                 </div>
             </div>
         </section>
     </main>
 </div>
+    <!-- Firebase / authentication transport -->
+    <script type="module" src="js/auth/firebase-auth.js"></script>
 
-<!-- =========================================================
-     JAVASCRIPT MODULES
-     auth.js   = authentication/account logic
-     pdf.js    = PDF generation logic
-     script.js = main accounting/UI logic
-     ========================================================= -->
-<script type="module" src="./auth.js"></script>
-<script src="./pdf.js"></script>
-<script src="./script.js"></script>
+    <!-- Mode definitions: VO and MS are intentionally separate. -->
+    <script src="js/modes/vo-mode.js"></script>
+    <script src="js/modes/ms-mode.js"></script>
+    <script src="js/modes/mode-config.js"></script>
+
+    <!-- Application responsibilities -->
+    <script src="js/app-core.js"></script>
+    <script src="js/pdf/pdf-generator.js"></script>
+    <script src="js/auth/auth-ui.js"></script>
+    <script src="js/bootstrap.js"></script>
+
 </body>
 </html>

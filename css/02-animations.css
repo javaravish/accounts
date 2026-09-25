@@ -1,0 +1,100 @@
+/* =========================================================
+   HIGH-ENERGY BUTTON MICRO-INTERACTIONS
+   Applies to every current and dynamically-created button.
+   ========================================================= */
+button{
+  position:relative;
+  overflow:hidden;
+  isolation:isolate;
+  transform:translateZ(0);
+  transition:
+    transform .18s cubic-bezier(.2,.9,.3,1.25),
+    box-shadow .22s ease,
+    filter .22s ease,
+    opacity .18s ease;
+  will-change:transform,box-shadow,filter;
+}
+button::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:linear-gradient(110deg,transparent 20%,rgba(255,255,255,.28) 45%,transparent 70%);
+  transform:translateX(-130%);
+  transition:transform .5s ease;
+  pointer-events:none;
+  z-index:0;
+}
+button:hover{
+  transform:translateY(-3px) scale(1.035);
+  box-shadow:0 9px 20px rgba(23,54,93,.22),0 2px 5px rgba(0,0,0,.12);
+  filter:saturate(1.12) brightness(1.04);
+}
+button:hover::before{transform:translateX(130%);}
+button:active{
+  transform:translateY(1px) scale(.94);
+  box-shadow:0 2px 5px rgba(0,0,0,.16);
+  filter:brightness(.97);
+}
+button:focus-visible{
+  outline:3px solid rgba(23,105,170,.35);
+  outline-offset:3px;
+}
+button > *{position:relative;z-index:1;}
+
+/* Stronger pulse for important actions. */
+#saveVoBtn,#createVoBtn,#addShgBtn,#saveAllBtn,
+#monthlyPdfBtn,#ledgerPdfBtn,#cumulativeDcbPdfBtn,#backupBtn,#importBtn,#importAllBtn,#resetBtn{
+  animation:buttonFloat 3s ease-in-out infinite;
+}
+#saveVoBtn:hover,#createVoBtn:hover,#addShgBtn:hover,#saveAllBtn:hover,
+#monthlyPdfBtn:hover,#ledgerPdfBtn:hover,#cumulativeDcbPdfBtn:hover,#backupBtn:hover,#importBtn:hover,#importAllBtn:hover,#resetBtn:hover{
+  animation:none;
+}
+@keyframes buttonFloat{
+  0%,100%{filter:brightness(1);}
+  50%{filter:brightness(1.06);}
+}
+
+/* Click ripple */
+.button-ripple{
+  position:absolute;
+  width:18px;
+  height:18px;
+  border-radius:50%;
+  background:rgba(255,255,255,.6);
+  transform:translate(-50%,-50%) scale(0);
+  pointer-events:none;
+  z-index:2;
+  animation:buttonRipple .65s ease-out forwards;
+}
+@keyframes buttonRipple{
+  to{transform:translate(-50%,-50%) scale(16);opacity:0;}
+}
+
+/* Successful action feedback */
+.button-success-flash{
+  animation:buttonSuccess .55s cubic-bezier(.2,.9,.3,1.2) !important;
+}
+@keyframes buttonSuccess{
+  0%{transform:scale(1);}
+  25%{transform:scale(1.12) rotate(-1deg);}
+  50%{transform:scale(.96) rotate(1deg);}
+  75%{transform:scale(1.06);}
+  100%{transform:scale(1);}
+}
+
+/* Month tabs get a stronger selected transition. */
+.months button{
+  transition:transform .2s cubic-bezier(.2,.9,.3,1.25),box-shadow .2s ease,background .2s ease,color .2s ease;
+}
+.months button.active{
+  transform:translateY(-2px) scale(1.05);
+  box-shadow:0 6px 14px rgba(23,105,170,.28);
+}
+
+@media (prefers-reduced-motion:reduce){
+  button,button::before,.button-ripple,.button-success-flash,.months button{
+    animation:none!important;
+    transition:none!important;
+  }
+}

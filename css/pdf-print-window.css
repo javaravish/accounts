@@ -1,8 +1,3 @@
-/* =========================================================
-   PDF.CSS
-   Print-window PDF styling only.
-   ========================================================= */
-
 @page{
   size: A4 landscape;
   margin: 0;
@@ -48,6 +43,8 @@ html,body{
   overflow:hidden;
 }
 
+/* MS PDF metadata order: MS -> Mandal -> District.
+   VO PDF metadata order remains unchanged. */
 /* ---------------- LOAN LEDGER ---------------- */
 .ledger-page{
   padding:28.3465pt;

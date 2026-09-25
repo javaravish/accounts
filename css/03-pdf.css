@@ -1,0 +1,131 @@
+/* =========================================================
+   UNIVERSAL A4 LANDSCAPE PDF SAFE AREA
+   Applies to Monthly DCB, Cumulative DCB and Loan Ledger PDFs.
+   ========================================================= */
+@page{
+  size:A4 landscape;
+  margin:0;
+}
+@media print{
+  html,body{
+    width:297mm;
+    min-height:210mm;
+    margin:0!important;
+    padding:0!important;
+  }
+
+  .page,
+  .ledger-page,
+  .dcb-page,
+  .cumulative-dcb-page{
+    width:297mm!important;
+    min-height:210mm!important;
+    height:210mm!important;
+    box-sizing:border-box!important;
+    padding:28.3465pt!important;
+    margin:0!important;
+  }
+
+  .ledger-page > *,
+  .dcb-page > *,
+  .cumulative-dcb-page > *{
+    max-width:100%!important;
+    box-sizing:border-box!important;
+  }
+}
+
+
+/* PDF margin fallback:
+   - Initial: 10 mm on all four sides.
+   - If horizontal content cannot fit: LEFT/RIGHT become 8 mm.
+   - TOP/BOTTOM remain 10 mm.
+   - Only DCB SHG Name may then reduce to 10 pt and finally wrap.
+*/
+
+/* =========================================================
+   PDF DATA CELL FONT / SPACE RULE
+   - All PDF data cells: minimum 13pt.
+   - Long data is never reduced below 13pt.
+   - Column fitting uses the maximum available A4 safe width.
+   ========================================================= */
+.ledger-page .ledger-table tbody td,
+.dcb-page .dcb-table tbody td,
+.cumulative-dcb-page .cumulative-dcb-table tbody td,
+.ledger-page .ledger-table tbody td .pdf-cell-text,
+.dcb-page .dcb-table tbody td .pdf-cell-text,
+.cumulative-dcb-page .cumulative-dcb-table tbody td .pdf-cell-text{
+  font-size:13pt !important;
+  line-height:1 !important;
+  font-synthesis:none !important;
+  white-space:nowrap !important;
+  overflow:visible !important;
+}
+
+
+<style id="backup-buttons-inline-fix">
+  /* Keep Interest Rate + Backup buttons on one horizontal row. */
+  #shgRateInput { min-width: 0; }
+  #shgRateInput + #backupBtn,
+  #backupBtn,
+  #importBtn {
+    flex: 0 0 auto !important;
+    white-space: nowrap !important;
+  }
+  /* The toolbar containing Interest Rate and backup buttons must not wrap. */
+  #shgRateInput {
+    /* input itself remains normal; this rule is intentionally minimal */
+  }
+
+<style id="shg-toolbar-single-row-fix">
+  #shgToolbar{
+    display:flex !important;
+    flex-direction:row !important;
+    flex-wrap:nowrap !important;
+    align-items:flex-end !important;
+    gap:10px !important;
+    width:100% !important;
+    white-space:nowrap !important;
+  }
+  #shgToolbar > .field:first-child{
+    flex:1 1 auto !important;
+    min-width:220px !important;
+  }
+  #shgToolbar > .field:nth-of-type(2){
+    flex:0 0 180px !important;
+    width:180px !important;
+    min-width:180px !important;
+  }
+  #shgToolbar > button{
+    flex:0 0 auto !important;
+    white-space:nowrap !important;
+  }
+
+/* FINAL SHG-PAGE RULE:
+   Create New VO is available only on the Home / initial page.
+   The selected-VO / SHG page must never display it. */
+#voDetailsToolbar.show-details #homeNewVoBtn{
+  display:none !important;
+}
+#voDetailsToolbar.show-details ~ .actions #newVoBtn{
+  display:none !important;
+}
+
+
+/* Home / initial page: show the Home-page Create New VO button. */
+#voDetailsToolbar:not(.show-details) #homeNewVoBtn{
+  display:inline-block !important;
+}
+
+@media print{
+          .dcb-table thead th, .cumulative-dcb-table thead th, .ledger-table thead th{
+            white-space:normal!important;
+            overflow-wrap:anywhere!important;
+            word-break:break-word!important;
+          }
+          .dcb-table tbody td.pdf-final-wrap, .cumulative-dcb-table tbody td.pdf-final-wrap, .ledger-table tbody td.pdf-final-wrap{
+            white-space:normal!important;
+            overflow-wrap:anywhere!important;
+            word-break:break-word!important;
+            overflow:hidden!important;
+          }
+        }

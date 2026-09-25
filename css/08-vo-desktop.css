@@ -1,0 +1,71 @@
+/* Desktop only:
+           Existing VO = full width on top
+           VO Name | Village | Mandal | District = same width, side by side below
+           Mobile/tablet layout is untouched.
+        */
+        @media screen and (min-width:901px){
+          #voDetailsToolbar.show-details{
+            display:grid !important;
+            grid-template-columns:repeat(4,minmax(0,1fr)) !important;
+            column-gap:10px !important;
+            row-gap:10px !important;
+            width:100% !important;
+            max-width:100% !important;
+            align-items:end !important;
+          }
+
+          #voDetailsToolbar.show-details > .field{
+            width:100% !important;
+            min-width:0 !important;
+            max-width:none !important;
+            flex:none !important;
+            margin:0 !important;
+          }
+
+          /* Existing VO stays on top, but has the same width as one field below */
+          #voDetailsToolbar.show-details > .field:nth-of-type(1){
+            grid-column:1 !important;
+          }
+
+          /* Four equal fields on second row */
+          #voDetailsToolbar.show-details > .field:nth-of-type(2){
+            grid-column:1 !important;
+          }
+          #voDetailsToolbar.show-details > .field:nth-of-type(3){
+            grid-column:2 !important;
+          }
+          #voDetailsToolbar.show-details > .field:nth-of-type(4){
+            grid-column:3 !important;
+          }
+          #voDetailsToolbar.show-details > .field:nth-of-type(5){
+            grid-column:4 !important;
+          }
+
+          #voDetailsToolbar.show-details > .field > input,
+          #voDetailsToolbar.show-details > .field > select{
+            display:block !important;
+            width:100% !important;
+            min-width:0 !important;
+            max-width:none !important;
+            box-sizing:border-box !important;
+            margin:0 !important;
+          }
+
+          /* Keep the initial Create New VO button from affecting the desktop
+             four-field layout when the details fields are shown. */
+          #voDetailsToolbar.show-details > #homeNewVoBtn{
+            display:none !important;
+          }
+        }
+
+        /* MS Login: Village is not part of MS details. Keep the remaining
+           MS fields aligned as three equal columns on desktop. */
+        @media screen and (min-width:901px){
+          #voDetailsToolbar.ms-mode{
+            grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+          }
+          #voDetailsToolbar.ms-mode > .field:nth-of-type(1){grid-column:1 !important;}
+          #voDetailsToolbar.ms-mode > .field:nth-of-type(2){grid-column:1 !important;}
+          #voDetailsToolbar.ms-mode > .field:nth-of-type(3){grid-column:2 !important;}
+          #voDetailsToolbar.ms-mode > .field:nth-of-type(4){grid-column:3 !important;}
+        }

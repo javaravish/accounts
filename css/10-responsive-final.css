@@ -1,0 +1,209 @@
+/* FINAL MOBILE/TABLET OVERRIDE ONLY
+           Desktop (min-width: 901px) is untouched.
+           Mobile + tablet keep the VO controls side-by-side. */
+        @media screen and (max-width:900px){
+          /* VO Selection: Existing VO | Create New VO */
+          #voSelectionToolbar{
+            display:grid !important;
+            grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;
+            gap:10px !important;
+            width:100% !important;
+            max-width:100% !important;
+            align-items:end !important;
+          }
+
+          #voSelectionToolbar > .field{
+            grid-column:auto !important;
+            width:100% !important;
+            min-width:0 !important;
+            max-width:none !important;
+            flex:none !important;
+            margin:0 !important;
+          }
+
+          #voSelectionToolbar #homeNewVoBtn{
+            grid-column:auto !important;
+            width:100% !important;
+            min-width:0 !important;
+            max-width:none !important;
+            flex:none !important;
+            margin:0 !important;
+            height:42px !important;
+            min-height:38px !important;
+          }
+
+          /* VO Details: VO Name | Village / Mandal | District */
+          #voDetailsToolbar.show-details{
+            display:grid !important;
+            grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;
+            column-gap:10px !important;
+            row-gap:10px !important;
+            width:100% !important;
+            max-width:100% !important;
+            align-items:end !important;
+          }
+
+          #voDetailsToolbar.show-details > .field{
+            grid-column:auto !important;
+            width:100% !important;
+            min-width:0 !important;
+            max-width:none !important;
+            flex:none !important;
+            margin:0 !important;
+          }
+
+          #voDetailsToolbar.show-details > .field > input,
+          #voDetailsToolbar.show-details > .field > select{
+            display:block !important;
+            width:100% !important;
+            min-width:0 !important;
+            max-width:none !important;
+            box-sizing:border-box !important;
+            margin:0 !important;
+          }
+        }
+
+        /* Keep the same 2-column layout even on small phones. */
+        @media screen and (max-width:600px){
+          #voSelectionToolbar{
+            grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;
+          }
+
+          #voDetailsToolbar.show-details{
+            grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;
+          }
+        }
+
+/* FINAL FIX: VO Details fields stay side-by-side on mobile/tablet.
+           CSS-only; IDs/HTML/JavaScript functionality are unchanged. */
+        @media screen and (max-width:900px){
+          #voDetailsSection #voDetailsToolbar{
+            display:grid !important;
+            grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;
+            column-gap:10px !important;
+            row-gap:10px !important;
+            width:100% !important;
+            max-width:100% !important;
+            align-items:end !important;
+          }
+
+          #voDetailsSection #voDetailsToolbar > .field{
+            display:block !important;
+            width:100% !important;
+            min-width:0 !important;
+            max-width:none !important;
+            flex:none !important;
+            margin:0 !important;
+            grid-column:auto !important;
+          }
+
+          #voDetailsSection #voDetailsToolbar > .field > input,
+          #voDetailsSection #voDetailsToolbar > .field > select{
+            display:block !important;
+            width:100% !important;
+            min-width:0 !important;
+            max-width:none !important;
+            box-sizing:border-box !important;
+            margin:0 !important;
+          }
+
+          /* Save VO | Delete VO */
+          #voDetailsSection #voDetailsActions{
+            display:grid !important;
+            grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;
+            gap:8px !important;
+            width:100% !important;
+          }
+
+          #voDetailsSection #voDetailsActions > button{
+            width:100% !important;
+            min-width:0 !important;
+            margin:0 !important;
+          }
+
+          #voDetailsSection #voDetailsActions #saveStatus{
+            grid-column:1 / -1 !important;
+          }
+        }
+
+        /* Keep the same layout even on very small phones. */
+        @media screen and (max-width:420px){
+          #voDetailsSection #voDetailsToolbar{
+            grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;
+          }
+          #voDetailsSection #voDetailsActions{
+            grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;
+          }
+        }
+
+/* =========================================================
+           FINAL SHG TABLE FREEZE - DESKTOP + TABLET + MOBILE
+           - Vertical: SHG header row stays frozen while table rows scroll
+           - Horizontal: S.No + SHG Name stay frozen
+           - CSS ONLY: no JavaScript / calculations / PDF logic changed
+           ========================================================= */
+
+        /* Make the SHG table wrapper the scroll area on EVERY screen. */
+        .tablewrap{
+          position:relative !important;
+          width:100% !important;
+          max-width:100% !important;
+          max-height:70vh !important;
+          overflow-x:auto !important;
+          overflow-y:auto !important;
+          -webkit-overflow-scrolling:touch !important;
+          touch-action:pan-x pan-y !important;
+          overscroll-behavior:contain;
+        }
+
+        /* Freeze the COMPLETE SHG header row vertically. */
+        .tablewrap .entry thead th{
+          position:sticky !important;
+          top:0 !important;
+          z-index:20 !important;
+          background:#edf1f5 !important;
+          background-clip:padding-box !important;
+          white-space:normal !important;
+          vertical-align:middle !important;
+          box-shadow:0 2px 4px rgba(0,0,0,.15) !important;
+        }
+
+        /* Frozen S.No column: header + body. */
+        .tablewrap .entry thead th:first-child{
+          left:0 !important;
+          z-index:40 !important;
+          background:#edf1f5 !important;
+        }
+
+        .tablewrap .entry tbody td:first-child{
+          position:sticky !important;
+          left:0 !important;
+          z-index:15 !important;
+          background:#fff !important;
+        }
+
+        /* Frozen SHG Name column: header + body. */
+        .tablewrap .entry thead th:nth-child(2){
+          left:55px !important;
+          z-index:40 !important;
+          background:#edf1f5 !important;
+        }
+
+        .tablewrap .entry tbody td:nth-child(2){
+          position:sticky !important;
+          left:55px !important;
+          z-index:15 !important;
+          background:#fff !important;
+        }
+
+        /* Keep the frozen-column divider visible during horizontal scrolling. */
+        .tablewrap .entry th:nth-child(2),
+        .tablewrap .entry td:nth-child(2){
+          box-shadow:2px 0 3px rgba(0,0,0,.12) !important;
+        }
+
+        /* Desktop + tablet/mobile: allow header text to remain readable. */
+        .tablewrap .entry thead{
+          position:relative;
+          z-index:30;
+        }

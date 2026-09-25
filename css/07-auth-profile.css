@@ -1,0 +1,11 @@
+.profile-edit-mobile{padding:4px 8px;font-size:11px;margin-left:5px;vertical-align:middle}
+        #profileMobileEdit .auth-actions{margin-top:8px}
+        #profileMobileEdit .auth-actions button{min-width:0}
+
+#profileMobileInput{vertical-align:middle;}
+
+#profileBtn{
+          position:relative !important;
+          z-index:10001 !important;
+          pointer-events:auto !important;
+        }
