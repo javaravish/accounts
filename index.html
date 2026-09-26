@@ -351,6 +351,118 @@ button:focus-visible{
 }
 button > *{position:relative;z-index:1;}
 
+/* Report Center */
+.report-center-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.report-filter-toolbar{display:flex;align-items:flex-end;gap:8px;flex-wrap:nowrap}
+.report-filter-toolbar .field{min-width:190px;flex:0 1 260px}
+.report-filter-toolbar #reportLoanField{min-width:190px}
+.report-type-actions{display:flex;align-items:flex-end;gap:8px;flex:1 1 auto;min-width:0;flex-wrap:nowrap}
+.report-type-actions button{flex:1 1 0;min-width:0;white-space:nowrap}
+.report-download-actions{display:flex;align-items:center;justify-content:flex-start;gap:10px;margin-top:10px;flex-wrap:nowrap;white-space:nowrap}
+.report-download-actions .small{display:inline-flex;align-items:center;min-height:38px}
+.report-download-actions button{flex:0 0 auto;white-space:nowrap}
+.report-type-actions button.report-selected{background:#1769aa !important;color:#fff !important;border-color:#1769aa !important;box-shadow:0 0 0 3px rgba(23,105,170,.16),0 2px 5px rgba(0,0,0,.16) !important}
+
+/* Report Center controls size to their text instead of stretching across the card. */
+.report-filter-toolbar{overflow-x:auto;scrollbar-width:thin;}
+.report-filter-toolbar .field{flex:0 0 auto;min-width:0;width:auto;}
+.report-filter-toolbar .field select{width:auto;min-width:100px;max-width:none;}
+.report-filter-toolbar #reportMemberFilter{min-width:120px;}
+.report-filter-toolbar #reportLoanFilter{min-width:150px;}
+.report-type-actions{flex:0 0 auto;width:auto;}
+.report-type-actions button{flex:0 0 auto;width:auto;min-width:0;padding-left:13px;padding-right:13px;}
+.report-download-actions{justify-content:flex-start;}
+.report-download-actions .success{background:#18864b;color:#fff;}
+@media(max-width:1024px){
+  .report-filter-toolbar{display:flex;flex-wrap:nowrap;align-items:flex-end;width:max-content;min-width:100%;overflow-x:auto;}
+  .report-filter-toolbar .field{flex:0 0 auto;width:auto;}
+  .report-filter-toolbar .field select{width:auto;}
+  .report-type-actions{display:flex;flex:0 0 auto;width:auto;flex-wrap:nowrap;}
+  .report-type-actions button{flex:0 0 auto;width:auto;white-space:nowrap;}
+  .report-download-actions{display:flex;flex-wrap:nowrap;width:max-content;min-width:100%;overflow-x:auto;}
+  .report-download-actions .small{flex:0 0 auto;}
+  .report-download-actions button{flex:0 0 auto;width:auto;white-space:nowrap;}
+}
+.report-preview{margin-top:12px;border:1px solid #cbd5e1;border-radius:10px;background:#fff;overflow:auto;padding:10px;max-height:75vh}
+.report-preview .page{position:relative !important;inset:auto !important;width:100% !important;min-height:0 !important;height:auto !important;margin:0 0 18px !important;padding:0 !important;box-sizing:border-box !important;page-break-after:auto !important;break-after:auto !important;background:#fff !important;box-shadow:none !important}
+.report-preview .page:last-child{margin-bottom:0 !important}
+.report-preview .dcb-frame,.report-preview .cumulative-dcb-frame,.report-preview .ledger-frame{width:100% !important;max-width:none !important;margin:0 !important}
+.report-preview table{max-width:none !important}
+.report-preview .ledger-table,.report-preview .dcb-table,.report-preview .cumulative-dcb-table{width:100% !important}
+/* Report controls stay on one horizontal row on tablets and phones.
+   The row scrolls horizontally instead of wrapping the report buttons into 2x2. */
+@media(max-width:1024px){
+  /* Tablet/mobile report controls: maximum TWO items per row.
+     No horizontal overflow; filters stay paired and report buttons form a
+     clean 2-column grid. */
+  .report-filter-toolbar{
+    display:grid;
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+    align-items:end;
+    gap:8px;
+    width:100%;
+    min-width:0;
+    padding:2px 0 6px;
+    box-sizing:border-box;
+  }
+  .report-filter-toolbar .field,
+  .report-filter-toolbar #reportLoanField{
+    min-width:0;
+    width:100%;
+    max-width:none;
+    flex:none;
+  }
+  .report-type-actions{
+    grid-column:1 / -1;
+    display:grid;
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+    align-items:stretch;
+    gap:8px;
+    width:100%;
+    min-width:0;
+    flex:none;
+  }
+  .report-type-actions button{
+    width:100%;
+    min-width:0;
+    max-width:none;
+    white-space:normal;
+    line-height:1.2;
+  }
+  .report-download-actions{
+    display:grid;
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+    align-items:center;
+    gap:8px;
+    width:100%;
+    min-width:0;
+    margin-top:10px;
+    padding:2px 0 6px;
+    box-sizing:border-box;
+  }
+  .report-download-actions .small{
+    min-width:0;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .report-download-actions button{
+    width:100%;
+    min-width:0;
+    white-space:normal;
+    line-height:1.2;
+  }
+  }
+  .report-download-actions .small{
+    flex:0 0 auto;
+    white-space:nowrap;
+  }
+  .report-download-actions button{
+    flex:0 0 auto;
+    white-space:nowrap;
+  }
+}
+
 /* Stronger pulse for important actions. */
 #saveVoBtn,#createVoBtn,#addShgBtn,#saveAllBtn,
 #monthlyPdfBtn,#ledgerPdfBtn,#cumulativeDcbPdfBtn,#backupBtn,#importBtn,#importAllBtn,#resetBtn{
@@ -488,7 +600,8 @@ button > *{position:relative;z-index:1;}
     /* input itself remains normal; this rule is intentionally minimal */
   }
 
-<style id="shg-toolbar-single-row-fix">
+<style id="shg-loan-filter-layout-fix">
+  /* SHG Loan + Member filters sit before Interest Rate on desktop. */
   #shgToolbar{
     display:flex !important;
     flex-direction:row !important;
@@ -496,37 +609,130 @@ button > *{position:relative;z-index:1;}
     align-items:flex-end !important;
     gap:10px !important;
     width:100% !important;
+  }
+  #addChildField{
+    flex:1 1 auto !important;
+    min-width:180px !important;
+  }
+  #addShgBtn{
+    flex:0 0 auto !important;
     white-space:nowrap !important;
   }
-  #shgToolbar > .field:first-child{
-    flex:1 1 auto !important;
-    min-width:220px !important;
+  #shgLoanFilterToolbar{
+    display:flex !important;
+    flex:0 1 auto !important;
+    flex-direction:row !important;
+    flex-wrap:nowrap !important;
+    align-items:flex-end !important;
+    gap:10px !important;
+    margin:0 !important;
+    min-width:0 !important;
   }
-  #shgToolbar > .field:nth-of-type(2){
+  #shgLoanFilterToolbar.hidden{display:none !important;}
+  #shgLoanFilterToolbar .loan-filter-field{
+    flex:0 1 180px !important;
+    width:180px !important;
+    min-width:150px !important;
+  }
+  #interestRateField{
     flex:0 0 180px !important;
     width:180px !important;
     min-width:180px !important;
   }
-  #shgToolbar > button{
-    flex:0 0 auto !important;
-    white-space:nowrap !important;
+
+  /* Phone/tablet: Loan and Member remain side-by-side; Interest Rate follows. */
+  @media screen and (max-width:900px){
+    #shgToolbar{
+      flex-direction:row !important;
+      flex-wrap:wrap !important;
+      align-items:flex-end !important;
+      gap:9px !important;
+    }
+    #addChildField{
+      flex:1 1 calc(100% - 110px) !important;
+      min-width:0 !important;
+    }
+    #addShgBtn{
+      flex:0 0 100px !important;
+      width:100px !important;
+    }
+    #shgLoanFilterToolbar{
+      flex:1 1 100% !important;
+      width:100% !important;
+      display:flex !important;
+      flex-direction:row !important;
+      flex-wrap:nowrap !important;
+      gap:8px !important;
+      order:3 !important;
+    }
+    #shgLoanFilterToolbar .loan-filter-field{
+      flex:1 1 50% !important;
+      width:50% !important;
+      min-width:0 !important;
+    }
+    #interestRateField{
+      flex:1 1 100% !important;
+      width:100% !important;
+      max-width:none !important;
+      min-width:0 !important;
+      order:4 !important;
+    }
+    #interestRateField input,
+    #shgLoanFilterToolbar select{
+      width:100% !important;
+      box-sizing:border-box !important;
+    }
   }
 
-/* FINAL SHG-PAGE RULE:
-   Create New VO is available only on the Home / initial page.
-   The selected-VO / SHG page must never display it. */
-#voDetailsToolbar.show-details #homeNewVoBtn{
-  display:none !important;
-}
-#voDetailsToolbar.show-details ~ .actions #newVoBtn{
-  display:none !important;
-}
+  @media screen and (max-width:420px){
+    #addChildField{flex-basis:calc(100% - 96px) !important;}
+    #addShgBtn{flex-basis:88px !important;width:88px !important;}
+    #shgLoanFilterToolbar{gap:6px !important;}
+    #shgLoanFilterToolbar .loan-filter-field{flex-basis:50% !important;}
+    #shgLoanFilterToolbar label{font-size:12px !important;}
+    #shgLoanFilterToolbar select{font-size:13px !important;padding-left:8px !important;padding-right:24px !important;}
+  }
+    </style>
+
+    <style id="shg-toolbar-single-row-fix">
+        #shgToolbar{
+          display:flex !important;
+          flex-direction:row !important;
+          flex-wrap:nowrap !important;
+          align-items:flex-end !important;
+          gap:10px !important;
+          width:100% !important;
+          white-space:nowrap !important;
+        }
+        #shgToolbar > .field:first-child{
+          flex:1 1 auto !important;
+          min-width:220px !important;
+        }
+        #shgToolbar > .field:nth-of-type(2){
+          flex:0 0 180px !important;
+          width:180px !important;
+          min-width:180px !important;
+        }
+        #shgToolbar > button{
+          flex:0 0 auto !important;
+          white-space:nowrap !important;
+        }
+
+      /* FINAL SHG-PAGE RULE:
+         Create New VO is available only on the Home / initial page.
+         The selected-VO / SHG page must never display it. */
+      #voDetailsToolbar.show-details #homeNewVoBtn{
+        display:none !important;
+      }
+      #voDetailsToolbar.show-details ~ .actions #newVoBtn{
+        display:none !important;
+      }
 
 
-/* Home / initial page: show the Home-page Create New VO button. */
-#voDetailsToolbar:not(.show-details) #homeNewVoBtn{
-  display:inline-block !important;
-}
+      /* Home / initial page: show the Home-page Create New VO button. */
+      #voDetailsToolbar:not(.show-details) #homeNewVoBtn{
+        display:inline-block !important;
+      }
 
     </style>
     </style>
@@ -892,6 +1098,31 @@ button > *{position:relative;z-index:1;}
         }
     </style>
 
+
+
+    <style id="shg-details-and-loan-filter-layout">
+        #loanTypeHead.hidden{display:none !important;}
+        .shg-saving-head,.shg-saving-cell{display:table-cell;}
+        .entry .shg-saving-cell input{width:100%;min-width:80px;padding:6px;font-size:11px;text-align:right;box-sizing:border-box;}
+        .entry .shg-saving-cell input:disabled{background:#eee;color:#555;border:1px solid #aeb8c4;cursor:not-allowed;opacity:1;}
+        @media screen and (max-width:900px){
+          #voDetailsToolbar.shg-details{
+            grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;
+            gap:10px !important;
+          }
+          #voDetailsToolbar.shg-details > .field{
+            grid-column:auto !important;
+            width:100% !important;
+            min-width:0 !important;
+          }
+          #voDetailsToolbar.shg-details > .field > input,
+          #voDetailsToolbar.shg-details > .field > select{
+            width:100% !important;
+            min-width:0 !important;
+            box-sizing:border-box !important;
+          }
+        }
+    </style>
 
     <style id="account-auth-ui">
         .auth-link{border:0;background:none;color:#1769aa;padding:6px;font-weight:bold;cursor:pointer}.auth-link:hover{box-shadow:none;transform:none;background:none}
@@ -1612,6 +1843,7 @@ button > *{position:relative;z-index:1;}
         <div class="login-system-choice" id="loginSystemChoice" style="display:flex;gap:8px;margin:0 0 14px;">
             <button type="button" class="primary" id="loginVoBtn" style="flex:1;">VO Login</button>
             <button type="button" class="secondary" id="loginMsBtn" style="flex:1;">MS Login</button>
+            <button type="button" class="secondary" id="loginShgBtn" style="flex:1;">SHG Login</button>
         </div>
         <div id="selectedLoginSystem" class="small" style="text-align:center;margin:-4px 0 12px;font-weight:bold;color:#17365d;">Login to VO → SHG</div>
         <div class="login-field">
@@ -1641,7 +1873,7 @@ button > *{position:relative;z-index:1;}
                                                                 placeholder="+91 9876543210"></div>
         <div class="field"><label>Username *</label><input id="signupUsername" type="text" autocomplete="username"
                                                            placeholder="Choose a username"></div>
-        <div class="field"><label>Register Access *</label><select id="signupSystem"><option value="VO">VO → SHG</option><option value="MS">MS → VO</option></select></div>
+        <div class="field"><label>Register Access *</label><select id="signupSystem"><option value="VO">VO → SHG</option><option value="MS">MS → VO</option><option value="SHG">SHG → Member</option></select></div>
         <div class="field password-wrap"><label>Password *</label><input id="signupPassword" type="password"
                                                                          autocomplete="new-password"
                                                                          placeholder="Minimum 6 characters">
@@ -1724,6 +1956,7 @@ button > *{position:relative;z-index:1;}
         <div class="auth-actions" id="profileAccessActions">
             <button type="button" class="primary" id="registerVOAccessBtn">Register for VO</button>
             <button type="button" class="primary" id="registerMSAccessBtn">Register for MS</button>
+            <button type="button" class="primary" id="registerSHGAccessBtn">Register for SHG</button>
         </div>
 
         <h3>Change Password</h3>
@@ -1813,6 +2046,11 @@ button > *{position:relative;z-index:1;}
                     <input id="voName" placeholder="Name">
                 </div>
 
+                <div class="field hidden" id="linkedVoNameField">
+                    <label id="linkedVoNameLabel">VO Name <span style="color:#c62828">*</span></label>
+                    <input id="linkedVoName" placeholder="VO Name">
+                </div>
+
                 <div class="field" id="financialYearField">
                     <label id="detailsFinancialYearLabel" for="detailsFinancialYear">Financial Year <span style="color:#c62828">*</span></label>
                     <select id="detailsFinancialYear">
@@ -1866,20 +2104,34 @@ button > *{position:relative;z-index:1;}
             <br>
             <div class="card">
                 <h2 id="childMonthlyTitle">Child Wise Monthly Collection Data</h2>
-                <div class="notice">Add SHGs here on this month. Type the name and press <b>Enter</b> or click
-                    <b>
-                        Add SHG</b>. The new SHG immediately becomes a row in the table from this month onwards.
-                </div>
+                <div class="notice" id="childMonthNotice"></div>
                 <div class="toolbar" id="shgToolbar">
-                    <div class="field"><label id="addChildLabel">Add Child Name</label><input id="shgNameInput" placeholder="Child Name"></div>
+                    <div class="field" id="addChildField"><label id="addChildLabel">Add Child Name</label><input id="shgNameInput" placeholder="Child Name"></div>
                     <button type="button" class="success" id="addShgBtn">Add Child</button>
-                    <div class="field" style="max-width:180px"><label>Interest Rate (%)</label><input id="shgRateInput"
-                                                                                                      oninput="updateInterestRateLive()"
-                                                                                                      type="number"
-                                                                                                      min="0"
-                                                                                                      max="100"
-                                                                                                      step="0.01"
-                                                                                                      value="12"></div>
+                    <div class="shg-loan-filters hidden" id="shgLoanFilterToolbar">
+                        <div class="field loan-filter-field">
+                            <label for="loanTypeFilter">Loan</label>
+                            <select id="loanTypeFilter">
+                                <option value="bankLinkage">1. Bank Linkage</option>
+                                <option value="streeNidhi">2. Stree Nidhi</option>
+                                <option value="voCif">3. VO CIF</option>
+                                <option value="internalLoan">4. Internal Loan</option>
+                            </select>
+                        </div>
+                        <div class="field loan-filter-field">
+                            <label for="memberFilter">Member</label>
+                            <select id="memberFilter">
+                                <option value="ALL">ALL</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="field" id="interestRateField" style="max-width:180px"><label>Interest Rate (%)</label><input id="shgRateInput"
+                                                                                                                             oninput="updateInterestRateLive()"
+                                                                                                                             type="number"
+                                                                                                                             min="0"
+                                                                                                                             max="100"
+                                                                                                                             step="0.01"
+                                                                                                                             value="12"></div>
                 </div>
                 <div class="months" id="monthTabs"></div>
                 <div class="tablewrap">
@@ -1888,6 +2140,10 @@ button > *{position:relative;z-index:1;}
                         <tr>
                             <th>S.N</th>
                             <th id="childTableNameHead">Child Name</th>
+                            <th class="shg-saving-head">Opening<br>Saving Balance</th>
+                            <th class="shg-saving-head">Current Month<br>Saving</th>
+                            <th class="shg-saving-head">Current Month<br>Disbursed Saving</th>
+                            <th class="shg-saving-head">Closing Saving<br>Balance</th>
                             <th>Opening<br>Loan Balance</th>
                             <th>Previous Due<br>Principal</th>
                             <th>Previous Due<br>Interest</th>
@@ -1909,12 +2165,50 @@ button > *{position:relative;z-index:1;}
                 </div>
                 <div class="actions">
                     <button type="button" class="primary" id="saveAllBtn">Save All</button>
-                    <button type="button" class="warning" id="monthlyPdfBtn">DCB PDF</button>
-                    <button type="button" class="warning" id="ledgerPdfBtn">Loan Ledger PDF</button>
-                    <button type="button" class="warning" id="cumulativeDcbPdfBtn">Cumulative DCB PDF</button>
-                    <button type="button" class="primary" id="allPdfsBtn">Download PDF</button>
+                    <button type="button" class="warning" id="showReportsBtn">Show Reports</button>
                     <input id="fileInput" type="file" accept=".json" class="hidden">
                 </div>
+
+                <section class="card hidden" id="reportCenterSection" style="margin-top:14px">
+                    <div class="report-center-head">
+                        <div>
+                            <h2 id="reportCenterTitle" style="margin:0">Reports</h2>
+                            <div class="small" id="reportCenterHint">Choose a member and loan, then show the report.</div>
+                        </div>
+                        <button type="button" class="secondary hidden" id="closeReportsBtn" aria-hidden="true" tabindex="-1">Close Reports</button>
+                    </div>
+
+                    <div class="toolbar report-filter-toolbar">
+                        <div class="field">
+                            <label id="reportMemberLabel" for="reportMemberFilter">Member</label>
+                            <select id="reportMemberFilter">
+                                <option value="ALL">ALL</option>
+                            </select>
+                        </div>
+                        <div class="field" id="reportLoanField">
+                            <label for="reportLoanFilter">Loan</label>
+                            <select id="reportLoanFilter">
+                                <option value="bankLinkage">1. Bank Linkage</option>
+                                <option value="streeNidhi">2. Stree Nidhi</option>
+                                <option value="voCif">3. VO CIF</option>
+                                <option value="internalLoan">4. Internal Loan</option>
+                            </select>
+                        </div>
+                        <div class="actions report-type-actions">
+                            <button type="button" class="warning" id="showDcbReportBtn">Show DCB</button>
+                            <button type="button" class="warning" id="showLedgerReportBtn">Show Loan Ledger</button>
+                            <button type="button" class="warning" id="showCumulativeReportBtn">Show Cumulative DCB</button>
+                            <button type="button" class="success" id="downloadAllReportsBtn">Download All 3 PDFs</button>
+                        </div>
+                    </div>
+
+                    <div id="reportPreview" class="report-preview hidden"></div>
+
+                    <div class="actions report-download-actions hidden" id="reportDownloadActions">
+                        <span class="small" id="currentReportLabel"></span>
+                        <button type="button" class="success" id="downloadCurrentReportBtn">Download Current Report PDF</button>
+                    </div>
+                </section>
             </div>
         </section>
     </main>
@@ -2158,7 +2452,7 @@ button > *{position:relative;z-index:1;}
       const snap = await getDoc(userDocRef());
       if(!snap.exists()) return null;
       const data = snap.data()||{};
-      const field = mode === "MS" ? "msData" : "voData";
+      const field = mode === "MS" ? "msData" : (mode === "SHG" ? "shgData" : "voData");
       if(data[field] && Array.isArray(data[field].vos)) return data[field];
       // Backward compatibility: existing VO users have the old `vos` field.
       if(mode === "VO" && Array.isArray(data.vos)) return {vos:data.vos};
@@ -2167,7 +2461,7 @@ button > *{position:relative;z-index:1;}
 
     async function saveCloudDb(db,mode){
       if(!currentUser) return;
-      const field = mode === "MS" ? "msData" : "voData";
+      const field = mode === "MS" ? "msData" : (mode === "SHG" ? "shgData" : "voData");
       const payload={
         [field]: {vos:Array.isArray(db.vos)?db.vos:[]},
         updatedAt: new Date().toISOString(),
@@ -2210,16 +2504,18 @@ button > *{position:relative;z-index:1;}
       let access=data.access||{};
       const pending=String(sessionStorage.getItem("pendingRegistrationSystem")||"").toUpperCase();
       // New accounts may be created directly for either system.
-      if(access.VO!==true && access.MS!==true){
-        access=(pending==="MS")?{VO:false,MS:true}:{VO:true,MS:false};
+      if(access.VO!==true && access.MS!==true && access.SHG!==true){
+        access=(pending==="MS")?{VO:false,MS:true,SHG:false}
+              :(pending==="SHG")?{VO:false,MS:false,SHG:true}
+              :{VO:true,MS:false,SHG:false};
         await setDoc(doc(firestore,"users",user.uid),{access,updatedAt:new Date().toISOString()},{merge:true});
       }
-      if(pending==="VO" || pending==="MS") sessionStorage.removeItem("pendingRegistrationSystem");
-      return {VO:access.VO===true,MS:access.MS===true};
+      if(["VO","MS","SHG"].includes(pending)) sessionStorage.removeItem("pendingRegistrationSystem");
+      return {VO:access.VO===true,MS:access.MS===true,SHG:access.SHG===true};
     }
 
     async function registerSystemAccess(mode){
-      if(!currentUser || !["VO","MS"].includes(mode)) throw new Error("Invalid system.");
+      if(!currentUser || !["VO","MS","SHG"].includes(mode)) throw new Error("Invalid system.");
       const ref=doc(firestore,"users",currentUser.uid);
       const snap=await getDoc(ref);
       const data=snap.exists()?(snap.data()||{}):{};
@@ -2235,7 +2531,9 @@ button > *{position:relative;z-index:1;}
       activeMode=mode;
       cloudLoaded=false;
       const cloud=await loadCloudDb(mode);
-      const localKey=mode === "MS" ? "ms_shg_accounting_v18" : "vo_shg_accounting_v18";
+      const localKey=mode === "MS"
+        ? "ms_shg_accounting_v18"
+        : (mode === "SHG" ? "shg_member_accounting_v18" : "vo_shg_accounting_v18");
       const localRaw=localStorage.getItem(localKey);
       const localDb=localRaw ? (()=>{try{return JSON.parse(localRaw)}catch(e){return {vos:[]}}})() : {vos:[]};
       let initial=cloud||{vos:[]};
@@ -2250,6 +2548,19 @@ button > *{position:relative;z-index:1;}
       const appShell=document.getElementById("appShell");
       if(loginScreen)loginScreen.classList.add("hidden");
       if(appShell)appShell.classList.remove("hidden");
+
+      // Every login starts on the main page with the Report Center CLOSED.
+      // Reports must only appear after the user explicitly clicks Show Reports.
+      const reportSection=document.getElementById("reportCenterSection");
+      if(reportSection)reportSection.classList.add("hidden");
+      const reportPreview=document.getElementById("reportPreview");
+      if(reportPreview){reportPreview.innerHTML="";reportPreview.classList.add("hidden");}
+      const reportDownloads=document.getElementById("reportDownloadActions");
+      if(reportDownloads)reportDownloads.classList.add("hidden");
+      const reportToggle=document.getElementById("showReportsBtn");
+      if(reportToggle)reportToggle.textContent="Show Reports";
+      document.querySelectorAll("#reportCenterSection .report-type-actions button").forEach(btn=>btn.classList.remove("report-selected"));
+
       const modal=document.getElementById("systemSelectModal");
       if(modal)modal.classList.add("hidden");
       return true;
@@ -2260,11 +2571,11 @@ button > *{position:relative;z-index:1;}
       const box=document.getElementById("systemSelectActions");
       if(!modal||!box)return;
       box.innerHTML="";
-      ["VO","MS"].forEach(mode=>{
+      ["VO","MS","SHG"].forEach(mode=>{
         if(!access[mode])return;
         const b=document.createElement("button");
         b.type="button"; b.className="primary";
-        b.textContent=mode === "VO" ? "Open VO → SHG" : "Open MS → VO";
+        b.textContent=mode === "VO" ? "Open VO → SHG" : (mode === "MS" ? "Open MS → VO" : "Open SHG → Member");
         b.onclick=()=>enterAccountingMode(mode).catch(err=>{const m=document.getElementById("systemSelectMsg");if(m){m.textContent=err.message||"Unable to open system.";m.className="auth-msg error";}});
         box.appendChild(b);
       });
@@ -2403,6 +2714,7 @@ button > *{position:relative;z-index:1;}
     let currentFinancialYear="";
     let MONTHS=buildMonths(currentFinancialYear);
     let db=readDb(), selectedVOId=null, monthIndex=0, dirty=false;
+    let selectedLoanType="bankLinkage", selectedMemberId="ALL";
 
     /*
      * SINGLE SOURCE OF TRUTH FOR VO/MS DIFFERENCES
@@ -2420,6 +2732,8 @@ button > *{position:relative;z-index:1;}
         storageKey:"vo_shg_accounting_v18",
         detailsColumns:5,
         showVillage:true,
+        showVoName:false,
+        voNameRequired:false,
         villageRequired:true,
         districtRequired:false,
         firstLocationField:"village",
@@ -2443,6 +2757,8 @@ button > *{position:relative;z-index:1;}
         storageKey:"ms_shg_accounting_v18",
         detailsColumns:4,
         showVillage:false,
+        showVoName:false,
+        voNameRequired:false,
         villageRequired:false,
         districtRequired:true,
         firstLocationField:"mandal",
@@ -2457,6 +2773,31 @@ button > *{position:relative;z-index:1;}
             {label:"జిల్లా",field:"district"}
           ]
         }
+      }),
+      SHG:Object.freeze({
+        parent:"SHG",
+        child:"Member",
+        parentPlural:"SHG",
+        childPlural:"Members",
+        storageKey:"shg_member_accounting_v18",
+        detailsColumns:6,
+        showVillage:true,
+        showVoName:true,
+        voNameRequired:true,
+        villageRequired:true,
+        districtRequired:false,
+        firstLocationField:"village",
+        backupFilename:"shg-member-backup.json",
+        pdf:{
+          headerFields:[
+            {label:"గ్రామం",field:"village"},
+            {label:"మండలం",field:"mandal"}
+          ],
+          ledgerFields:[
+            {label:"గ్రామం పేరు",field:"village"},
+            {label:"మండలం",field:"mandal"}
+          ]
+        }
       })
     });
 
@@ -2464,10 +2805,15 @@ button > *{position:relative;z-index:1;}
     function modeKey(){return modeConfig().storageKey;}
     function applyAccountingLabels(){
       const c=modeConfig();
+      document.body.classList.toggle("shg-mode",c.parent==="SHG");
       const set=(id,text)=>{const e=document.getElementById(id);if(e)e.textContent=text;};
       const setAttr=(id,attr,text)=>{const e=document.getElementById(id);if(e)e.setAttribute(attr,text);};
       set("loginTitle",`Chary's - ${c.parent} DCB & LL Login`);
       set("appTitle",`Chary's - ${c.parent} DCB & LL Dashboard`);
+      set("loginVoBtn","VO Login");
+      set("loginMsBtn","MS Login");
+      set("loginShgBtn","SHG Login");
+      updateReportCenterLabels();
       set("parentSelectionTitle",`${c.parent} Selection & Creation`);
       set("existingParentLabel",`Existing ${c.parent}`);
       set("existingParentOption",`-- Select existing ${c.parent} --`);
@@ -2493,26 +2839,50 @@ button > *{position:relative;z-index:1;}
       const villageLabel=document.getElementById("villageLabel");
       const districtLabel=document.getElementById("districtLabel");
       const detailsToolbar=document.getElementById("voDetailsToolbar");
+      const linkedVoNameField=document.getElementById("linkedVoNameField");
       if(villageField)villageField.classList.toggle("hidden",!c.showVillage);
-      if(detailsToolbar)detailsToolbar.style.setProperty("--details-cols",String(c.detailsColumns));
+      if(linkedVoNameField)linkedVoNameField.classList.toggle("hidden",!c.showVoName);
+      if(detailsToolbar){
+        detailsToolbar.style.setProperty("--details-cols",String(c.detailsColumns));
+        detailsToolbar.classList.toggle("shg-details",c.showVoName);
+      }
       const financialYearField=document.getElementById("financialYearField");
       const mandalField=document.getElementById("mandalField");
       const districtField=document.getElementById("districtField");
-      if(financialYearField)financialYearField.style.gridColumn="2";
-      if(villageField)villageField.style.gridColumn=c.showVillage?"3":"";
-      if(mandalField)mandalField.style.gridColumn=c.showVillage?"4":"3";
-      if(districtField)districtField.style.gridColumn=c.showVillage?"5":"4";
+      if(c.showVoName){
+        if(financialYearField)financialYearField.style.gridColumn="3";
+        if(villageField)villageField.style.gridColumn="4";
+        if(mandalField)mandalField.style.gridColumn="5";
+        if(districtField)districtField.style.gridColumn="6";
+      }else{
+        if(financialYearField)financialYearField.style.gridColumn="2";
+        if(villageField)villageField.style.gridColumn=c.showVillage?"3":"";
+        if(mandalField)mandalField.style.gridColumn=c.showVillage?"4":"3";
+        if(districtField)districtField.style.gridColumn=c.showVillage?"5":"4";
+      }
       if(villageLabel)villageLabel.innerHTML=c.villageRequired?"Village <span style=\"color:#c62828\">*</span>":"Village";
       if(districtLabel)districtLabel.innerHTML=c.districtRequired?"District <span style=\"color:#c62828\">*</span>":"District";
 
-      set("saveVoBtn",`Save All ${c.parent}`);
+      set("linkedVoNameLabel",`VO Name`);
+      if(document.getElementById("linkedVoNameLabel")) document.getElementById("linkedVoNameLabel").innerHTML=`VO Name ${c.voNameRequired?'<span style="color:#c62828">*</span>':''}`;
+      set("saveVoBtn",`Save ${c.parent}`);
+      set("resetBtn",`Delete ${c.parent}`);
       set("childMonthlyTitle",`${c.child} Wise Monthly Collection Data`);
       set("addChildLabel",`Add ${c.child} Name`);
       setAttr("shgNameInput","placeholder",`${c.child} Name`);
       set("addChildBold",`Add ${c.child}`);
       set("addShgBtn",`Add ${c.child}`);
+      const childMonthNotice=document.getElementById("childMonthNotice");
+      if(childMonthNotice){
+        childMonthNotice.textContent=`Add ${c.childPlural} here for this month. Type the name and press Enter or click Add ${c.child}. The new ${c.child} immediately becomes a row in the table from this month onwards.`;
+      }
       set("childTableNameHead",`${c.child} Name`);
-      set("saveAllBtn",`Save All ${c.childPlural}`);
+      set("saveAllBtn",c.parent==="SHG"?`Save All ${c.childPlural}`:`Save All ${c.childPlural}`);
+      const loanFilterToolbar=document.getElementById("shgLoanFilterToolbar");
+      if(loanFilterToolbar)loanFilterToolbar.classList.toggle("hidden",c.parent!=="SHG");
+      const loanTypeHead=document.getElementById("loanTypeHead");
+      if(loanTypeHead)loanTypeHead.classList.toggle("hidden",c.parent!=="SHG");
+      document.querySelectorAll(".shg-saving-head").forEach(el=>el.classList.toggle("hidden",c.parent!=="SHG"));
       set("allPdfsBtn",`Download ${c.parent} PDF`);
       const h=document.querySelector('link[rel="icon"]');
       if(h)h.href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2317365d'/%3E%3Ctext x='32' y='42' text-anchor='middle' font-family='Arial,sans-serif' font-size='25' font-weight='700' fill='white'%3E${c.parent}%3C/text%3E%3C/svg%3E";
@@ -2532,6 +2902,8 @@ button > *{position:relative;z-index:1;}
       localStorage.setItem(modeKey(),JSON.stringify(db));
       selectedVOId=null;
       monthIndex=0;
+      selectedLoanType="bankLinkage";
+      selectedMemberId="ALL";
       markClean();
       refresh();
 
@@ -2607,8 +2979,11 @@ button > *{position:relative;z-index:1;}
       const detailsFy=document.getElementById("detailsFinancialYear");
       const financialYear=detailsFy?String(detailsFy.value||"").trim():"";
       const village=document.getElementById("village").value.trim();
+      const linkedVoNameEl=document.getElementById("linkedVoName");
+      const linkedVoName=linkedVoNameEl?linkedVoNameEl.value.trim():"";
       const mandal=document.getElementById("mandal").value.trim();
       if(!name){alert(`${c.parent} Name is required.`);document.getElementById("voName").focus();return false;}
+      if(c.voNameRequired && !linkedVoName){alert("VO Name is required for SHG.");if(linkedVoNameEl)linkedVoNameEl.focus();return false;}
       if(!FINANCIAL_YEARS.includes(financialYear)){alert("Financial Year is required.");if(detailsFy)detailsFy.focus();return false;}
       if(c.villageRequired && !village){alert("Village is required.");document.getElementById("village").focus();return false;}
       if(!mandal){alert("Mandal is required.");document.getElementById("mandal").focus();return false;}
@@ -2619,6 +2994,7 @@ button > *{position:relative;z-index:1;}
       // immediately rebuild the Apr-Mar month keys when the year changes.
       const oldFinancialYear=FINANCIAL_YEARS.includes(v.financialYear)?v.financialYear:"";
       v.name=name;
+      v.voName=linkedVoName;
       v.financialYear=financialYear;
       v.village=village;
       v.mandal=mandal;
@@ -2633,57 +3009,34 @@ button > *{position:relative;z-index:1;}
       const currentRate=rateInput?Number(rateInput.value):12;
       if(!Number.isFinite(currentRate)||currentRate<0||currentRate>100){alert("Enter a valid interest rate between 0 and 100%.");if(rateInput)rateInput.focus();return false;}
       v.interestRate=currentRate;
-      v.shgs.forEach((s,i)=>{
-        const startIdx=Number.isInteger(s.startMonthIndex)?s.startMonthIndex:0;
+      const screenEntries=filteredRowEntries(v);
+      screenEntries.forEach((entry,rowIndex)=>{
+        const s=entry.member;
+        const account=activeAccount(entry);
+        const startIdx=Number.isInteger(account.startMonthIndex)?account.startMonthIndex:(Number.isInteger(s.startMonthIndex)?s.startMonthIndex:0);
         if(monthIndex<startIdx)return;
-
-        const n=document.getElementById("name-"+i);if(n&&n.value.trim())s.name=n.value.trim();
-        s.interestRate=currentRate;
+        const n=document.getElementById("name-"+rowIndex);if(n&&n.value.trim())s.name=n.value.trim();
+        account.name=s.name;
+        account.interestRate=currentRate;
         const key=MONTHS[monthIndex][0];
-        const raw=getRowData(i);
+        const raw=getRowData(rowIndex);
         const april=(monthIndex===0);
         const creationMonth=(monthIndex===startIdx && startIdx>0);
         const nextMonthStart=(monthIndex===startIdx+1 && startIdx>0);
-
         if(april){
-          /* April SHGs use the original fully-editable starting fields. */
         }else if(creationMonth){
-          /* Creation month for a mid-year SHG: ONLY New Loan is enabled.
-           * Opening/previous due/demand and both collection fields are disabled.
-           * Therefore no collection can be entered in the creation month. */
-          raw.opening=0;
-          raw.prevPrincipal=0;
-          raw.prevInterest=0;
-          raw.demandPrincipal=0;
-          raw.principalCollection="";
-          raw.interestCollection="";
+          raw.opening=0;raw.prevPrincipal=0;raw.prevInterest=0;raw.demandPrincipal=0;raw.principalCollection="";raw.interestCollection="";
         }else if(nextMonthStart){
-          /* The month after creation is the SHG's first full accounting month.
-           * Its starting fields are enabled like April, but are prefilled from
-           * the creation month's closing/due values and may be edited. */
-          const prev=lastConsideredMonth(s,monthIndex);
-          if(prev){
-            const pc=calc(prev.data);
-            raw.opening=pc.totalLoanBalance;
-            raw.prevPrincipal=pc.balancePrincipal;
-            raw.prevInterest=pc.balanceInterest;
-          }
+          const prev=lastConsideredMonth(account,monthIndex);
+          if(prev){const pc=calc(prev.data);raw.opening=pc.totalLoanBalance;raw.prevPrincipal=pc.balancePrincipal;raw.prevInterest=pc.balanceInterest;}
         }else{
-          const prev=lastConsideredMonth(s,monthIndex);
+          const prev=lastConsideredMonth(account,monthIndex);
           const pc=prev?calc(prev.data):null;
-          if(pc){
-            raw.opening=pc.totalLoanBalance;
-            raw.prevPrincipal=pc.balancePrincipal;
-            raw.prevInterest=pc.balanceInterest;
-          }
-          /* IMPORTANT: preserve this month's edited Current Month Principal.
-           * It is initialized from the previous month only when this month
-           * has no saved value; once edited, the edited value is saved here. */
+          if(pc){raw.opening=pc.totalLoanBalance;raw.prevPrincipal=pc.balancePrincipal;raw.prevInterest=pc.balanceInterest;}
         }
-        raw.demandInterest=monthlyInterest(raw.opening,s.interestRate);
-
-        if(monthIsConsidered(raw)) s.months[key]=raw;
-        else if(s.months[key]) delete s.months[key];
+        raw.demandInterest=monthlyInterest(raw.opening,currentRate);
+        if(monthIsConsidered(raw))account.months[key]=raw;
+        else if(account.months[key])delete account.months[key];
       });
       writeDb();refreshVOSelect();markClean();document.getElementById("saveStatus").textContent="Saved";return true;
     }
@@ -2705,7 +3058,63 @@ button > *{position:relative;z-index:1;}
     }
     window.addEventListener("beforeunload",function(e){if(dirty){e.preventDefault();e.returnValue="Unsaved changes will be lost.";}});
 
-    function blank(){return{opening:0,prevPrincipal:0,prevInterest:0,demandPrincipal:0,demandInterest:0,principalCollection:"",interestCollection:"",newLoan:0};}
+    const SHG_LOAN_TYPES=Object.freeze([
+      {key:"bankLinkage",label:"1. Bank Linkage"},
+      {key:"streeNidhi",label:"2. Stree Nidhi"},
+      {key:"voCif",label:"3. VO CIF"},
+      {key:"internalLoan",label:"4. Internal Loan"}
+    ]);
+    function isSHGMode(){return modeConfig().parent==="SHG";}
+    function loanLabel(key){const x=SHG_LOAN_TYPES.find(t=>t.key===key);return x?x.label:key;}
+    function ensureShgLoanData(v){
+      if(!v||!Array.isArray(v.shgs))return;
+      v.shgs.forEach(member=>{
+        if(!member.loans)member.loans={};
+        SHG_LOAN_TYPES.forEach(type=>{
+          const oldMonths=(type.key==="bankLinkage"&&member.months&&Object.keys(member.months).length)?member.months:{};
+          const loan=member.loans[type.key]||{};
+          if(!loan.months)loan.months=oldMonths;
+          if(!Number.isInteger(loan.startMonthIndex))loan.startMonthIndex=Number.isInteger(member.startMonthIndex)?member.startMonthIndex:0;
+          if(loan.interestRate===undefined||loan.interestRate===null)loan.interestRate=Number(member.interestRate||v.interestRate||12);
+          loan.name=member.name;
+          member.loans[type.key]=loan;
+        });
+      });
+    }
+    function populateMemberFilter(){
+      const sel=document.getElementById("memberFilter");
+      if(!sel)return;
+      const v=vo();
+      const wanted=selectedMemberId||"ALL";
+      sel.innerHTML='<option value="ALL">ALL</option>';
+      (v&&Array.isArray(v.shgs)?v.shgs:[]).forEach((member,i)=>{
+        const o=document.createElement("option");o.value=member.id;o.textContent=member.name||(`Member ${i+1}`);sel.appendChild(o);
+      });
+      sel.value=(wanted==="ALL"||[...sel.options].some(o=>o.value===wanted))?wanted:"ALL";
+      selectedMemberId=sel.value;
+    }
+    function filteredRowEntries(v){
+      if(!v)return [];
+      if(!isSHGMode())return (v.shgs||[]).map((s,i)=>({member:s,loan:null,index:i,key:i,displayName:s.name||`${modeConfig().child} ${i+1}`}));
+      ensureShgLoanData(v);
+      const out=[];
+      (v.shgs||[]).forEach((member,mi)=>{
+        if(selectedMemberId!=="ALL"&&member.id!==selectedMemberId)return;
+        const loan=member.loans&&member.loans[selectedLoanType];
+        if(loan)out.push({member,loan,index:mi,key:selectedLoanType,displayName:member.name||`Member ${mi+1}`});
+      });
+      return out;
+    }
+    function selectedEntryByRow(i){return filteredRowEntries(vo())[i]||null;}
+    function activeAccount(entry){return isSHGMode()?entry.loan:entry.member;}
+    function syncLoanFilterState(){
+      const loanSel=document.getElementById("loanTypeFilter"),memberSel=document.getElementById("memberFilter");
+      if(loanSel)loanSel.value=selectedLoanType;
+      populateMemberFilter();
+      if(memberSel)memberSel.value=selectedMemberId;
+    }
+
+    function blank(){return{opening:0,prevPrincipal:0,prevInterest:0,demandPrincipal:0,demandInterest:0,principalCollection:"",interestCollection:"",newLoan:0,savingOpening:0,savingCurrent:0,savingDisbursed:0};}
     function hasValue(x){return x!==undefined&&x!==null&&String(x).trim()!=="";}
     function monthIsConsidered(d){
       if(!d)return false;
@@ -2769,13 +3178,17 @@ button > *{position:relative;z-index:1;}
      dash.classList.toggle("hidden",!v);
      if(!v)return;
      document.getElementById("voName").value=v.name;
+     const linkedVoName=document.getElementById("linkedVoName");
+     if(linkedVoName)linkedVoName.value=v.voName||"";
      const detailsFy=document.getElementById("detailsFinancialYear");
      if(detailsFy)detailsFy.value=FINANCIAL_YEARS.includes(v.financialYear)?v.financialYear:"";
      document.getElementById("village").value=v.village||"";
      document.getElementById("mandal").value=v.mandal||"";
      document.getElementById("district").value=v.district||"";
      const rateInput=document.getElementById("shgRateInput");
+     if(isSHGMode())ensureShgLoanData(v);
      if(rateInput) rateInput.value=(v.interestRate!==undefined&&v.interestRate!==null)?v.interestRate:(v.shgs[0]&&v.shgs[0].interestRate!==undefined?v.shgs[0].interestRate:12);
+     syncLoanFilterState();
      renderMonths();renderRows();
     }
 
@@ -2805,7 +3218,7 @@ button > *{position:relative;z-index:1;}
       if(!name){alert(`Enter a ${modeConfig().parent} name.`);return;}
       if(!FINANCIAL_YEARS.includes(financialYear)){alert("Please select a valid Financial Year.");if(fySelect)fySelect.focus();return;}
       if(db.vos.some(x=>String(x.name||"").trim().toLowerCase()===name.toLowerCase())){alert(`A ${modeConfig().parent} with this name already exists. Select it from the dropdown.`);return;}
-      const v={id:"VO-"+Date.now()+"-"+Math.random().toString(36).slice(2),name:name,financialYear:financialYear,village:"",mandal:"",district:"",shgs:[]};
+      const v={id:"VO-"+Date.now()+"-"+Math.random().toString(36).slice(2),name:name,voName:"",financialYear:financialYear,village:"",mandal:"",district:"",shgs:[]};
       db.vos.push(v);selectedVOId=v.id;monthIndex=0;
       currentFinancialYear=financialYear;
       MONTHS=buildMonths(currentFinancialYear);
@@ -2828,7 +3241,11 @@ button > *{position:relative;z-index:1;}
       const v=vo(),el=document.getElementById("shgRateInput");if(!v||!el)return;
       const rate=Number(el.value);
       if(!Number.isFinite(rate)||rate<0||rate>100)return;
-      v.interestRate=rate;v.shgs.forEach(s=>s.interestRate=rate);
+      v.interestRate=rate;
+      v.shgs.forEach(s=>{
+        s.interestRate=rate;
+        if(isSHGMode()){ensureShgLoanData(v);SHG_LOAN_TYPES.forEach(type=>{s.loans[type.key].interestRate=rate;});}
+      });
       renderRows();markDirty();
     }
 
@@ -2841,8 +3258,12 @@ button > *{position:relative;z-index:1;}
       if(!name){alert(`Type ${modeConfig().child} name first.`);input.focus();return;}
       if(!Number.isFinite(rate)||rate<0||rate>100){alert("Enter a valid interest rate between 0 and 100%.");rateInput.focus();return;}
       if(v.shgs.some(s=>String(s.name||"").trim().toLowerCase()===name.toLowerCase())){alert(`That ${modeConfig().child} already exists in this ${modeConfig().parent}.`);input.select();return;}
-      v.shgs.push({id:"SHG-"+Date.now()+"-"+Math.random().toString(36).slice(2),name:name,interestRate:rate,startMonthIndex:monthIndex,months:{}});
-      input.value="";v.interestRate=rate;markDirty();renderRows();
+      const member={id:"SHG-"+Date.now()+"-"+Math.random().toString(36).slice(2),name:name,interestRate:rate,startMonthIndex:monthIndex,months:{},loans:{}};
+      v.shgs.push(member);
+      if(isSHGMode()){
+        SHG_LOAN_TYPES.forEach(type=>{member.loans[type.key]={name:name,interestRate:rate,startMonthIndex:monthIndex,months:{}};});
+      }
+      input.value="";v.interestRate=rate;markDirty();populateMemberFilter();renderRows();
       document.getElementById("saveStatus").textContent=`${modeConfig().child} added — save to keep changes`;
       input.focus();
     }
@@ -2875,8 +3296,10 @@ button > *{position:relative;z-index:1;}
         const el=document.getElementById(k+"-"+i); vals[k]=el?Number(el.value)||0:0;
       });
       const cp=document.getElementById("collectP-"+i),ci=document.getElementById("collectI-"+i);
+      const so=document.getElementById("savingOpening-"+i),sc=document.getElementById("savingCurrent-"+i),sd=document.getElementById("savingDisbursed-"+i);
       return {opening:vals.opening,prevPrincipal:vals.prevP,prevInterest:vals.prevI,demandPrincipal:vals.demandP,demandInterest:vals.demandI,
-        principalCollection:cp?String(cp.value).trim():"",interestCollection:ci?String(ci.value).trim():"",newLoan:vals.newLoan};
+        principalCollection:cp?String(cp.value).trim():"",interestCollection:ci?String(ci.value).trim():"",newLoan:vals.newLoan,
+        savingOpening:so?Number(so.value)||0:0,savingCurrent:sc?Number(sc.value)||0:0,savingDisbursed:sd?Number(sd.value)||0:0};
     }
 
     function fitShgNameColumn(){
@@ -2942,132 +3365,134 @@ button > *{position:relative;z-index:1;}
      const body=document.getElementById("entryBody");body.innerHTML="";
      const v=vo();if(!v)return;
      if(!Array.isArray(v.shgs))v.shgs=[];
+     if(isSHGMode())ensureShgLoanData(v);
+     const entries=filteredRowEntries(v);
      const april=(monthIndex===0);
-     v.shgs.forEach((s,i)=>{
-      if(s.interestRate===undefined||s.interestRate===null||s.interestRate==="")s.interestRate=12;
-      const startIdx=Number.isInteger(s.startMonthIndex)?s.startMonthIndex:0;
+     entries.forEach((entry,rowIndex)=>{
+      const s=entry.member;
+      const account=activeAccount(entry);
+      if(account.interestRate===undefined||account.interestRate===null||account.interestRate==="")account.interestRate=12;
+      const startIdx=Number.isInteger(account.startMonthIndex)?account.startMonthIndex:(Number.isInteger(s.startMonthIndex)?s.startMonthIndex:0);
       if(monthIndex<startIdx)return;
-      const key=MONTHS[monthIndex][0],saved=s.months[key],d=saved||blank();
+      const key=MONTHS[monthIndex][0],saved=account.months[key],d=saved||blank();
       if(!saved&&monthIndex===0){d.principalCollection=0;d.interestCollection=0;}
-
-      /* April-created SHGs start in April. A mid-year SHG has a special
-       * creation month: only New Loan is enabled there (collections remain
-       * editable for same-month repayment). The following month is the first
-       * full starting month and its starting fields are enabled like April.
-       * From the month after that, values are derived from the SHG's own
-       * history. Earlier months are not rendered and need no data. */
       let opening=d.opening, prevP=d.prevPrincipal, prevI=d.prevInterest;
-      /* Current Month Principal is initialized from the immediately previous
-       * month's saved Current Month Principal, but once this month has its
-       * own saved value, that value remains editable and must be preserved. */
       let demandP=hasValue(saved&&saved.demandPrincipal)
         ? Number(saved.demandPrincipal)||0
-        : (monthIndex>0 ? previousMonthDemandPrincipal(s,monthIndex) : Number(d.demandPrincipal)||0);
+        : (monthIndex>0 ? previousMonthDemandPrincipal(account,monthIndex) : Number(d.demandPrincipal)||0);
       const creationMonth=(!april && monthIndex===startIdx && startIdx>0);
       const nextMonthStart=(!april && monthIndex===startIdx+1 && startIdx>0);
       if(creationMonth){
         opening=0;prevP=0;prevI=0;demandP=0;
         d.principalCollection="";d.interestCollection="";
       }else if(nextMonthStart){
-        const prev=lastConsideredMonth(s,monthIndex);
-        if(prev){
-          const pc=calc(prev.data);
-          opening=pc.totalLoanBalance;
-          prevP=pc.balancePrincipal;
-          prevI=pc.balanceInterest;
-        }
+        const prev=lastConsideredMonth(account,monthIndex);
+        if(prev){const pc=calc(prev.data);opening=pc.totalLoanBalance;prevP=pc.balancePrincipal;prevI=pc.balanceInterest;}
       }else if(!april){
-        const prev=lastConsideredMonth(s,monthIndex);
-        if(prev){
-          const pc=calc(prev.data);
-          opening=pc.totalLoanBalance;
-          prevP=pc.balancePrincipal;
-          prevI=pc.balanceInterest;
-        }
-        /* Current Month Principal is the value entered for this month.
-         * Do not replace it with another month's value. */
+        const prev=lastConsideredMonth(account,monthIndex);
+        if(prev){const pc=calc(prev.data);opening=pc.totalLoanBalance;prevP=pc.balancePrincipal;prevI=pc.balanceInterest;}
       }
-      // This Month Interest is always calculated from Opening Loan Balance and the SHG rate.
-      const demandI=monthlyInterest(opening,s.interestRate);
+      const demandI=monthlyInterest(opening,account.interestRate);
       const c=calc({opening,prevPrincipal:prevP,prevInterest:prevI,demandPrincipal:demandP,demandInterest:demandI,principalCollection:d.principalCollection,interestCollection:d.interestCollection,newLoan:d.newLoan});
-      const totalDemandP=prevP+demandP;
-      const totalDemandI=prevI+demandI;
-
+      const totalDemandP=prevP+demandP,totalDemandI=prevI+demandI;
       const locked=(x)=>x?' disabled':'';
-      /* Mid-year creation month: ONLY New Loan is enabled.
-       * Following month: Opening/Previous Due Principal/Previous Due Interest
-       * stay locked; demand principal, collections and New Loan are editable. */
-      const lockName=false;
-      const lockOpening=creationMonth||nextMonthStart;
-      const lockPrevP=creationMonth||nextMonthStart;
-      const lockPrevI=creationMonth||nextMonthStart;
+      /* From May onward, opening loan balance and previous due balances are
+         carried forward and must not be manually edited in any login mode.
+         April remains the editable starting month. */
+      const lockOpening=(monthIndex>0)||creationMonth||nextMonthStart;
+      const lockPrevP=(monthIndex>0)||creationMonth||nextMonthStart;
+      const lockPrevI=(monthIndex>0)||creationMonth||nextMonthStart;
       const lockDemandP=creationMonth;
       const lockCollect=creationMonth;
-      const tr=document.createElement("tr");tr.id="row-"+i;
+      /* SHG saving rule: previous month's closing saving becomes this month's
+         opening saving.  It is locked whenever a previous month exists. */
+      let savingOpening=Number(d.savingOpening)||0;
+      const savingCurrent=Number(d.savingCurrent)||0;
+      const savingDisbursed=Number(d.savingDisbursed)||0;
+      let savingOpeningLocked=false;
+      if(isSHGMode() && monthIndex>0){
+        const prevKey=MONTHS[monthIndex-1][0];
+        const prevData=account.months&&account.months[prevKey];
+        if(prevData){
+          savingOpening=(Number(prevData.savingOpening)||0)+(Number(prevData.savingCurrent)||0)-(Number(prevData.savingDisbursed)||0);
+        }else{
+          savingOpening=0;
+        }
+        d.savingOpening=savingOpening;
+        savingOpeningLocked=true;
+      }
+      const savingClosing=savingOpening+savingCurrent-savingDisbursed;
+      const savingCells=isSHGMode()
+        ? '<td class="shg-saving-cell"><input type="number" id="savingOpening-'+rowIndex+'" value="'+savingOpening+'"'+(savingOpeningLocked?' disabled':'')+' oninput="window.recalc('+rowIndex+')"></td>'+
+          '<td class="shg-saving-cell"><input type="number" id="savingCurrent-'+rowIndex+'" value="'+savingCurrent+'" oninput="window.recalc('+rowIndex+')"></td>'+
+          '<td class="shg-saving-cell"><input type="number" id="savingDisbursed-'+rowIndex+'" value="'+savingDisbursed+'" oninput="window.recalc('+rowIndex+')"></td>'+
+          '<td class="shg-saving-cell"><input type="number" class="calc" id="savingClosing-'+rowIndex+'" value="'+savingClosing+'" disabled></td>'
+        : '';
+      const tr=document.createElement("tr");tr.id="row-"+rowIndex;
       tr.innerHTML=
-      '<td>'+(i+1)+'</td>'+
-      '<td><input class="name" id="name-'+i+'" value="'+esc(s.name)+'"'+locked(lockName)+'></td>'+
-      '<td><input type="number" id="opening-'+i+'" value="'+opening+'"'+locked(lockOpening)+' oninput="window.recalc('+i+')"></td>'+
-      '<td><input type="number" id="prevP-'+i+'" value="'+prevP+'"'+locked(lockPrevP)+' oninput="window.recalc('+i+')"></td>'+
-      '<td><input type="number" id="prevI-'+i+'" value="'+prevI+'"'+locked(lockPrevI)+' oninput="window.recalc('+i+')"></td>'+
-      '<td><input type="number" id="demandP-'+i+'" value="'+demandP+'"'+locked(lockDemandP)+' oninput="window.recalc('+i+')"></td>'+
-      '<td><input type="number" id="demandI-'+i+'" value="'+demandI+'" disabled></td>'+
-      '<td><input type="number" id="totalDP-'+i+'" value="'+totalDemandP+'" disabled></td>'+
-      '<td><input type="number" id="totalDI-'+i+'" value="'+totalDemandI+'" disabled></td>'+
-      '<td><input type="number" id="collectP-'+i+'" value="'+d.principalCollection+'"'+locked(lockCollect)+' oninput="window.recalc('+i+')"></td>'+
-      '<td><input type="number" id="collectI-'+i+'" value="'+d.interestCollection+'"'+locked(lockCollect)+' oninput="window.recalc('+i+')"></td>'+
-      '<td><input type="number" id="newLoan-'+i+'" value="'+d.newLoan+'" oninput="window.recalc('+i+')"></td>'+
-
-      '<td class="calc" id="totalL-'+i+'">'+fmt(c.totalLoanBalance)+'</td>'+
-      '<td><button type="button" class="success" onclick="window.saveRow('+i+')">Save</button></td>'+
-      '<td><button type="button" class="danger shg-delete-btn" onclick="window.deleteSHG('+i+')">Delete</button></td>';
+      '<td>'+(rowIndex+1)+'</td>'+
+      '<td><input class="name" id="name-'+rowIndex+'" value="'+esc(s.name)+'"></td>'+
+      savingCells+
+      '<td><input type="number" id="opening-'+rowIndex+'" value="'+opening+'"'+locked(lockOpening)+' oninput="window.recalc('+rowIndex+')"></td>'+
+      '<td><input type="number" id="prevP-'+rowIndex+'" value="'+prevP+'"'+locked(lockPrevP)+' oninput="window.recalc('+rowIndex+')"></td>'+
+      '<td><input type="number" id="prevI-'+rowIndex+'" value="'+prevI+'"'+locked(lockPrevI)+' oninput="window.recalc('+rowIndex+')"></td>'+
+      '<td><input type="number" id="demandP-'+rowIndex+'" value="'+demandP+'"'+locked(lockDemandP)+' oninput="window.recalc('+rowIndex+')"></td>'+
+      '<td><input type="number" id="demandI-'+rowIndex+'" value="'+demandI+'" disabled></td>'+
+      '<td><input type="number" id="totalDP-'+rowIndex+'" value="'+totalDemandP+'" disabled></td>'+
+      '<td><input type="number" id="totalDI-'+rowIndex+'" value="'+totalDemandI+'" disabled></td>'+
+      '<td><input type="number" id="collectP-'+rowIndex+'" value="'+d.principalCollection+'"'+locked(lockCollect)+' oninput="window.recalc('+rowIndex+')"></td>'+
+      '<td><input type="number" id="collectI-'+rowIndex+'" value="'+d.interestCollection+'"'+locked(lockCollect)+' oninput="window.recalc('+rowIndex+')"></td>'+
+      '<td><input type="number" id="newLoan-'+rowIndex+'" value="'+d.newLoan+'" oninput="window.recalc('+rowIndex+')"></td>'+
+      '<td><input type="number" class="calc" id="totalL-'+rowIndex+'" value="'+Number(c.totalLoanBalance||0)+'" disabled></td>'+
+      '<td><button type="button" class="success" onclick="window.saveRow('+rowIndex+')">Save</button></td>'+
+      '<td><button type="button" class="danger shg-delete-btn" onclick="window.deleteSHG('+entry.index+')">Delete</button></td>';
       body.appendChild(tr);
      });
      fitShgNameColumn();
-     if(!v.shgs.length)body.innerHTML='<tr><td colspan="17" style="text-align:center;padding:22px">No SHGs. Add the first SHG above.</td></tr>';
+     const colspan=isSHGMode()?19:15;
+     if(!entries.length)body.innerHTML='<tr><td colspan="'+colspan+'" style="text-align:center;padding:22px">No '+(isSHGMode()?"members":"records")+' for the selected filter.</td></tr>';
     }
 
     window.recalc=function(i){
      const v=vo();if(!v)return;
+     const entry=selectedEntryByRow(i);if(!entry)return;
+     const account=activeAccount(entry);
      const d=getRowData(i);
      const rateEl=document.getElementById("shgRateInput");
-     const liveRate=rateEl?Number(rateEl.value):Number(v.interestRate!==undefined?v.interestRate:(v.shgs[i].interestRate||0));
+     const liveRate=rateEl?Number(rateEl.value):Number(v.interestRate!==undefined?v.interestRate:(account.interestRate||0));
      const rate=Number.isFinite(liveRate)&&liveRate>=0?liveRate:0;
      if(Number.isFinite(liveRate)&&liveRate>=0&&liveRate<=100){v.interestRate=liveRate;v.shgs.forEach(s=>s.interestRate=liveRate);}
+     if(isSHGMode()){
+       const so=document.getElementById("savingOpening-"+i),sc=document.getElementById("savingCurrent-"+i),sd=document.getElementById("savingDisbursed-"+i),sx=document.getElementById("savingClosing-"+i);
+       if(so&&sc&&sd&&sx){
+         let opening=Number(so.value)||0;
+         if(monthIndex>0){
+           const prevKey=MONTHS[monthIndex-1][0];
+           const prevData=account.months&&account.months[prevKey];
+           opening=prevData ? (Number(prevData.savingOpening)||0)+(Number(prevData.savingCurrent)||0)-(Number(prevData.savingDisbursed)||0) : 0;
+           so.value=opening;
+           so.disabled=true;
+         }
+         sx.value=opening+(Number(sc.value)||0)-(Number(sd.value)||0);
+       }
+     }
      markDirty();
      const april=(monthIndex===0);
-     const startIdx=Number.isInteger(v.shgs[i].startMonthIndex)?v.shgs[i].startMonthIndex:0;
+     const startIdx=Number.isInteger(account.startMonthIndex)?account.startMonthIndex:(Number.isInteger(entry.member.startMonthIndex)?entry.member.startMonthIndex:0);
      const creationMonth=(!april && monthIndex===startIdx && startIdx>0);
      const nextMonthStart=(!april && monthIndex===startIdx+1 && startIdx>0);
-     let prevP=d.prevPrincipal,prevI=d.prevInterest;
-     let demandP=d.demandPrincipal;
-     let opening=d.opening;
-
-     if(creationMonth){
-       opening=0;prevP=0;prevI=0;demandP=0;
-       d.principalCollection="";d.interestCollection="";
-     }else if(nextMonthStart){
-       const prev=safePrevMonth(v.shgs[i],monthIndex);
-       if(prev){const pc=calc(prev);opening=pc.totalLoanBalance;prevP=pc.balancePrincipal;prevI=pc.balanceInterest;}
-     }else if(!april){
-       const prev=safePrevMonth(v.shgs[i],monthIndex);
-       if(prev){const pc=calc(prev);opening=pc.totalLoanBalance;prevP=pc.balancePrincipal;prevI=pc.balanceInterest;}
-       /* Keep this month's entered Current Month Principal. */
-     }
+     let prevP=d.prevPrincipal,prevI=d.prevInterest,demandP=d.demandPrincipal,opening=d.opening;
+     if(creationMonth){opening=0;prevP=0;prevI=0;demandP=0;d.principalCollection="";d.interestCollection="";}
+     else if(nextMonthStart){const prev=safePrevMonth(account,monthIndex);if(prev){const pc=calc(prev);opening=pc.totalLoanBalance;prevP=pc.balancePrincipal;prevI=pc.balanceInterest;}}
+     else if(!april){const prev=safePrevMonth(account,monthIndex);if(prev){const pc=calc(prev);opening=pc.totalLoanBalance;prevP=pc.balancePrincipal;prevI=pc.balanceInterest;}}
      const demandI=monthlyInterest(opening,rate);
-     const interestEl=document.getElementById("demandI-"+i);
-     if(interestEl)interestEl.value=demandI;
+     const interestEl=document.getElementById("demandI-"+i);if(interestEl)interestEl.value=demandI;
      const totalDP=prevP+demandP,totalDI=prevI+demandI;
      const c=calc({...d,opening,prevPrincipal:prevP,prevInterest:prevI,demandPrincipal:demandP,demandInterest:demandI});
      const ids=[["totalDP",totalDP],["totalDI",totalDI],["balP",c.balancePrincipal],["balI",c.balanceInterest],["totalC",c.totalCollection],["totalL",c.totalLoanBalance]];
-     ids.forEach(([id,val])=>{
-        const el=document.getElementById(id+"-"+i);
-        if(el){
-          if(el.tagName==="INPUT") el.value=Number(val||0);
-          else el.textContent=fmt(val);
-        }
-      });
+     ids.forEach(([id,val])=>{const el=document.getElementById(id+"-"+i);if(el){if(el.tagName==="INPUT")el.value=Number(val||0);else el.textContent=fmt(val);}});
     }
+
     function previousMonthDemandPrincipal(shg,idx){
      if(!shg||idx<=0||!shg.months)return 0;
      const prev=shg.months[MONTHS[idx-1][0]];
@@ -3086,59 +3511,53 @@ button > *{position:relative;z-index:1;}
       const name=String(v.shgs[i].name||"").trim()||(modeConfig().child+" "+(i+1));
       if(!confirm("Delete "+name+"?\n\nThis will permanently remove this "+modeConfig().child+" and all of its monthly data from the current "+modeConfig().parent+"."))return;
       v.shgs.splice(i,1);
-      writeDb();
-      markClean();
-      renderRows();
+      writeDb();markClean();populateMemberFilter();renderRows();
       document.getElementById("saveStatus").textContent="Deleted "+name;
     };
-
-    function saveVisibleNamesOnly(){const v=vo();if(!v)return;v.shgs.forEach((s,i)=>{const startIdx=Number.isInteger(s.startMonthIndex)?s.startMonthIndex:0;if(monthIndex<startIdx)return;const n=document.getElementById("name-"+i);if(n&&n.value.trim())s.name=n.value.trim();});writeDb();}
-    window.saveRow=function(i){
-     const v=vo();if(!v)return;
-     const s=v.shgs[i],name=document.getElementById("name-"+i).value.trim();
-     const startIdx=Number.isInteger(s.startMonthIndex)?s.startMonthIndex:0;
-     const april=(monthIndex===0);
-     if(!name){alert(`${modeConfig().child} name cannot be blank.`);return;}
-     const rateEl=document.getElementById("shgRateInput"),rate=rateEl?Number(rateEl.value):Number(v.interestRate!==undefined?v.interestRate:(s.interestRate||0));
-     if(!Number.isFinite(rate)||rate<0||rate>100){alert("Enter a valid interest rate between 0 and 100%.");if(rateEl)rateEl.focus();return;}
-     v.interestRate=rate;v.shgs.forEach(x=>x.interestRate=rate);
-     if(monthIndex<startIdx){alert(`This ${modeConfig().child} was created in ${MONTHS[startIdx][1]}. Previous months do not require data.`);return;}
-     const raw=getRowData(i);
-     const creationMonth=(!april && monthIndex===startIdx && startIdx>0);
-     const nextMonthStart=(!april && monthIndex===startIdx+1 && startIdx>0);
-     if(creationMonth){
-       raw.opening=0;raw.prevPrincipal=0;raw.prevInterest=0;raw.demandPrincipal=0;
-       raw.principalCollection="";raw.interestCollection="";
-     }else if(nextMonthStart){
-       const prev=lastConsideredMonth(s,monthIndex);
-       const pc=prev?calc(prev.data):null;
-       if(pc){raw.opening=pc.totalLoanBalance;raw.prevPrincipal=pc.balancePrincipal;raw.prevInterest=pc.balanceInterest;}
-     }else if(!april){
-       const prev=lastConsideredMonth(s,monthIndex);
-       const pc=prev?calc(prev.data):null;
-       if(pc){raw.opening=pc.totalLoanBalance;raw.prevPrincipal=pc.balancePrincipal;raw.prevInterest=pc.balanceInterest;}
-       /* IMPORTANT: keep this month's edited Current Month Principal.
-        * The next month will inherit this saved value. */
-     }
-     // Always calculate this month's interest from the effective opening balance.
-     raw.demandInterest=monthlyInterest(raw.opening,s.interestRate);
-     s.name=name;
-     if(monthIsConsidered(raw)) s.months[MONTHS[monthIndex][0]]=raw;
-     else if(s.months[MONTHS[monthIndex][0]]) delete s.months[MONTHS[monthIndex][0]];
-     writeDb();markClean();
-     document.getElementById("saveStatus").textContent="Saved "+name+" – "+MONTHS[monthIndex][0];
-    }
 
     window.removeSHG=function(i){
       const v=vo();if(!v||!v.shgs[i])return;
       const name=v.shgs[i].name||(modeConfig().child+" "+(i+1));
       if(!confirm('Remove '+modeConfig().child+' "'+name+'"?\n\nAll monthly data for this '+modeConfig().child+' will be deleted from this '+modeConfig().parent+'.'))return;
-      v.shgs.splice(i,1);
-      writeDb();
-      markDirty();
-      renderRows();
+      v.shgs.splice(i,1);writeDb();markDirty();populateMemberFilter();renderRows();
       document.getElementById("saveStatus").textContent=`${modeConfig().child} removed — save to keep changes`;
     };
+
+    function saveVisibleNamesOnly(){
+      const v=vo();if(!v)return;
+      filteredRowEntries(v).forEach((entry,rowIndex)=>{const n=document.getElementById("name-"+rowIndex);if(n&&n.value.trim())entry.member.name=n.value.trim();});
+      if(isSHGMode())ensureShgLoanData(v);
+      writeDb();
+    }
+
+    window.saveRow=function(i){
+     const v=vo();if(!v)return;
+     const entry=selectedEntryByRow(i);if(!entry)return;
+     const s=entry.member,account=activeAccount(entry),name=document.getElementById("name-"+i).value.trim();
+     const startIdx=Number.isInteger(account.startMonthIndex)?account.startMonthIndex:(Number.isInteger(s.startMonthIndex)?s.startMonthIndex:0);
+     const april=(monthIndex===0);
+     if(!name){alert(`${modeConfig().child} name cannot be blank.`);return;}
+     const rateEl=document.getElementById("shgRateInput"),rate=rateEl?Number(rateEl.value):Number(v.interestRate!==undefined?v.interestRate:(account.interestRate||0));
+     if(!Number.isFinite(rate)||rate<0||rate>100){alert("Enter a valid interest rate between 0 and 100%.");if(rateEl)rateEl.focus();return;}
+     v.interestRate=rate;v.shgs.forEach(x=>x.interestRate=rate);s.name=name;account.name=name;account.interestRate=rate;
+     if(monthIndex<startIdx){alert(`This ${modeConfig().child} was created in ${MONTHS[startIdx][1]}. Previous months do not require data.`);return;}
+     const raw=getRowData(i),creationMonth=(!april&&monthIndex===startIdx&&startIdx>0),nextMonthStart=(!april&&monthIndex===startIdx+1&&startIdx>0);
+     if(isSHGMode() && monthIndex>0){
+       const prevKey=MONTHS[monthIndex-1][0];
+       const prevData=account.months&&account.months[prevKey];
+       raw.savingOpening=prevData
+         ? (Number(prevData.savingOpening)||0)+(Number(prevData.savingCurrent)||0)-(Number(prevData.savingDisbursed)||0)
+         : 0;
+     }
+     if(creationMonth){raw.opening=0;raw.prevPrincipal=0;raw.prevInterest=0;raw.demandPrincipal=0;raw.principalCollection="";raw.interestCollection="";}
+     else if(nextMonthStart){const prev=lastConsideredMonth(account,monthIndex);const pc=prev?calc(prev.data):null;if(pc){raw.opening=pc.totalLoanBalance;raw.prevPrincipal=pc.balancePrincipal;raw.prevInterest=pc.balanceInterest;}}
+     else if(!april){const prev=lastConsideredMonth(account,monthIndex);const pc=prev?calc(prev.data):null;if(pc){raw.opening=pc.totalLoanBalance;raw.prevPrincipal=pc.balancePrincipal;raw.prevInterest=pc.balanceInterest;}}
+     raw.demandInterest=monthlyInterest(raw.opening,rate);
+     const hasSavingData=isSHGMode() && [raw.savingOpening,raw.savingCurrent,raw.savingDisbursed].some(n=>(Number(n)||0)!==0);
+     if(monthIsConsidered(raw)||hasSavingData)account.months[MONTHS[monthIndex][0]]=raw;else if(account.months[MONTHS[monthIndex][0]])delete account.months[MONTHS[monthIndex][0]];
+     writeDb();markClean();document.getElementById("saveStatus").textContent="Saved "+name+" – "+MONTHS[monthIndex][0];
+    };
+
 
     function saveAll(){
       const v=vo();
@@ -3163,53 +3582,30 @@ button > *{position:relative;z-index:1;}
        * values are recalculated from the previous month's saved data.
        * This makes Save All SHGs an actual all-month save operation.
        */
-      v.shgs.forEach(s=>{
-        s.interestRate=rate;
-        if(!s.months)s.months={};
-
+      if(isSHGMode())ensureShgLoanData(v);
+      const allEntries=isSHGMode()
+        ? v.shgs.flatMap(member=>SHG_LOAN_TYPES.map(type=>({member,loan:member.loans[type.key],type})))
+        : v.shgs.map(member=>({member,loan:member,type:null}));
+      allEntries.forEach(entry=>{
+        const s=entry.member;
+        const account=entry.loan;
+        account.name=s.name;
+        account.interestRate=rate;
+        if(!account.months)account.months={};
         MONTHS.forEach((m,mi)=>{
-          const key=m[0];
-          const existing=s.months[key];
-          if(!existing)return; // Do not create empty month records.
-
+          const key=m[0],existing=account.months[key];
+          if(!existing)return;
           const d={...blank(),...existing};
-
-          const startIdx=Number.isInteger(s.startMonthIndex)?s.startMonthIndex:0;
+          const startIdx=Number.isInteger(account.startMonthIndex)?account.startMonthIndex:(Number.isInteger(s.startMonthIndex)?s.startMonthIndex:0);
           if(mi<startIdx)return;
-
-          const creationMonth=(startIdx>0 && mi===startIdx);
-          const nextMonthStart=(startIdx>0 && mi===startIdx+1);
-
-          if(creationMonth){
-            /* Creation month: only New Loan is allowed. Collections and all
-             * starting/demand fields remain empty/derived as zero. */
-            d.opening=0;
-            d.prevPrincipal=0;
-            d.prevInterest=0;
-            d.demandPrincipal=0;
-            d.principalCollection="";
-            d.interestCollection="";
-          }else if(mi>0){
-            const prev=lastConsideredMonth(s,mi);
-            if(prev){
-              const pc=calc(prev.data);
-              d.opening=pc.totalLoanBalance;
-              d.prevPrincipal=pc.balancePrincipal;
-              d.prevInterest=pc.balanceInterest;
-            }
-
-            if(!nextMonthStart){
-              /* IMPORTANT: keep this month's own saved/edited Current Month
-               * Principal. Never overwrite it while saving all months. */
-            }
-          }
-
+          const creationMonth=(startIdx>0&&mi===startIdx);
+          const nextMonthStart=(startIdx>0&&mi===startIdx+1);
+          if(creationMonth){d.opening=0;d.prevPrincipal=0;d.prevInterest=0;d.demandPrincipal=0;d.principalCollection="";d.interestCollection="";}
+          else if(mi>0){const prev=lastConsideredMonth(account,mi);if(prev){const pc=calc(prev.data);d.opening=pc.totalLoanBalance;d.prevPrincipal=pc.balancePrincipal;d.prevInterest=pc.balanceInterest;}}
           d.demandInterest=monthlyInterest(d.opening,rate);
-          if(monthIsConsidered(d)) s.months[key]=d;
-          else delete s.months[key];
+          if(monthIsConsidered(d))account.months[key]=d;else delete account.months[key];
         });
       });
-
       writeDb();
       refreshVOSelect();
       markClean();
@@ -3222,13 +3618,13 @@ button > *{position:relative;z-index:1;}
       const oldMonths=buildMonths(oldFinancialYear);
       const newMonths=buildMonths(newFinancialYear);
       v.shgs.forEach(s=>{
-        const oldData=s.months||{};
-        const next={};
-        oldMonths.forEach((oldMonth,i)=>{
-          const data=oldData[oldMonth[0]];
-          if(data)next[newMonths[i][0]]=data;
-        });
-        s.months=next;
+        const rekey=(account)=>{
+          const oldData=account.months||{},next={};
+          oldMonths.forEach((oldMonth,i)=>{const data=oldData[oldMonth[0]];if(data)next[newMonths[i][0]]=data;});
+          account.months=next;
+        };
+        if(isSHGMode()){ensureShgLoanData(v);SHG_LOAN_TYPES.forEach(type=>rekey(s.loans[type.key]));}
+        else rekey(s);
       });
     }
 
@@ -3238,8 +3634,11 @@ button > *{position:relative;z-index:1;}
       const detailsFy=document.getElementById("detailsFinancialYear");
       const financialYear=detailsFy?String(detailsFy.value||"").trim():"";
       const village=document.getElementById("village").value.trim();
+      const linkedVoNameEl=document.getElementById("linkedVoName");
+      const linkedVoName=linkedVoNameEl?linkedVoNameEl.value.trim():"";
       const mandal=document.getElementById("mandal").value.trim();
       if(!name){alert(`${modeConfig().parent} Name is required.`);document.getElementById("voName").focus();return;}
+      if(modeConfig().voNameRequired && !linkedVoName){alert("VO Name is required for SHG.");if(linkedVoNameEl)linkedVoNameEl.focus();return;}
       if(!FINANCIAL_YEARS.includes(financialYear)){alert("Financial Year is required.");if(detailsFy)detailsFy.focus();return;}
       if(modeConfig().villageRequired && !village){alert("Village is required.");document.getElementById("village").focus();return;}
       if(!mandal){alert("Mandal is required.");document.getElementById("mandal").focus();return;}
@@ -3248,6 +3647,7 @@ button > *{position:relative;z-index:1;}
 
       const oldFinancialYear=FINANCIAL_YEARS.includes(v.financialYear)?v.financialYear:"";
       v.name=name;
+      v.voName=linkedVoName;
       v.financialYear=financialYear;
       v.village=village;
       v.mandal=mandal;
@@ -3399,11 +3799,11 @@ button > *{position:relative;z-index:1;}
     function resetAll(){
       const v=vo();
       if(!v){
-        alert("Please select a VO first.");
+        alert(`Please select a ${modeConfig().parent} first.`);
         return;
       }
 
-      if(prompt("Type DELETE to delete the currently selected VO.")==="DELETE"){
+      if(prompt(`Type DELETE to delete the currently selected ${modeConfig().parent}.`)==="DELETE"){
         db.vos=db.vos.filter(x=>x.id!==selectedVOId);
         selectedVOId=null;
         monthIndex=0;
@@ -5102,6 +5502,37 @@ html,body{
      * Loan Ledger first metadata row: child name + Mandal + District.
      * These rules are active only while currentMode === "MS".
      */
+    let reportPreviewActive=false;
+    let reportPreviewMemberId="ALL";
+    let reportPreviewLoanType="bankLinkage";
+
+    function reportAccounts(v){
+      if(!v)return [];
+      const memberFilter=reportPreviewActive ? reportPreviewMemberId : "ALL";
+      const loanFilter=reportPreviewActive ? reportPreviewLoanType : "bankLinkage";
+
+      if(!isSHGMode()){
+        return (v.shgs||[])
+          .map((member,i)=>({member,account:member,loanKey:null,index:i}))
+          .filter(entry=>memberFilter==="ALL"||entry.member.id===memberFilter);
+      }
+
+      ensureShgLoanData(v);
+      const out=[];
+      (v.shgs||[]).forEach(member=>{
+        if(memberFilter!=="ALL"&&member.id!==memberFilter)return;
+        const types=loanFilter==="ALL" ? SHG_LOAN_TYPES : SHG_LOAN_TYPES.filter(type=>type.key===loanFilter);
+        types.forEach(type=>{
+          const account=member.loans[type.key];
+          if(account)out.push({member,account,loanKey:type.key});
+        });
+      });
+      return out;
+    }
+    function reportChildName(entry){
+      return entry.loanKey ? `${entry.member.name||""} - ${loanLabel(entry.loanKey)}` : (entry.member.name||"");
+    }
+
     function monthlyPDF(asPart=false){
       const v=vo();
       if(!v)return;
@@ -5120,8 +5551,9 @@ html,body{
         const totals=Array(15).fill(0);
         let monthlySerial=0;
 
-        v.shgs.forEach((s,i)=>{
-          const d=s.months[m[0]];
+        reportAccounts(v).forEach((entry,i)=>{
+          const s=entry.member, account=entry.account;
+          const d=account.months[m[0]];
           if(!monthIsConsidered(d)) return;
           let opening=d.opening;
 
@@ -5158,7 +5590,7 @@ html,body{
           allRows.push(`
             <tr class="data-row">
               <td>${++monthlySerial}</td>
-              <td class="shg-name telugu">${esc(s.name)}</td>
+              <td class="shg-name telugu">${esc(reportChildName(entry))}</td>
               ${vals.map(n=>`<td>${fmt(n)}</td>`).join("")}
             </tr>
           `);
@@ -5333,9 +5765,10 @@ html,body{
       const rows=[];
       let cumulativeSerial=0;
 
-      v.shgs.forEach((s,i)=>{
-        const startIdx=Number.isInteger(s.startMonthIndex)?s.startMonthIndex:0;
-        const april=s.months[MONTHS[0][0]]||blank();
+      reportAccounts(v).forEach((entry,i)=>{
+        const s=entry.member, account=entry.account;
+        const startIdx=Number.isInteger(account.startMonthIndex)?account.startMonthIndex:0;
+        const april=account.months[MONTHS[0][0]]||blank();
 
         let collectP=0,collectI=0,newLoan=0;
         let lastEntered=null;
@@ -5347,7 +5780,7 @@ html,body{
          * cumulative sums across all entered months.
          */
         MONTHS.forEach(m=>{
-          const d=s.months[m[0]];
+          const d=account.months[m[0]];
           if(!monthIsConsidered(d))return;
           hasAnyData=true;
 
@@ -5363,7 +5796,7 @@ html,body{
          * beginning of its accounting period; earlier months intentionally do
          * not participate in its cumulative totals. April-created SHGs still
          * begin in April as before. */
-        const baseData=s.months[MONTHS[startIdx][0]]||blank();
+        const baseData=account.months[MONTHS[startIdx][0]]||blank();
         const opening=Number(baseData.opening)||0;
 
         /*
@@ -5396,7 +5829,7 @@ html,body{
         let cumulativeDemandI=0;
 
         MONTHS.forEach(m=>{
-          const d=s.months[m[0]];
+          const d=account.months[m[0]];
           if(!monthIsConsidered(d))return;
 
           cumulativeDemandP += Number(d.demandPrincipal)||0;
@@ -5443,7 +5876,7 @@ html,body{
         rows.push(`
           <tr class="data-row">
             <td>${++cumulativeSerial}</td>
-            <td class="shg-name">${esc(s.name)}</td>
+            <td class="shg-name">${esc(reportChildName(entry))}</td>
             ${vals.map(n=>`<td>${fmt(n)}</td>`).join("")}
           </tr>
         `);
@@ -5595,7 +6028,8 @@ html,body{
       let out="";
       let ledgerSerial=0;
 
-      v.shgs.forEach((s,si)=>{
+      reportAccounts(v).forEach((entry,si)=>{
+        const s=entry.member, account=entry.account;
         const ledgerLayout=getLedgerPageLayout(s,v);
         const ledgerColStyle=ledgerLayout.widths
           .map(w=>`<col style="width:${w.toFixed(3)}pt">`)
@@ -5607,7 +6041,7 @@ html,body{
         const allRows=[];
 
         MONTHS.forEach((m,i)=>{
-          const d=s.months[m[0]];
+          const d=account.months[m[0]];
           if(!monthIsConsidered(d))return;
 
           const c=calc(d);
@@ -5649,7 +6083,7 @@ html,body{
               <div class="ledger-meta">
                 <div class="meta-row">
                   <div class="meta-key telugu">${pdfChildLabel()} పేరు :</div>
-                  <div class="meta-value highlight telugu">${esc(s.name)}</div>
+                  <div class="meta-value highlight telugu">${esc(reportChildName(entry))}</div>
                   ${pdfLedgerLocationMeta(v)}
                 </div>
 
@@ -5754,6 +6188,151 @@ html,body{
       printReport(pdfParentLabel(),body);
     }
 
+    let currentReportType="";
+
+    function populateReportMemberFilter(){
+      const sel=document.getElementById("reportMemberFilter");
+      if(!sel)return;
+      const v=vo();
+      const current=reportPreviewMemberId||"ALL";
+      sel.innerHTML='<option value="ALL">ALL</option>';
+      (v&&Array.isArray(v.shgs)?v.shgs:[]).forEach((member,i)=>{
+        const option=document.createElement("option");
+        option.value=member.id||String(i);
+        option.textContent=member.name||(`${modeConfig().child} ${i+1}`);
+        sel.appendChild(option);
+      });
+      sel.value=[...sel.options].some(o=>o.value===current)?current:"ALL";
+      reportPreviewMemberId=sel.value;
+    }
+
+    function syncReportLoanOptions(){
+      const field=document.getElementById("reportLoanField");
+      const sel=document.getElementById("reportLoanFilter");
+      if(!field||!sel)return;
+      if(!isSHGMode()){
+        field.classList.add("hidden");
+        return;
+      }
+      field.classList.remove("hidden");
+      sel.innerHTML='<option value="ALL">ALL Loans</option>'+SHG_LOAN_TYPES.map(type=>`<option value="${type.key}">${type.label}</option>`).join("");
+      sel.value=[...sel.options].some(o=>o.value===reportPreviewLoanType)?reportPreviewLoanType:"bankLinkage";
+      reportPreviewLoanType=sel.value;
+    }
+
+    function updateReportCenterLabels(){
+      const c=modeConfig();
+      const title=document.getElementById("reportCenterTitle");
+      const hint=document.getElementById("reportCenterHint");
+      const memberLabel=document.getElementById("reportMemberLabel");
+      if(title)title.textContent=`${c.parent} ${c.childPlural} Reports`;
+      if(hint)hint.textContent=`Choose ${c.child.toLowerCase()} and loan, then show the report.`;
+      if(memberLabel)memberLabel.textContent=c.child;
+    }
+
+    function openReportCenter(){
+      const v=vo();
+      if(!v){alert(`Select a ${pdfParentLabel()} first.`);return;}
+      reportPreviewActive=false;
+      reportPreviewMemberId="ALL";
+      reportPreviewLoanType="bankLinkage";
+      currentReportType="";
+      updateReportCenterLabels();
+      populateReportMemberFilter();
+      syncReportLoanOptions();
+      const section=document.getElementById("reportCenterSection");
+      const preview=document.getElementById("reportPreview");
+      const downloads=document.getElementById("reportDownloadActions");
+      if(section)section.classList.remove("hidden");
+      if(preview){preview.innerHTML="";preview.classList.add("hidden");}
+      if(downloads)downloads.classList.add("hidden");
+      const toggleBtn=document.getElementById("showReportsBtn");
+      if(toggleBtn)toggleBtn.textContent="Hide Reports";
+      section?.scrollIntoView({behavior:"smooth",block:"start"});
+    }
+
+    function closeReportCenter(){
+      reportPreviewActive=false;
+      currentReportType="";
+      const section=document.getElementById("reportCenterSection");
+      if(section)section.classList.add("hidden");
+      const preview=document.getElementById("reportPreview");
+      if(preview){preview.innerHTML="";preview.classList.add("hidden");}
+      document.getElementById("reportDownloadActions")?.classList.add("hidden");
+      document.querySelectorAll("#reportCenterSection .report-type-actions button").forEach(btn=>btn.classList.remove("report-selected"));
+      const toggleBtn=document.getElementById("showReportsBtn");
+      if(toggleBtn)toggleBtn.textContent="Show Reports";
+    }
+
+    function toggleReportCenter(){
+      const section=document.getElementById("reportCenterSection");
+      if(section && !section.classList.contains("hidden")) closeReportCenter();
+      else openReportCenter();
+    }
+
+    function showReportInUi(type){
+      const v=vo();
+      if(!v){alert(`Select a ${pdfParentLabel()} first.`);return;}
+      reportPreviewMemberId=document.getElementById("reportMemberFilter")?.value||"ALL";
+      reportPreviewLoanType=document.getElementById("reportLoanFilter")?.value||"bankLinkage";
+      currentReportType=type;
+      reportPreviewActive=true;
+
+      document.querySelectorAll("#reportCenterSection .report-type-actions button").forEach(btn=>btn.classList.remove("report-selected"));
+      const selectedButton=type==="DCB"?document.getElementById("showDcbReportBtn"):type==="LL"?document.getElementById("showLedgerReportBtn"):document.getElementById("showCumulativeReportBtn");
+      if(selectedButton)selectedButton.classList.add("report-selected");
+
+      let html="";
+      if(type==="DCB")html=monthlyPDF(true)||"";
+      else if(type==="LL")html=ledgerPDF(true)||"";
+      else if(type==="CUMULATIVE")html=cumulativeDcbPDF(true)||"";
+
+      const selectedMonth=MONTHS[monthIndex]||["",""];
+      const selectedChildId=reportPreviewMemberId||"ALL";
+      const selectedChild=selectedChildId==="ALL"?"ALL":((v.shgs||[]).find((item,i)=>(item.id||String(i))===selectedChildId)?.name||"ALL");
+      let reportContext=`${pdfParentLabel()}: ${esc(v.name||"")}`;
+      if(currentMode==="SHG") reportContext+=` | VO: ${esc(v.voName||document.getElementById("linkedVoName")?.value||"")}`;
+      reportContext+=` | ${pdfChildLabel()}: ${esc(selectedChild)}`;
+      // Month metadata is shown only for the DCB report. Loan Ledger and
+      // Cumulative DCB must not display Month metadata.
+      if(type==="DCB") reportContext+=` | Month: ${esc(selectedMonth[1]||"")}`;
+      html=`<div class="report-ui-context" style="font-size:13px;color:#17365d;margin:0 0 8px;padding:4px 2px;">${reportContext}</div>`+html;
+
+      const preview=document.getElementById("reportPreview");
+      const downloads=document.getElementById("reportDownloadActions");
+      const label=document.getElementById("currentReportLabel");
+      if(!preview)return;
+
+      if(!html.trim()){
+        preview.innerHTML='<div class="notice">No report data is available for the selected filter.</div>';
+      }else{
+        preview.innerHTML=html;
+      }
+      preview.classList.remove("hidden");
+      if(downloads)downloads.classList.remove("hidden");
+      const currentDownload=document.getElementById("downloadCurrentReportBtn");
+      if(currentDownload){
+        currentDownload.textContent=type==="DCB"?"Download DCB PDF":(type==="LL"?"Download Loan Ledger PDF":"Download Cumulative DCB PDF");
+      }
+      if(label)label.textContent=type==="DCB"?"Showing DCB Report":(type==="LL"?"Showing Loan Ledger Report":"Showing Cumulative DCB Report");
+      preview.scrollIntoView({behavior:"smooth",block:"start"});
+    }
+
+    function downloadAllReports(){
+      const v=vo();
+      if(!v){alert(`Select a ${pdfParentLabel()} first.`);return;}
+      allPdfsPDF();
+    }
+
+    function downloadCurrentReport(){
+      const v=vo();
+      if(!v){alert(`Select a ${pdfParentLabel()} first.`);return;}
+      if(currentReportType==="DCB") monthlyPDF(false);
+      else if(currentReportType==="LL") ledgerPDF(false);
+      else if(currentReportType==="CUMULATIVE") cumulativeDcbPDF(false);
+      else alert("Show a report first, then download that report.");
+    }
+
     /* Firebase Login / Sign Up gate.
        Mobile number + username are stored in the user's Profile only.
        No SMS/OTP is used. */
@@ -5799,24 +6378,31 @@ html,body{
 
     function setSelectedLoginSystem(system){
       const mode=String(system||"VO").toUpperCase();
-      if(!["VO","MS"].includes(mode))return;
+      if(!["VO","MS","SHG"].includes(mode))return;
       window.selectedLoginSystem=mode;
       const voBtn=document.getElementById("loginVoBtn");
       const msBtn=document.getElementById("loginMsBtn");
+      const shgBtn=document.getElementById("loginShgBtn");
       const selectedLabel=document.getElementById("selectedLoginSystem");
       if(voBtn){voBtn.classList.toggle("login-system-selected",mode==="VO");voBtn.setAttribute("aria-pressed",mode==="VO"?"true":"false");}
       if(msBtn){msBtn.classList.toggle("login-system-selected",mode==="MS");msBtn.setAttribute("aria-pressed",mode==="MS"?"true":"false");}
-      if(selectedLabel)selectedLabel.textContent=mode==="MS"?"Login to MS → VO":"Login to VO → SHG";
+      if(shgBtn){shgBtn.classList.toggle("login-system-selected",mode==="SHG");shgBtn.setAttribute("aria-pressed",mode==="SHG"?"true":"false");}
+      if(selectedLabel)selectedLabel.textContent=mode==="MS"?"Login to MS → VO":(mode==="SHG"?"Login to SHG → Member":"Login to VO → SHG");
       const signupSystem=document.getElementById("signupSystem");
       if(signupSystem)signupSystem.value=mode;
       const loginError=document.getElementById("loginError");
       if(loginError)loginError.textContent="";
     }
 
+    // Expose the selector so the login page also works through the non-module
+    // fallback handler below. This avoids the buttons becoming inert if the
+    // browser delays module event wiring.
+    window.setSelectedLoginSystem=setSelectedLoginSystem;
+
     async function lookupUsername(username,system=window.selectedLoginSystem){
       const key=String(username||"").trim().toLowerCase();
       const mode=String(system||"VO").toUpperCase();
-      if(!key || !["VO","MS"].includes(mode))return null;
+      if(!key || !["VO","MS","SHG"].includes(mode))return null;
       const scopedKey=mode+"_"+key;
       const scopedSnap=await window.firebaseCloud.getDoc(
         window.firebaseCloud.doc(window.firebaseCloud.getFirestore(),"usernames",scopedKey)
@@ -5843,7 +6429,8 @@ html,body{
       const existingAccess=existingData.access||{};
       const access={
         VO:existingAccess.VO===true || data.system==="VO",
-        MS:existingAccess.MS===true || data.system==="MS"
+        MS:existingAccess.MS===true || data.system==="MS",
+        SHG:existingAccess.SHG===true || data.system==="SHG"
       };
 
       await window.firebaseCloud.setDoc(
@@ -5883,7 +6470,7 @@ html,body{
       const key=String(username||"").trim().toLowerCase();
       const mode=String(system||"VO").toUpperCase();
       if(!key)throw new Error("Username is required.");
-      if(!["VO","MS"].includes(mode))throw new Error("Invalid registration system.");
+      if(!["VO","MS","SHG"].includes(mode))throw new Error("Invalid registration system.");
       const db=window.firebaseCloud.getFirestore();
       const ref=window.firebaseCloud.doc(db,"usernames",mode+"_"+key);
 
@@ -5937,6 +6524,12 @@ html,body{
       }
     }
 
+    window.attemptLogin=attemptLogin;
+
+    // Expose auth actions for the independent fallback wiring at the bottom.
+    window.attemptSignUp=attemptSignUp;
+    window.sendEmailReset=sendEmailReset;
+
     function openModal(id){
       const el=document.getElementById(id);
       if(el)el.classList.remove("hidden");
@@ -5946,6 +6539,9 @@ html,body{
       const el=document.getElementById(id);
       if(el)el.classList.add("hidden");
     }
+
+    window.openAuthModal=openModal;
+    window.closeAuthModal=closeModal;
 
     function validateAccountForm(){
       const email=document.getElementById("signupEmail").value.trim();
@@ -5968,7 +6564,7 @@ html,body{
       if(pw!==cp)
         throw new Error("Passwords do not match.");
 
-      if(!["VO","MS"].includes(system)) throw new Error("Select a valid registration system.");
+      if(!["VO","MS","SHG"].includes(system)) throw new Error("Select a valid registration system.");
       return {email,mobile,username,pw,system};
     }
 
@@ -5999,7 +6595,7 @@ html,body{
         );
         const data=snap.exists()?snap.data():{};
         const profile=data.profile||{};
-        const access=data.access||{VO:true,MS:false};
+        const access=data.access||{VO:true,MS:false,SHG:false};
 
         if(summary){
           summary.innerHTML=
@@ -6010,10 +6606,12 @@ html,body{
         const accessSummary=document.getElementById("profileAccessSummary");
         if(accessSummary)accessSummary.innerHTML=
           `<div><b>VO Access:</b> ${access.VO===true?"Registered":"Not registered"}</div>`+
-          `<div><b>MS Access:</b> ${access.MS===true?"Registered":"Not registered"}</div>`;
-        const rv=document.getElementById("registerVOAccessBtn"), rm=document.getElementById("registerMSAccessBtn");
+          `<div><b>MS Access:</b> ${access.MS===true?"Registered":"Not registered"}</div>`+
+          `<div><b>SHG Access:</b> ${access.SHG===true?"Registered":"Not registered"}</div>`;
+        const rv=document.getElementById("registerVOAccessBtn"), rm=document.getElementById("registerMSAccessBtn"), rs=document.getElementById("registerSHGAccessBtn");
         if(rv){rv.disabled=access.VO===true;rv.textContent=access.VO===true?"VO Registered":"Register for VO";}
         if(rm){rm.disabled=access.MS===true;rm.textContent=access.MS===true?"MS Registered":"Register for MS";}
+        if(rs){rs.disabled=access.SHG===true;rs.textContent=access.SHG===true?"SHG Registered":"Register for SHG";}
         if(modal)modal.classList.remove("hidden");
       }catch(err){
         console.error(err);
@@ -6205,6 +6803,10 @@ html,body{
         const data=validateAccountForm();
         const usernameKey=String(data.username||"").trim().toLowerCase();
 
+        // Tell the auth-state flow which system a brand-new account is being
+        // registered for. This keeps VO, MS and SHG creation symmetrical.
+        sessionStorage.setItem("pendingRegistrationSystem",data.system);
+
         if(msg){
           msg.textContent=`Checking ${data.system} registration...`;
           msg.className="auth-msg";
@@ -6297,12 +6899,19 @@ html,body{
       }
     }
 
-    document.getElementById("loginVoBtn").onclick=()=>setSelectedLoginSystem("VO");
-    document.getElementById("loginMsBtn").onclick=()=>setSelectedLoginSystem("MS");
+    // Bind login controls defensively. The delegated fallback below also
+    // handles clicks if a browser loads the module after the page markup.
+    const loginVoBtnEl=document.getElementById("loginVoBtn");
+    const loginMsBtnEl=document.getElementById("loginMsBtn");
+    const loginShgBtnEl=document.getElementById("loginShgBtn");
+    if(loginVoBtnEl)loginVoBtnEl.onclick=()=>setSelectedLoginSystem("VO");
+    if(loginMsBtnEl)loginMsBtnEl.onclick=()=>setSelectedLoginSystem("MS");
+    if(loginShgBtnEl)loginShgBtnEl.onclick=()=>setSelectedLoginSystem("SHG");
     // Initial state: VO is selected and therefore BLUE.
     setSelectedLoginSystem(window.selectedLoginSystem);
 
-    document.getElementById("loginBtn").onclick=attemptLogin;
+    const loginBtnEl=document.getElementById("loginBtn");
+    if(loginBtnEl)loginBtnEl.onclick=attemptLogin;
     document.getElementById("signUpBtn").onclick=()=>{
       const msg=document.getElementById("signupMsg");
       if(msg){msg.textContent="";msg.className="auth-msg";}
@@ -6385,6 +6994,7 @@ html,body{
     if(profileBtnEl)profileBtnEl.onclick=openProfile;
     document.getElementById("registerVOAccessBtn")?.addEventListener("click",()=>registerOtherSystem("VO"));
     document.getElementById("registerMSAccessBtn")?.addEventListener("click",()=>registerOtherSystem("MS"));
+    document.getElementById("registerSHGAccessBtn")?.addEventListener("click",()=>registerOtherSystem("SHG"));
 
     const saveProfileMobileBtn=document.getElementById("saveProfileMobileBtn");
     if(saveProfileMobileBtn)saveProfileMobileBtn.onclick=saveProfileMobile;
@@ -6455,6 +7065,18 @@ html,body{
     };
     document.getElementById("addShgBtn").onclick=addSHG;
     document.getElementById("shgNameInput").onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();addSHG();}};
+    document.getElementById("loanTypeFilter").onchange=e=>{
+      if(dirty&&!saveCurrentScreen()){e.target.value=selectedLoanType;return;}
+      selectedLoanType=e.target.value||"bankLinkage";
+      renderRows();
+      markClean();
+    };
+    document.getElementById("memberFilter").onchange=e=>{
+      if(dirty&&!saveCurrentScreen()){e.target.value=selectedMemberId;return;}
+      selectedMemberId=e.target.value||"ALL";
+      renderRows();
+      markClean();
+    };
     document.getElementById("saveAllBtn").onclick=()=>{
       try{saveAll();}
       catch(err){console.error("Save All Children failed:",err);alert("Could not save all child records. Please check the current entries and try again.");}
@@ -6471,10 +7093,21 @@ html,body{
      *
      * Use wrapper functions so individual buttons ALWAYS call with false.
      */
-    document.getElementById("monthlyPdfBtn").onclick=()=>monthlyPDF(false);
-    document.getElementById("cumulativeDcbPdfBtn").onclick=()=>cumulativeDcbPDF(false);
-    document.getElementById("ledgerPdfBtn").onclick=()=>ledgerPDF(false);
-    document.getElementById("allPdfsBtn").onclick=()=>allPdfsPDF();
+    document.getElementById("showReportsBtn").onclick=toggleReportCenter;
+    document.getElementById("closeReportsBtn").onclick=closeReportCenter;
+    document.getElementById("showDcbReportBtn").onclick=()=>showReportInUi("DCB");
+    document.getElementById("showLedgerReportBtn").onclick=()=>showReportInUi("LL");
+    document.getElementById("showCumulativeReportBtn").onclick=()=>showReportInUi("CUMULATIVE");
+    document.getElementById("downloadAllReportsBtn")?.addEventListener("click",downloadAllReports);
+    document.getElementById("downloadCurrentReportBtn")?.addEventListener("click",downloadCurrentReport);
+    document.getElementById("reportMemberFilter").onchange=e=>{
+      reportPreviewMemberId=e.target.value||"ALL";
+      if(currentReportType)showReportInUi(currentReportType);
+    };
+    document.getElementById("reportLoanFilter").onchange=e=>{
+      reportPreviewLoanType=e.target.value||"bankLinkage";
+      if(currentReportType)showReportInUi(currentReportType);
+    };
     document.getElementById("backupBtn").onclick=exportBackup;
     document.getElementById("importBtn").onclick=()=>{
       document.getElementById("fileInput").dataset.importMode="replace";
@@ -6530,6 +7163,110 @@ html,body{
     },true);
 
     /* Initial dashboard refresh is performed after successful login. */
+    })();
+</script>
+
+<script>
+    // Independent login-page fallback wiring.  This block is deliberately outside
+    // the Firebase module and outside the dashboard IIFE so the auth buttons remain
+    // usable even if Firebase loads slowly or another dashboard initializer fails.
+    (function(){
+      function showModal(id){
+        const el=document.getElementById(id);
+        if(el)el.classList.remove("hidden");
+      }
+      function clearMsg(id){
+        const el=document.getElementById(id);
+        if(el){el.textContent="";el.className="auth-msg";}
+      }
+      function selectSystem(mode){
+        mode=String(mode||"VO").toUpperCase();
+        if(!["VO","MS","SHG"].includes(mode))return;
+        window.selectedLoginSystem=mode;
+        const labels={VO:"Login to VO → SHG",MS:"Login to MS → VO",SHG:"Login to SHG → Member"};
+        ["VO","MS","SHG"].forEach(function(m){
+          const id=m==="VO"?"loginVoBtn":m==="MS"?"loginMsBtn":"loginShgBtn";
+          const b=document.getElementById(id);
+          if(b){
+            b.classList.toggle("login-system-selected",m===mode);
+            b.setAttribute("aria-pressed",m===mode?"true":"false");
+          }
+        });
+        const label=document.getElementById("selectedLoginSystem");
+        if(label)label.textContent=labels[mode];
+        const signup=document.getElementById("signupSystem");
+        if(signup)signup.value=mode;
+        const err=document.getElementById("loginError");
+        if(err)err.textContent="";
+      }
+
+      window.loginPageSelectSystem=selectSystem;
+
+      document.addEventListener("click",function(e){
+        const target=e.target&&e.target.closest ? e.target.closest("button") : null;
+        if(!target)return;
+        const id=target.id;
+
+        if(id==="loginVoBtn"){e.preventDefault();e.stopPropagation();selectSystem("VO");return;}
+        if(id==="loginMsBtn"){e.preventDefault();e.stopPropagation();selectSystem("MS");return;}
+        if(id==="loginShgBtn"){e.preventDefault();e.stopPropagation();selectSystem("SHG");return;}
+
+        if(id==="loginBtn"){
+          e.preventDefault();e.stopPropagation();
+          if(typeof window.attemptLogin==="function") window.attemptLogin();
+          else {
+            const err=document.getElementById("loginError");
+            if(err)err.textContent="Login service is still loading. Please try again in a moment.";
+          }
+          return;
+        }
+
+        if(id==="signUpBtn"){
+          e.preventDefault();e.stopPropagation();
+          clearMsg("signupMsg");
+          const sys=document.getElementById("signupSystem");
+          if(sys)sys.value=window.selectedLoginSystem||"VO";
+          showModal("signupModal");
+          return;
+        }
+
+        if(id==="forgotPasswordBtn"){
+          e.preventDefault();e.stopPropagation();
+          clearMsg("forgotMsg");
+          showModal("forgotModal");
+          return;
+        }
+
+        if(id==="signupCreateBtn"){
+          e.preventDefault();e.stopPropagation();
+          if(typeof window.attemptSignUp==="function") window.attemptSignUp();
+          else {
+            const msg=document.getElementById("signupMsg");
+            if(msg){msg.textContent="Account service is still loading. Please try again in a moment.";msg.className="auth-msg error";}
+          }
+          return;
+        }
+
+        if(id==="sendEmailResetBtn"){
+          e.preventDefault();e.stopPropagation();
+          if(typeof window.sendEmailReset==="function") window.sendEmailReset();
+          else {
+            const msg=document.getElementById("forgotMsg");
+            if(msg){msg.textContent="Password reset service is still loading. Please try again in a moment.";msg.className="auth-msg error";}
+          }
+          return;
+        }
+
+        const closeBtn=target.closest("[data-close-modal]");
+        if(closeBtn){
+          e.preventDefault();e.stopPropagation();
+          const modal=document.getElementById(closeBtn.dataset.closeModal);
+          if(modal)modal.classList.add("hidden");
+        }
+      },true);
+
+      // Initial selected system.
+      selectSystem(window.selectedLoginSystem||"VO");
     })();
 </script>
 </body>
