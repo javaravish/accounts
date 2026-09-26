@@ -1200,7 +1200,7 @@ button > *{position:relative;z-index:1;}
         @media screen and (min-width:901px){
           #voDetailsToolbar.show-details{
             display:grid !important;
-            grid-template-columns:repeat(4,minmax(0,1fr)) !important;
+            grid-template-columns:repeat(var(--details-cols,4),minmax(0,1fr)) !important;
             column-gap:10px !important;
             row-gap:10px !important;
             width:100% !important;
@@ -1221,18 +1221,9 @@ button > *{position:relative;z-index:1;}
             grid-column:1 !important;
           }
 
-          /* Four equal fields on second row */
-          #voDetailsToolbar.show-details > .field:nth-of-type(2){
-            grid-column:1 !important;
-          }
-          #voDetailsToolbar.show-details > .field:nth-of-type(3){
+          /* Exact field columns are assigned by applyAccountingLabels(). */
+          #voDetailsToolbar.show-details > .field#financialYearField{
             grid-column:2 !important;
-          }
-          #voDetailsToolbar.show-details > .field:nth-of-type(4){
-            grid-column:3 !important;
-          }
-          #voDetailsToolbar.show-details > .field:nth-of-type(5){
-            grid-column:4 !important;
           }
 
           #voDetailsToolbar.show-details > .field > input,
@@ -1252,17 +1243,6 @@ button > *{position:relative;z-index:1;}
           }
         }
 
-        /* MS Login: Village is not part of MS details. Keep the remaining
-           MS fields aligned as three equal columns on desktop. */
-        @media screen and (min-width:901px){
-          #voDetailsToolbar.ms-mode{
-            grid-template-columns:repeat(3,minmax(0,1fr)) !important;
-          }
-          #voDetailsToolbar.ms-mode > .field:nth-of-type(1){grid-column:1 !important;}
-          #voDetailsToolbar.ms-mode > .field:nth-of-type(2){grid-column:1 !important;}
-          #voDetailsToolbar.ms-mode > .field:nth-of-type(3){grid-column:2 !important;}
-          #voDetailsToolbar.ms-mode > .field:nth-of-type(4){grid-column:3 !important;}
-        }
     </style>
 
 
@@ -1589,6 +1569,40 @@ button > *{position:relative;z-index:1;}
         #selectedLoginSystem{color:#17365d !important;}
         @media(max-width:600px){#loginSystemChoice{gap:7px!important;}#loginSystemChoice button{font-size:13px!important;padding:9px 7px!important;}}
     </style>
+    <style id="new-parent-name-fy-side-by-side">
+        /* New VO/MS creation: keep Name and Financial Year side-by-side on every screen size. */
+        #newVoForm .toolbar{
+          display:grid !important;
+          grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;
+          gap:10px !important;
+          align-items:end !important;
+        }
+        #newVoForm .toolbar > .field{
+          width:100% !important;
+          min-width:0 !important;
+          max-width:none !important;
+          flex:none !important;
+          margin:0 !important;
+        }
+        #newVoForm .toolbar > .field > input,
+        #newVoForm .toolbar > .field > select{
+          width:100% !important;
+          min-width:0 !important;
+          max-width:none !important;
+          box-sizing:border-box !important;
+        }
+        /* Keep Create and Cancel on the next row, side-by-side as well. */
+        #newVoForm .toolbar > #createVoBtn,
+        #newVoForm .toolbar > #cancelVoBtn{
+          width:100% !important;
+          min-width:0 !important;
+          margin:0 !important;
+          box-sizing:border-box !important;
+        }
+        #newVoForm .toolbar > #createVoBtn{grid-column:1 !important;grid-row:2 !important;}
+        #newVoForm .toolbar > #cancelVoBtn{grid-column:2 !important;grid-row:2 !important;}
+    </style>
+
 </head>
 <body>
 <section id="loginScreen" aria-label="Login">
@@ -1772,6 +1786,19 @@ button > *{position:relative;z-index:1;}
                         <label id="newParentLabel">New Name</label>
                         <input id="newVoName" placeholder="Enter new name">
                     </div>
+                    <div class="field">
+                        <label id="newFinancialYearLabel" for="newFinancialYear">Financial Year</label>
+                        <select id="newFinancialYear">
+                            <option value="" selected>-- Select Financial Year --</option>
+                            <option value="2024-25">2024-25</option>
+                            <option value="2025-26">2025-26</option>
+                            <option value="2026-27">2026-27</option>
+                            <option value="2027-28">2027-28</option>
+                            <option value="2028-29">2028-29</option>
+                            <option value="2029-30">2029-30</option>
+                            <option value="2030-31">2030-31</option>
+                        </select>
+                    </div>
                     <button type="button" class="success" id="createVoBtn">Create</button>
                     <button type="button" class="secondary" id="cancelVoBtn">Cancel</button>
                 </div>
@@ -1786,17 +1813,31 @@ button > *{position:relative;z-index:1;}
                     <input id="voName" placeholder="Name">
                 </div>
 
+                <div class="field" id="financialYearField">
+                    <label id="detailsFinancialYearLabel" for="detailsFinancialYear">Financial Year <span style="color:#c62828">*</span></label>
+                    <select id="detailsFinancialYear">
+                        <option value="" selected>-- Select Financial Year --</option>
+                        <option value="2024-25">2024-25</option>
+                        <option value="2025-26">2025-26</option>
+                        <option value="2026-27">2026-27</option>
+                        <option value="2027-28">2027-28</option>
+                        <option value="2028-29">2028-29</option>
+                        <option value="2029-30">2029-30</option>
+                        <option value="2030-31">2030-31</option>
+                    </select>
+                </div>
+
                 <div class="field" id="villageField">
                     <label id="villageLabel">Village <span style="color:#c62828">*</span></label>
                     <input id="village" placeholder="Village">
                 </div>
 
-                <div class="field">
+                <div class="field" id="mandalField">
                     <label>Mandal <span style="color:#c62828">*</span></label>
                     <input id="mandal" placeholder="Mandal">
                 </div>
 
-                <div class="field">
+                <div class="field" id="districtField">
                     <label id="districtLabel">District</label>
                     <input id="district" placeholder="District">
                 </div>
@@ -2338,10 +2379,89 @@ button > *{position:relative;z-index:1;}
     (function(){
     "use strict";
     let currentMode = "VO";
-    const MONTHS=[["Apr-26","April-2026"],["May-26","May-2026"],["Jun-26","June-2026"],["Jul-26","July-2026"],["Aug-26","August-2026"],["Sep-26","September-2026"],["Oct-26","October-2026"],["Nov-26","November-2026"],["Dec-26","December-2026"],["Jan-27","January-2027"],["Feb-27","February-2027"],["Mar-27","March-2027"]];
+    const FINANCIAL_YEARS=["2024-25","2025-26","2026-27","2027-28","2028-29","2029-30","2030-31"];
+    function buildMonths(financialYear){
+      const match=String(financialYear||"2026-27").match(/^(\d{4})-(\d{2})$/);
+      const startYear=match?Number(match[1]):2026;
+      const nextYear=String((startYear+1)%100).padStart(2,"0");
+      const months=[
+        ["Apr-"+String(startYear).slice(-2),"April-"+startYear],
+        ["May-"+String(startYear).slice(-2),"May-"+startYear],
+        ["Jun-"+String(startYear).slice(-2),"June-"+startYear],
+        ["Jul-"+String(startYear).slice(-2),"July-"+startYear],
+        ["Aug-"+String(startYear).slice(-2),"August-"+startYear],
+        ["Sep-"+String(startYear).slice(-2),"September-"+startYear],
+        ["Oct-"+String(startYear).slice(-2),"October-"+startYear],
+        ["Nov-"+String(startYear).slice(-2),"November-"+startYear],
+        ["Dec-"+String(startYear).slice(-2),"December-"+startYear],
+        ["Jan-"+nextYear,"January-"+(startYear+1)],
+        ["Feb-"+nextYear,"February-"+(startYear+1)],
+        ["Mar-"+nextYear,"March-"+(startYear+1)]
+      ];
+      return months;
+    }
+    let currentFinancialYear="";
+    let MONTHS=buildMonths(currentFinancialYear);
     let db=readDb(), selectedVOId=null, monthIndex=0, dirty=false;
-    function modeConfig(){ return currentMode === "MS" ? {parent:"MS",child:"VO",parentPlural:"MS",childPlural:"VO"} : {parent:"VO",child:"SHG",parentPlural:"VO",childPlural:"SHGs"}; }
-    function modeKey(){ return currentMode === "MS" ? "ms_shg_accounting_v18" : "vo_shg_accounting_v18"; }
+
+    /*
+     * SINGLE SOURCE OF TRUTH FOR VO/MS DIFFERENCES
+     * ----------------------------------------------
+     * Keep all shared UI, tables, PDF renderers, fonts, borders, spacing and
+     * alignment in one implementation. Only genuine business differences live
+     * in this configuration.
+     */
+    const ACCOUNTING_CONFIG=Object.freeze({
+      VO:Object.freeze({
+        parent:"VO",
+        child:"SHG",
+        parentPlural:"VO",
+        childPlural:"SHGs",
+        storageKey:"vo_shg_accounting_v18",
+        detailsColumns:5,
+        showVillage:true,
+        villageRequired:true,
+        districtRequired:false,
+        firstLocationField:"village",
+        backupFilename:"vo-shg-backup.json",
+        pdf:{
+          headerFields:[
+            {label:"గ్రామం",field:"village"},
+            {label:"మండలం",field:"mandal"}
+          ],
+          ledgerFields:[
+            {label:"గ్రామం పేరు",field:"village"},
+            {label:"మండలం",field:"mandal"}
+          ]
+        }
+      }),
+      MS:Object.freeze({
+        parent:"MS",
+        child:"VO",
+        parentPlural:"MS",
+        childPlural:"VO",
+        storageKey:"ms_shg_accounting_v18",
+        detailsColumns:4,
+        showVillage:false,
+        villageRequired:false,
+        districtRequired:true,
+        firstLocationField:"mandal",
+        backupFilename:"ms-vo-backup.json",
+        pdf:{
+          headerFields:[
+            {label:"మండలం",field:"mandal"},
+            {label:"జిల్లా",field:"district"}
+          ],
+          ledgerFields:[
+            {label:"మండలం",field:"mandal"},
+            {label:"జిల్లా",field:"district"}
+          ]
+        }
+      })
+    });
+
+    function modeConfig(){return ACCOUNTING_CONFIG[currentMode]||ACCOUNTING_CONFIG.VO;}
+    function modeKey(){return modeConfig().storageKey;}
     function applyAccountingLabels(){
       const c=modeConfig();
       const set=(id,text)=>{const e=document.getElementById(id);if(e)e.textContent=text;};
@@ -2355,21 +2475,37 @@ button > *{position:relative;z-index:1;}
       set("newParentLabel",`New ${c.parent} Name`);
       setAttr("newVoName","placeholder",`Enter new ${c.parent} name`);
       set("createVoBtn",`Create ${c.parent}`);
+      set("newFinancialYearLabel","Financial Year");
+      const fySelect=document.getElementById("newFinancialYear");
+      if(fySelect){
+        fySelect.innerHTML=`<option value="">-- Select Financial Year --</option>`+FINANCIAL_YEARS.map(y=>`<option value="${y}">${y}</option>`).join("");
+        fySelect.value="";
+      }
+      const detailsFy=document.getElementById("detailsFinancialYear");
+      if(detailsFy){
+        detailsFy.innerHTML=`<option value="">-- Select Financial Year --</option>`+FINANCIAL_YEARS.map(y=>`<option value="${y}">${y}</option>`).join("");
+      }
       set("parentDetailsTitle",`${c.parent} Details`);
       set("parentNameLabel",`${c.parent} Name`);
       setAttr("voName","placeholder",`${c.parent} Name`);
 
-      const isMS=currentMode==="MS";
       const villageField=document.getElementById("villageField");
       const villageLabel=document.getElementById("villageLabel");
       const districtLabel=document.getElementById("districtLabel");
       const detailsToolbar=document.getElementById("voDetailsToolbar");
-      if(villageField)villageField.classList.toggle("hidden",isMS);
-      if(detailsToolbar)detailsToolbar.classList.toggle("ms-mode",isMS);
-      if(villageLabel)villageLabel.innerHTML=isMS?"Village":"Village <span style=\"color:#c62828\">*</span>";
-      if(districtLabel)districtLabel.innerHTML=isMS?"District <span style=\"color:#c62828\">*</span>":"District";
+      if(villageField)villageField.classList.toggle("hidden",!c.showVillage);
+      if(detailsToolbar)detailsToolbar.style.setProperty("--details-cols",String(c.detailsColumns));
+      const financialYearField=document.getElementById("financialYearField");
+      const mandalField=document.getElementById("mandalField");
+      const districtField=document.getElementById("districtField");
+      if(financialYearField)financialYearField.style.gridColumn="2";
+      if(villageField)villageField.style.gridColumn=c.showVillage?"3":"";
+      if(mandalField)mandalField.style.gridColumn=c.showVillage?"4":"3";
+      if(districtField)districtField.style.gridColumn=c.showVillage?"5":"4";
+      if(villageLabel)villageLabel.innerHTML=c.villageRequired?"Village <span style=\"color:#c62828\">*</span>":"Village";
+      if(districtLabel)districtLabel.innerHTML=c.districtRequired?"District <span style=\"color:#c62828\">*</span>":"District";
 
-      set("saveVoBtn",`Save ${c.parent}`);
+      set("saveVoBtn",`Save All ${c.parent}`);
       set("childMonthlyTitle",`${c.child} Wise Monthly Collection Data`);
       set("addChildLabel",`Add ${c.child} Name`);
       setAttr("shgNameInput","placeholder",`${c.child} Name`);
@@ -2415,6 +2551,10 @@ button > *{position:relative;z-index:1;}
       if(dashboard)dashboard.classList.add("hidden");
       const newVoName=document.getElementById("newVoName");
       if(newVoName)newVoName.value="";
+      const newFinancialYear=document.getElementById("newFinancialYear");
+      if(newFinancialYear)newFinancialYear.value="";
+      const detailsFinancialYear=document.getElementById("detailsFinancialYear");
+      if(detailsFinancialYear)detailsFinancialYear.value="";
       document.getElementById("saveStatus").textContent="Data loaded";
     });
 
@@ -2462,13 +2602,32 @@ button > *{position:relative;z-index:1;}
     function updateDirtyUI(){const el=document.getElementById("saveStatus");if(el&&dirty)el.textContent="Unsaved changes";}
     function saveCurrentScreen(){
       const v=vo();if(!v)return false;
-      const name=document.getElementById("voName").value.trim(),village=document.getElementById("village").value.trim(),mandal=document.getElementById("mandal").value.trim();
-      if(!name){alert(`${modeConfig().parent} Name is required.`);document.getElementById("voName").focus();return false;}
-      if(currentMode!=="MS" && !village){alert("Village is required.");document.getElementById("village").focus();return false;}
+      const c=modeConfig();
+      const name=document.getElementById("voName").value.trim();
+      const detailsFy=document.getElementById("detailsFinancialYear");
+      const financialYear=detailsFy?String(detailsFy.value||"").trim():"";
+      const village=document.getElementById("village").value.trim();
+      const mandal=document.getElementById("mandal").value.trim();
+      if(!name){alert(`${c.parent} Name is required.`);document.getElementById("voName").focus();return false;}
+      if(!FINANCIAL_YEARS.includes(financialYear)){alert("Financial Year is required.");if(detailsFy)detailsFy.focus();return false;}
+      if(c.villageRequired && !village){alert("Village is required.");document.getElementById("village").focus();return false;}
       if(!mandal){alert("Mandal is required.");document.getElementById("mandal").focus();return false;}
       const district=document.getElementById("district").value.trim();
-      if(currentMode==="MS" && !district){alert("District is required for MS.");document.getElementById("district").focus();return false;}
-      v.name=name;v.village=village;v.mandal=mandal;v.district=district;
+      if(c.districtRequired && !district){alert(`District is required for ${c.parent}.`);document.getElementById("district").focus();return false;}
+
+      // Keep the selected Financial Year as part of the parent record and
+      // immediately rebuild the Apr-Mar month keys when the year changes.
+      const oldFinancialYear=FINANCIAL_YEARS.includes(v.financialYear)?v.financialYear:"";
+      v.name=name;
+      v.financialYear=financialYear;
+      v.village=village;
+      v.mandal=mandal;
+      v.district=district;
+      if(oldFinancialYear && oldFinancialYear!==financialYear){
+        rekeyMonthsForFinancialYear(v,oldFinancialYear,financialYear);
+      }
+      currentFinancialYear=financialYear;
+      MONTHS=buildMonths(currentFinancialYear);
 
       const rateInput=document.getElementById("shgRateInput");
       const currentRate=rateInput?Number(rateInput.value):12;
@@ -2533,7 +2692,7 @@ button > *{position:relative;z-index:1;}
       if(!dirty)return true;
       const proceed=confirm(
         "You have unsaved changes.\n\n" +
-        "Press OK to continue without saving, or Cancel and save the VO details."
+        "Press OK to continue without saving, or Cancel and save the details."
       );
       if(proceed){
         /* Discard only the unsaved screen changes. Reload the last saved DB
@@ -2602,10 +2761,16 @@ button > *{position:relative;z-index:1;}
     function refresh(){
      refreshVOSelect();
      const v=vo(),dash=document.getElementById("dashboard");
+     if(v){
+       currentFinancialYear=FINANCIAL_YEARS.includes(v.financialYear)?v.financialYear:"";
+       MONTHS=buildMonths(currentFinancialYear);
+     }
      if(v && (v.interestRate===undefined||v.interestRate===null) && v.shgs.length) v.interestRate=Number(v.shgs[0].interestRate||12);
      dash.classList.toggle("hidden",!v);
      if(!v)return;
      document.getElementById("voName").value=v.name;
+     const detailsFy=document.getElementById("detailsFinancialYear");
+     if(detailsFy)detailsFy.value=FINANCIAL_YEARS.includes(v.financialYear)?v.financialYear:"";
      document.getElementById("village").value=v.village||"";
      document.getElementById("mandal").value=v.mandal||"";
      document.getElementById("district").value=v.district||"";
@@ -2618,6 +2783,8 @@ button > *{position:relative;z-index:1;}
       if(!confirmSwitch("returning to the initial page"))return;
       selectedVOId=null;
       monthIndex=0;
+      currentFinancialYear="";
+      MONTHS=buildMonths(currentFinancialYear);
       document.getElementById("voDetailsSection").classList.add("hidden");
       const homeNewVoBtn=document.getElementById("homeNewVoBtn");
       if(homeNewVoBtn)homeNewVoBtn.style.setProperty("display","inline-block","important");
@@ -2633,10 +2800,15 @@ button > *{position:relative;z-index:1;}
 
     function createVO(){
       const name=document.getElementById("newVoName").value.trim();
+      const fySelect=document.getElementById("newFinancialYear");
+      const financialYear=fySelect?String(fySelect.value||"").trim():"";
       if(!name){alert(`Enter a ${modeConfig().parent} name.`);return;}
+      if(!FINANCIAL_YEARS.includes(financialYear)){alert("Please select a valid Financial Year.");if(fySelect)fySelect.focus();return;}
       if(db.vos.some(x=>String(x.name||"").trim().toLowerCase()===name.toLowerCase())){alert(`A ${modeConfig().parent} with this name already exists. Select it from the dropdown.`);return;}
-      const v={id:"VO-"+Date.now()+"-"+Math.random().toString(36).slice(2),name:name,village:"",mandal:"",district:"",shgs:[]};
+      const v={id:"VO-"+Date.now()+"-"+Math.random().toString(36).slice(2),name:name,financialYear:financialYear,village:"",mandal:"",district:"",shgs:[]};
       db.vos.push(v);selectedVOId=v.id;monthIndex=0;
+      currentFinancialYear=financialYear;
+      MONTHS=buildMonths(currentFinancialYear);
       document.getElementById("newVoName").value="";
       document.getElementById("newVoForm").classList.add("hidden");
       refresh();
@@ -2649,7 +2821,7 @@ button > *{position:relative;z-index:1;}
       // Data Management belongs only on the Home / initial page.
       document.getElementById("dataManagementSection").classList.add("hidden");
       markDirty();
-      setTimeout(()=>document.getElementById(currentMode==="MS"?"mandal":"village").focus(),50);
+      setTimeout(()=>document.getElementById(modeConfig().firstLocationField).focus(),50);
     }
 
     function updateInterestRateLive(){
@@ -3045,28 +3217,48 @@ button > *{position:relative;z-index:1;}
       alert(`All ${modeConfig().childPlural} and all entered months have been saved.`);
     }
 
+    function rekeyMonthsForFinancialYear(v, oldFinancialYear, newFinancialYear){
+      if(!v || !Array.isArray(v.shgs) || oldFinancialYear===newFinancialYear)return;
+      const oldMonths=buildMonths(oldFinancialYear);
+      const newMonths=buildMonths(newFinancialYear);
+      v.shgs.forEach(s=>{
+        const oldData=s.months||{};
+        const next={};
+        oldMonths.forEach((oldMonth,i)=>{
+          const data=oldData[oldMonth[0]];
+          if(data)next[newMonths[i][0]]=data;
+        });
+        s.months=next;
+      });
+    }
+
     function saveVO(){
       const v=vo();if(!v)return;
       const name=document.getElementById("voName").value.trim();
+      const detailsFy=document.getElementById("detailsFinancialYear");
+      const financialYear=detailsFy?String(detailsFy.value||"").trim():"";
       const village=document.getElementById("village").value.trim();
       const mandal=document.getElementById("mandal").value.trim();
       if(!name){alert(`${modeConfig().parent} Name is required.`);document.getElementById("voName").focus();return;}
-      if(currentMode!=="MS" && !village){alert("Village is required.");document.getElementById("village").focus();return;}
+      if(!FINANCIAL_YEARS.includes(financialYear)){alert("Financial Year is required.");if(detailsFy)detailsFy.focus();return;}
+      if(modeConfig().villageRequired && !village){alert("Village is required.");document.getElementById("village").focus();return;}
       if(!mandal){alert("Mandal is required.");document.getElementById("mandal").focus();return;}
       const district=document.getElementById("district").value.trim();
-      if(currentMode==="MS" && !district){alert("District is required for MS.");document.getElementById("district").focus();return;}
+      if(modeConfig().districtRequired && !district){alert(`District is required for ${modeConfig().parent}.`);document.getElementById("district").focus();return;}
 
-      /*
-       * Save VO must perform the same complete save as "Save All SHGs".
-       * saveAll() first captures the current SHG/month from the screen and
-       * then persists every entered month for every SHG in this VO.
-       * No calculation logic is changed here.
-       */
+      const oldFinancialYear=FINANCIAL_YEARS.includes(v.financialYear)?v.financialYear:"";
       v.name=name;
+      v.financialYear=financialYear;
       v.village=village;
       v.mandal=mandal;
       v.district=district;
 
+      if(oldFinancialYear && oldFinancialYear!==financialYear){
+        rekeyMonthsForFinancialYear(v,oldFinancialYear,financialYear);
+      }
+
+      currentFinancialYear=financialYear;
+      MONTHS=buildMonths(currentFinancialYear);
       saveAll();
     }
 
@@ -3075,7 +3267,7 @@ button > *{position:relative;z-index:1;}
             u=URL.createObjectURL(blob),
             a=document.createElement("a");
       a.href=u;
-      a.download=(currentMode==="MS"?"ms-vo-backup.json":"vo-shg-backup.json");
+      a.download=modeConfig().backupFilename;
       a.click();
       URL.revokeObjectURL(u);
     }
@@ -3235,25 +3427,32 @@ button > *{position:relative;z-index:1;}
     }
 
 
+    function pdfFinancialYear(v){
+      return v && FINANCIAL_YEARS.includes(v.financialYear) ? v.financialYear : "";
+    }
+
+    function ensurePdfFinancialYear(v){
+      if(!pdfFinancialYear(v)){
+        alert("Please select and save a Financial Year under Details before generating PDFs.");
+        return false;
+      }
+      return true;
+    }
+
     function pdfParentLabel(){return modeConfig().parent;}
     function pdfChildLabel(){return modeConfig().child;}
-
-    /*
-     * PDF location rules are intentionally tied ONLY to the active login
-     * system.  MS Login and VO Login must never share the same location
-     * ordering/fields.
-     *
-     * MS Login PDFs:  MS -> Mandal -> District
-     * VO Login PDFs:  VO -> Village -> Mandal
-     */
-    function isMsLoginPdf(){return currentMode==="MS";}
-    function pdfLocationLabelTelugu(){return isMsLoginPdf()?"జిల్లా":"గ్రామం";}
-    function pdfLocationValue(v){return isMsLoginPdf()?(v.district||""):(v.village||"");}
+    function pdfLocationLabelTelugu(){return modeConfig().pdf.ledgerFields[0].label;}
+    function pdfLocationValue(v){return v[modeConfig().pdf.ledgerFields[0].field]||"";}
     function pdfHeaderLocationText(v){
-      if(isMsLoginPdf()){
-        return `${pdfParentLabel()} : ${esc(v.name||"")},&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;మండలం : ${esc(v.mandal||"")},&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;జిల్లా : ${esc(v.district||"")}`;
-      }
-      return `${pdfParentLabel()} : ${esc(v.name||"")},&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;${pdfLocationLabelTelugu()} : ${esc(pdfLocationValue(v))},&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;మండలం : ${esc(v.mandal||"")}`;
+      const c=modeConfig();
+      return `${pdfParentLabel()} : ${esc(v.name||"")},&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;${c.pdf.headerFields.map(item=>`${item.label} : ${esc(v[item.field]||"")}`).join(",&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;")}`;
+    }
+
+    function pdfLedgerLocationMeta(v){
+      return modeConfig().pdf.ledgerFields.map(item=>`
+        <div class="meta-key telugu">${item.label} :</div>
+        <div class="meta-value telugu">${esc(v[item.field]||"")}</div>
+      `).join("");
     }
 
     /*
@@ -4463,10 +4662,6 @@ html,body{
 .ledger-meta .meta-row:first-child .meta-value.highlight{
   background:#ffff00;
 }
-.meta-value-merged{
-  grid-column:4 / 7;
-  border-right:0 !important;
-}
 .meta-empty{
   font-size:12.5pt;
 }
@@ -4910,6 +5105,9 @@ html,body{
     function monthlyPDF(asPart=false){
       const v=vo();
       if(!v)return;
+      if(!ensurePdfFinancialYear(v))return "";
+      currentFinancialYear=v.financialYear;
+      MONTHS=buildMonths(currentFinancialYear);
 
       const dcbLayout=getDCBPageLayout(v);
       const dcbColStyle=dcbLayout.widths.map(w=>`<col style="width:${w.toFixed(3)}pt">`).join("");
@@ -5103,6 +5301,9 @@ html,body{
         if(!asPart) alert(`Select a ${pdfParentLabel()} with ${pdfChildLabel()}s.`);
         return "";
       }
+      if(!ensurePdfFinancialYear(v))return "";
+      currentFinancialYear=v.financialYear;
+      MONTHS=buildMonths(currentFinancialYear);
 
       const A4_WIDTH=841.89, MARGIN=28.3465;
       const totalWidth=A4_WIDTH-(MARGIN*2);
@@ -5279,7 +5480,7 @@ html,body{
                       ${pdfHeaderLocationText(v)}
                     </th>
                     <th colspan="7" class="cumulative-dcb-head-right">
-                      Cumulative DCB 2026-27
+                      Cumulative DCB ${esc(pdfFinancialYear(v))}
                     </th>
                   </tr>
                 </tbody>
@@ -5387,6 +5588,10 @@ html,body{
         return "";
       }
 
+      if(!ensurePdfFinancialYear(v))return "";
+      currentFinancialYear=v.financialYear;
+      MONTHS=buildMonths(currentFinancialYear);
+
       let out="";
       let ledgerSerial=0;
 
@@ -5436,7 +5641,7 @@ html,body{
               <div class="ledger-blank"></div>
 
               <div class="ledger-title-row">
-                <div class="ledger-title telugu">${esc(v.name||"")} ${pdfParentLabel()} - అప్పు లెడ్జర్ 2026-27</div>
+                <div class="ledger-title telugu">${esc(v.name||"")} ${pdfParentLabel()} - అప్పు లెడ్జర్ ${esc(pdfFinancialYear(v))}</div>
                 <div class="page-label">Page No:</div>
                 <div class="page-number">${ledgerSerial}</div>
               </div>
@@ -5445,17 +5650,7 @@ html,body{
                 <div class="meta-row">
                   <div class="meta-key telugu">${pdfChildLabel()} పేరు :</div>
                   <div class="meta-value highlight telugu">${esc(s.name)}</div>
-                  ${isMsLoginPdf() ? `
-                    <!-- MS Login ONLY: Mandal and District are on the same row.
-                         Order is strictly MS -> Mandal -> District. -->
-                    <div class="meta-key telugu">మండలం :</div>
-                    <div class="meta-value telugu">${esc(v.mandal||"")}</div>
-                    <div class="meta-key telugu">జిల్లా :</div>
-                    <div class="meta-value telugu">${esc(v.district||"")}</div>
-                  ` : `
-                    <div class="meta-key telugu">${pdfLocationLabelTelugu()} పేరు :</div>
-                    <div class="meta-value telugu meta-value-merged">${esc(pdfLocationValue(v))}</div>
-                  `}
+                  ${pdfLedgerLocationMeta(v)}
                 </div>
 
                 <div class="meta-row">
@@ -6228,6 +6423,8 @@ html,body{
     const openNewVoForm=()=>{
       if(!confirmSwitch("creating a new VO"))return;
       document.getElementById("newVoForm").classList.remove("hidden");
+      const fy=document.getElementById("newFinancialYear");
+      if(fy)fy.value="";
       document.getElementById("newVoName").focus();
     };
 
@@ -6236,7 +6433,11 @@ html,body{
     const homeNewVoBtn=document.getElementById("homeNewVoBtn");
     if(homeNewVoBtn)homeNewVoBtn.onclick=openNewVoForm;
 
-    document.getElementById("cancelVoBtn").onclick=()=>document.getElementById("newVoForm").classList.add("hidden");
+    document.getElementById("cancelVoBtn").onclick=()=>{
+      document.getElementById("newVoForm").classList.add("hidden");
+      const fy=document.getElementById("newFinancialYear");
+      if(fy)fy.value="";
+    };
     document.getElementById("createVoBtn").onclick=createVO;
     document.getElementById("newVoName").onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();createVO();}};
     document.getElementById("voSelect").onchange=e=>{
@@ -6248,10 +6449,16 @@ html,body{
       document.getElementById("dataManagementSection").classList.add("hidden");
       markClean();
     };
-    document.getElementById("saveVoBtn").onclick=saveVO;
+    document.getElementById("saveVoBtn").onclick=()=>{
+      try{saveVO();}
+      catch(err){console.error("Save All Parent failed:",err);alert("Could not save all parent details. Please check the required fields and try again.");}
+    };
     document.getElementById("addShgBtn").onclick=addSHG;
     document.getElementById("shgNameInput").onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();addSHG();}};
-    document.getElementById("saveAllBtn").onclick=saveAll;
+    document.getElementById("saveAllBtn").onclick=()=>{
+      try{saveAll();}
+      catch(err){console.error("Save All Children failed:",err);alert("Could not save all child records. Please check the current entries and try again.");}
+    };
     /*
      * PDF button handlers.
      *
