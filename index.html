@@ -384,11 +384,59 @@ button > *{position:relative;z-index:1;}
   .report-download-actions button{flex:0 0 auto;width:auto;white-space:nowrap;}
 }
 .report-preview{margin-top:12px;border:1px solid #cbd5e1;border-radius:10px;background:#fff;overflow:auto;padding:10px;max-height:75vh}
-.report-preview .page{position:relative !important;inset:auto !important;width:100% !important;min-height:0 !important;height:auto !important;margin:0 0 18px !important;padding:0 !important;box-sizing:border-box !important;page-break-after:auto !important;break-after:auto !important;background:#fff !important;box-shadow:none !important}
-.report-preview .page:last-child{margin-bottom:0 !important}
-.report-preview .dcb-frame,.report-preview .cumulative-dcb-frame,.report-preview .ledger-frame{width:100% !important;max-width:none !important;margin:0 !important}
-.report-preview table{max-width:none !important}
-.report-preview .ledger-table,.report-preview .dcb-table,.report-preview .cumulative-dcb-table{width:100% !important}
+.report-preview .page{
+  position:relative !important;
+  inset:auto !important;
+  width:841.89pt !important;
+  min-width:841.89pt !important;
+  max-width:none !important;
+  height:595.28pt !important;
+  min-height:595.28pt !important;
+  margin:0 auto 18px !important;
+  padding:28.3465pt !important;
+  box-sizing:border-box !important;
+  page-break-after:always !important;
+  break-after:page !important;
+  background:#fff !important;
+  box-shadow:0 1px 5px rgba(0,0,0,.12) !important;
+  overflow:visible !important;
+}
+.report-preview .page:last-child{margin-bottom:0 !important;page-break-after:auto !important;break-after:auto !important}
+.report-preview .dcb-frame{
+  width:var(--dcb-width,785.197pt) !important;
+  min-width:var(--dcb-width,785.197pt) !important;
+  max-width:var(--dcb-width,785.197pt) !important;
+  margin:0 !important;
+}
+.report-preview .cumulative-dcb-frame{
+  width:var(--cumulative-dcb-width,785.197pt) !important;
+  min-width:var(--cumulative-dcb-width,785.197pt) !important;
+  max-width:var(--cumulative-dcb-width,785.197pt) !important;
+  margin:0 !important;
+}
+.report-preview .ledger-frame{
+  width:var(--ledger-width,784.5pt) !important;
+  min-width:var(--ledger-width,784.5pt) !important;
+  max-width:var(--ledger-width,784.5pt) !important;
+  margin:0 !important;
+}
+.report-preview .dcb-report-type-full-row,
+.report-preview .cumulative-dcb-report-type-full-row,
+.report-preview .dcb-head,
+.report-preview .cumulative-dcb-head,
+.report-preview .dcb-table,
+.report-preview .cumulative-dcb-table{
+  max-width:none !important;
+}
+.report-preview .ledger-table{max-width:none !important}
+/* REPORT-ONLY: hide the PDF column-number row (1, 2, 3, ...).
+   The actual PDF/print output keeps this row unchanged. */
+.report-preview .dcb-table tr.number-head,
+.report-preview .cumulative-dcb-table tr.number-head,
+.report-preview .ledger-table tr.number-head{
+  display:none !important;
+}
+
 /* Report controls stay on one horizontal row on tablets and phones.
    The row scrolls horizontally instead of wrapping the report buttons into 2x2. */
 @media(max-width:1024px){
@@ -1097,7 +1145,6 @@ button > *{position:relative;z-index:1;}
           }
         }
     </style>
-
 
 
     <style id="shg-details-and-loan-filter-layout">
@@ -1834,6 +1881,345 @@ button > *{position:relative;z-index:1;}
         #newVoForm .toolbar > #cancelVoBtn{grid-column:2 !important;grid-row:2 !important;}
     </style>
 
+
+    <style id="individual-loan-interest-rate-layout">
+        /* Each login: Child name -> Loan -> Interest Rate -> Add button, one row. */
+        #shgToolbar{display:flex !important;flex-direction:row !important;flex-wrap:nowrap !important;align-items:flex-end !important;gap:10px !important;width:100% !important;overflow-x:auto !important;overflow-y:hidden !important;}
+        #shgToolbar #addChildField{order:1 !important;flex:1 1 auto !important;min-width:220px !important;}
+        #shgToolbar #shgLoanFilterToolbar{order:2 !important;display:flex !important;flex:0 0 auto !important;flex-direction:row !important;flex-wrap:nowrap !important;align-items:flex-end !important;gap:8px !important;margin:0 !important;min-width:0 !important;}
+        #shgToolbar #shgLoanFilterToolbar.hidden{display:flex !important;}
+        #shgToolbar #shgLoanFilterToolbar .loan-filter-field{flex:0 0 180px !important;width:180px !important;min-width:150px !important;margin:0 !important;}
+        #shgToolbar #interestRateField{order:3 !important;flex:0 0 180px !important;width:180px !important;min-width:180px !important;max-width:180px !important;margin:0 !important;}
+        #shgToolbar #addShgBtn{order:4 !important;flex:0 0 auto !important;white-space:nowrap !important;min-width:110px !important;}
+        @media screen and (max-width:900px){
+          #shgToolbar{display:flex !important;flex-direction:row !important;flex-wrap:nowrap !important;align-items:flex-end !important;gap:8px !important;width:100% !important;overflow-x:auto !important;overflow-y:hidden !important;-webkit-overflow-scrolling:touch !important;padding-bottom:4px !important;}
+          #shgToolbar #addChildField{flex:0 0 220px !important;width:220px !important;min-width:220px !important;}
+          #shgToolbar #shgLoanFilterToolbar{flex:0 0 auto !important;display:flex !important;width:auto !important;min-width:0 !important;}
+          #shgToolbar #shgLoanFilterToolbar .loan-filter-field{flex:0 0 150px !important;width:150px !important;min-width:150px !important;}
+          #shgToolbar #interestRateField{flex:0 0 150px !important;width:150px !important;min-width:150px !important;max-width:150px !important;}
+          #shgToolbar #addShgBtn{flex:0 0 auto !important;width:auto !important;min-width:100px !important;}
+        }
+        @media screen and (max-width:600px){
+          #shgToolbar #addChildField{flex-basis:200px !important;width:200px !important;min-width:200px !important;}
+          #shgToolbar #shgLoanFilterToolbar .loan-filter-field{flex-basis:140px !important;width:140px !important;min-width:140px !important;}
+          #shgToolbar #interestRateField{flex-basis:140px !important;width:140px !important;min-width:140px !important;}
+          #shgToolbar #addShgBtn{min-width:90px !important;}
+        }
+    </style>
+
+    <style id="final-mobile-tablet-same-row-toolbar">
+        /* VO / MS / SHG: one identical horizontal toolbar on desktop, tablet and mobile.
+           The five controls stay side-by-side; on narrow screens the row scrolls horizontally
+           rather than wrapping/stacking into multiple lines. */
+        #shgToolbar{
+          display:flex !important;
+          flex-direction:row !important;
+          flex-wrap:nowrap !important;
+          align-items:flex-end !important;
+          gap:8px !important;
+          width:100% !important;
+          max-width:100% !important;
+          overflow-x:auto !important;
+          overflow-y:hidden !important;
+          -webkit-overflow-scrolling:touch !important;
+          white-space:nowrap !important;
+          box-sizing:border-box !important;
+          padding:0 0 5px !important;
+        }
+        #shgToolbar > #addChildField{
+          order:1 !important;
+          flex:0 0 220px !important;
+          width:220px !important;
+          min-width:220px !important;
+          max-width:220px !important;
+          margin:0 !important;
+        }
+        #shgToolbar > #shgLoanFilterToolbar{
+          order:2 !important;
+          display:flex !important;
+          flex:0 0 auto !important;
+          flex-direction:row !important;
+          flex-wrap:nowrap !important;
+          align-items:flex-end !important;
+          gap:8px !important;
+          width:auto !important;
+          min-width:max-content !important;
+          margin:0 !important;
+          padding:0 !important;
+        }
+        #shgToolbar > #shgLoanFilterToolbar > .loan-filter-field{
+          flex:0 0 150px !important;
+          width:150px !important;
+          min-width:150px !important;
+          max-width:150px !important;
+          margin:0 !important;
+        }
+        #shgToolbar > #interestRateField{
+          order:3 !important;
+          flex:0 0 150px !important;
+          width:150px !important;
+          min-width:150px !important;
+          max-width:150px !important;
+          margin:0 !important;
+        }
+        #shgToolbar > #addShgBtn{
+          order:4 !important;
+          flex:0 0 auto !important;
+          width:auto !important;
+          min-width:100px !important;
+          white-space:nowrap !important;
+          margin:0 !important;
+        }
+        #shgToolbar #addChildField input,
+        #shgToolbar #shgLoanFilterToolbar select,
+        #shgToolbar #interestRateField input{
+          width:100% !important;
+          min-width:0 !important;
+          max-width:none !important;
+          box-sizing:border-box !important;
+        }
+        @media screen and (max-width:900px){
+          /* Tablet: still one row, never wrap. */
+          #shgToolbar{
+            flex-wrap:nowrap !important;
+            overflow-x:auto !important;
+            overflow-y:hidden !important;
+          }
+          #shgToolbar > #addChildField{
+            flex:0 0 190px !important;
+            width:190px !important;
+            min-width:190px !important;
+            max-width:190px !important;
+          }
+          #shgToolbar > #shgLoanFilterToolbar{
+            flex:0 0 auto !important;
+            min-width:max-content !important;
+          }
+          #shgToolbar > #shgLoanFilterToolbar > .loan-filter-field{
+            flex:0 0 125px !important;
+            width:125px !important;
+            min-width:125px !important;
+            max-width:125px !important;
+          }
+          #shgToolbar > #interestRateField{
+            flex:0 0 125px !important;
+            width:125px !important;
+            min-width:125px !important;
+            max-width:125px !important;
+          }
+          #shgToolbar > #addShgBtn{
+            flex:0 0 auto !important;
+            min-width:95px !important;
+          }
+        }
+        @media screen and (max-width:600px){
+          /* Mobile: compact widths, but all five controls remain side-by-side. */
+          #shgToolbar{
+            gap:6px !important;
+            flex-wrap:nowrap !important;
+            overflow-x:auto !important;
+          }
+          #shgToolbar > #addChildField{
+            flex:0 0 150px !important;
+            width:150px !important;
+            min-width:150px !important;
+            max-width:150px !important;
+          }
+          #shgToolbar > #shgLoanFilterToolbar{
+            gap:6px !important;
+            flex-wrap:nowrap !important;
+            min-width:max-content !important;
+          }
+          #shgToolbar > #shgLoanFilterToolbar > .loan-filter-field{
+            flex:0 0 105px !important;
+            width:105px !important;
+            min-width:105px !important;
+            max-width:105px !important;
+          }
+          #shgToolbar > #interestRateField{
+            flex:0 0 105px !important;
+            width:105px !important;
+            min-width:105px !important;
+            max-width:105px !important;
+          }
+          #shgToolbar > #addShgBtn{
+            flex:0 0 auto !important;
+            min-width:90px !important;
+          }
+        }
+    </style>
+
+    <style id="mobile-tablet-max-two-toolbar-elements">
+        /* Mobile + tablet: maximum TWO toolbar controls per row.
+           The Loan/Child filter wrapper becomes transparent to the grid so its
+           Loan and SHG/VO/Member controls occupy their own grid cells. */
+        @media screen and (max-width:900px){
+          #shgToolbar{
+            display:grid !important;
+            grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;
+            grid-auto-rows:auto !important;
+            align-items:end !important;
+            gap:8px !important;
+            width:100% !important;
+            max-width:100% !important;
+            overflow:visible !important;
+            white-space:normal !important;
+            box-sizing:border-box !important;
+            padding:0 !important;
+          }
+          #shgToolbar > #addChildField{
+            grid-column:auto !important;
+            grid-row:auto !important;
+            width:100% !important;
+            min-width:0 !important;
+            max-width:none !important;
+            margin:0 !important;
+          }
+          #shgToolbar > #shgLoanFilterToolbar{
+            display:contents !important;
+            width:auto !important;
+            min-width:0 !important;
+            max-width:none !important;
+            margin:0 !important;
+            padding:0 !important;
+          }
+          #shgToolbar > #shgLoanFilterToolbar.hidden{
+            display:contents !important;
+          }
+          #shgToolbar > #shgLoanFilterToolbar > .loan-filter-field{
+            width:100% !important;
+            min-width:0 !important;
+            max-width:none !important;
+            margin:0 !important;
+          }
+          #shgToolbar > #interestRateField{
+            grid-column:auto !important;
+            grid-row:auto !important;
+            width:100% !important;
+            min-width:0 !important;
+            max-width:none !important;
+            margin:0 !important;
+          }
+          #shgToolbar > #addShgBtn{
+            grid-column:auto !important;
+            grid-row:auto !important;
+            justify-self:start !important;
+            width:auto !important;
+            min-width:110px !important;
+            max-width:none !important;
+            margin:0 !important;
+            white-space:nowrap !important;
+          }
+        }
+
+        @media screen and (max-width:600px){
+          #shgToolbar{
+            grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;
+            gap:7px !important;
+          }
+        }
+    </style>
+    <style id="report-preview-exact-pdf-screen">
+        /* Report Center only: render the already-generated PDF DOM at the same
+           A4-landscape geometry. This does not affect the PDF/print CSS or dashboard UI. */
+        @media screen{
+          .report-preview{
+            overflow:auto !important;
+            -webkit-overflow-scrolling:touch;
+          }
+          .report-preview .page{
+            width:841.89pt !important;
+            min-width:841.89pt !important;
+            max-width:841.89pt !important;
+            height:595.28pt !important;
+            min-height:595.28pt !important;
+            max-height:595.28pt !important;
+            padding:28.3465pt !important;
+            box-sizing:border-box !important;
+            overflow:visible !important;
+          }
+        }
+    </style>
+
+    <style id="report-preview-pdf-match-fix">
+        /* Screen-only: make Report Center render the same visible borders as the PDF.
+           These rules do not affect PDF generation/printing. */
+        @media screen{
+          .report-preview .dcb-frame,
+          .report-preview .cumulative-dcb-frame,
+          .report-preview .ledger-frame{
+            box-sizing:border-box !important;
+          }
+          .report-preview .dcb-report-type-full-row,
+          .report-preview .cumulative-dcb-report-type-full-row{
+            border:1px solid #555 !important;
+            border-bottom:0 !important;
+          }
+          .report-preview .dcb-head,
+          .report-preview .cumulative-dcb-head{
+            border:1px solid #555 !important;
+            border-bottom:0 !important;
+          }
+          .report-preview .dcb-head-left,
+          .report-preview .cumulative-dcb-head-left{
+            border-right:1px solid #555 !important;
+          }
+          .report-preview .dcb-table,
+          .report-preview .cumulative-dcb-table,
+          .report-preview .ledger-table{
+            border-collapse:collapse !important;
+            border-spacing:0 !important;
+            border:1px solid #555 !important;
+            table-layout:fixed !important;
+          }
+          .report-preview .dcb-table th,
+          .report-preview .dcb-table td,
+          .report-preview .cumulative-dcb-table th,
+          .report-preview .cumulative-dcb-table td,
+          .report-preview .ledger-table th,
+          .report-preview .ledger-table td{
+            border:1px solid #555 !important;
+            box-sizing:border-box !important;
+          }
+          .report-preview .dcb-table .number-head td,
+          .report-preview .cumulative-dcb-table .number-head td,
+          .report-preview .ledger-table .number-head th{
+            border:1px solid #555 !important;
+          }
+          .report-preview .report-ui-context{
+            display:block !important;
+            width:100% !important;
+            box-sizing:border-box !important;
+            margin:0 0 8px !important;
+            padding:4px 2px !important;
+            color:#17365d !important;
+            font-family:Arial,"Noto Sans",sans-serif !important;
+            font-size:13px !important;
+            line-height:1.35 !important;
+            border:0 !important;
+            background:transparent !important;
+          }
+        }
+    </style>
+
+    <style id="report-preview-center-data-cells">
+        /* Report Center only: center every data value in all three report tables.
+           PDF/print tables are intentionally untouched. */
+        .report-preview .dcb-table tbody td,
+        .report-preview .cumulative-dcb-table tbody td,
+        .report-preview .ledger-table tbody td{
+          text-align:center !important;
+          vertical-align:middle !important;
+        }
+        .report-preview .dcb-table tbody td.shg-name,
+        .report-preview .cumulative-dcb-table tbody td.shg-name,
+        .report-preview .ledger-table tbody td.name,
+        .report-preview .ledger-table tbody td.date{
+          text-align:center !important;
+          padding-left:0 !important;
+          padding-right:0 !important;
+        }
+    </style>
 </head>
 <body>
 <section id="loginScreen" aria-label="Login">
@@ -1845,7 +2231,9 @@ button > *{position:relative;z-index:1;}
             <button type="button" class="secondary" id="loginMsBtn" style="flex:1;">MS Login</button>
             <button type="button" class="secondary" id="loginShgBtn" style="flex:1;">SHG Login</button>
         </div>
-        <div id="selectedLoginSystem" class="small" style="text-align:center;margin:-4px 0 12px;font-weight:bold;color:#17365d;">Login to VO → SHG</div>
+        <div id="selectedLoginSystem" class="small"
+             style="text-align:center;margin:-4px 0 12px;font-weight:bold;color:#17365d;">Login to VO → SHG
+        </div>
         <div class="login-field">
             <label for="loginUsername">Username or Email ID</label>
             <input id="loginUsername" type="text" autocomplete="username" placeholder="Username or Email ID">
@@ -1866,14 +2254,19 @@ button > *{position:relative;z-index:1;}
 <div id="signupModal" class="auth-modal hidden">
     <div class="auth-box">
         <h2>Create Account</h2>
-        <p class="small">Enter your email, mobile number, username, password and choose the system you are registering for.</p>
+        <p class="small">Enter your email, mobile number, username, password and choose the system you are registering
+            for.</p>
         <div class="field"><label>Email ID *</label><input id="signupEmail" type="email" autocomplete="email"
                                                            placeholder="name@example.com"></div>
         <div class="field"><label>Mobile Number *</label><input id="signupMobile" type="tel" autocomplete="tel"
                                                                 placeholder="+91 9876543210"></div>
         <div class="field"><label>Username *</label><input id="signupUsername" type="text" autocomplete="username"
                                                            placeholder="Choose a username"></div>
-        <div class="field"><label>Register Access *</label><select id="signupSystem"><option value="VO">VO → SHG</option><option value="MS">MS → VO</option><option value="SHG">SHG → Member</option></select></div>
+        <div class="field"><label>Register Access *</label><select id="signupSystem">
+            <option value="VO">VO → SHG</option>
+            <option value="MS">MS → VO</option>
+            <option value="SHG">SHG → Member</option>
+        </select></div>
         <div class="field password-wrap"><label>Password *</label><input id="signupPassword" type="password"
                                                                          autocomplete="new-password"
                                                                          placeholder="Minimum 6 characters">
@@ -1985,7 +2378,8 @@ button > *{position:relative;z-index:1;}
 <div id="systemSelectModal" class="auth-modal hidden">
     <div class="auth-box">
         <h2>Select System</h2>
-        <p class="small">Your account is registered for more than one system. Choose which registered system you want to open.</p>
+        <p class="small">Your account is registered for more than one system. Choose which registered system you want to
+            open.</p>
         <div class="auth-actions" id="systemSelectActions"></div>
         <div id="systemSelectMsg" class="auth-msg"></div>
     </div>
@@ -2052,7 +2446,8 @@ button > *{position:relative;z-index:1;}
                 </div>
 
                 <div class="field" id="financialYearField">
-                    <label id="detailsFinancialYearLabel" for="detailsFinancialYear">Financial Year <span style="color:#c62828">*</span></label>
+                    <label id="detailsFinancialYearLabel" for="detailsFinancialYear">Financial Year <span
+                            style="color:#c62828">*</span></label>
                     <select id="detailsFinancialYear">
                         <option value="" selected>-- Select Financial Year --</option>
                         <option value="2024-25">2024-25</option>
@@ -2106,32 +2501,31 @@ button > *{position:relative;z-index:1;}
                 <h2 id="childMonthlyTitle">Child Wise Monthly Collection Data</h2>
                 <div class="notice" id="childMonthNotice"></div>
                 <div class="toolbar" id="shgToolbar">
-                    <div class="field" id="addChildField"><label id="addChildLabel">Add Child Name</label><input id="shgNameInput" placeholder="Child Name"></div>
-                    <button type="button" class="success" id="addShgBtn">Add Child</button>
+                    <div class="field" id="addChildField"><label id="addChildLabel">Add Child Name</label><input
+                            id="shgNameInput" placeholder="Child Name"></div>
                     <div class="shg-loan-filters hidden" id="shgLoanFilterToolbar">
                         <div class="field loan-filter-field">
                             <label for="loanTypeFilter">Loan</label>
                             <select id="loanTypeFilter">
-                                <option value="bankLinkage">1. Bank Linkage</option>
-                                <option value="streeNidhi">2. Stree Nidhi</option>
-                                <option value="voCif">3. VO CIF</option>
-                                <option value="internalLoan">4. Internal Loan</option>
+                                <option value="cif">1. CIF</option>
                             </select>
                         </div>
                         <div class="field loan-filter-field">
-                            <label for="memberFilter">Member</label>
+                            <label id="memberFilterLabel" for="memberFilter">Member</label>
                             <select id="memberFilter">
                                 <option value="ALL">ALL</option>
                             </select>
                         </div>
                     </div>
-                    <div class="field" id="interestRateField" style="max-width:180px"><label>Interest Rate (%)</label><input id="shgRateInput"
-                                                                                                                             oninput="updateInterestRateLive()"
-                                                                                                                             type="number"
-                                                                                                                             min="0"
-                                                                                                                             max="100"
-                                                                                                                             step="0.01"
-                                                                                                                             value="12"></div>
+                    <div class="field" id="interestRateField" style="max-width:180px"><label for="shgRateInput">Interest
+                        Rate (%)</label><input id="shgRateInput"
+                                               oninput="updateInterestRateLive()"
+                                               type="number"
+                                               min="0"
+                                               max="100"
+                                               step="0.01"
+                                               value="12"></div>
+                    <button type="button" class="success" id="addShgBtn">Add Child</button>
                 </div>
                 <div class="months" id="monthTabs"></div>
                 <div class="tablewrap">
@@ -2173,9 +2567,13 @@ button > *{position:relative;z-index:1;}
                     <div class="report-center-head">
                         <div>
                             <h2 id="reportCenterTitle" style="margin:0">Reports</h2>
-                            <div class="small" id="reportCenterHint">Choose a member and loan, then show the report.</div>
+                            <div class="small" id="reportCenterHint">Choose the child and loan type, then show the
+                                report.
+                            </div>
                         </div>
-                        <button type="button" class="secondary hidden" id="closeReportsBtn" aria-hidden="true" tabindex="-1">Close Reports</button>
+                        <button type="button" class="secondary hidden" id="closeReportsBtn" aria-hidden="true"
+                                tabindex="-1">Close Reports
+                        </button>
                     </div>
 
                     <div class="toolbar report-filter-toolbar">
@@ -2188,17 +2586,16 @@ button > *{position:relative;z-index:1;}
                         <div class="field" id="reportLoanField">
                             <label for="reportLoanFilter">Loan</label>
                             <select id="reportLoanFilter">
-                                <option value="bankLinkage">1. Bank Linkage</option>
-                                <option value="streeNidhi">2. Stree Nidhi</option>
-                                <option value="voCif">3. VO CIF</option>
-                                <option value="internalLoan">4. Internal Loan</option>
+                                <option value="cif">1. CIF</option>
                             </select>
                         </div>
                         <div class="actions report-type-actions">
                             <button type="button" class="warning" id="showDcbReportBtn">Show DCB</button>
                             <button type="button" class="warning" id="showLedgerReportBtn">Show Loan Ledger</button>
-                            <button type="button" class="warning" id="showCumulativeReportBtn">Show Cumulative DCB</button>
-                            <button type="button" class="success" id="downloadAllReportsBtn">Download All 3 PDFs</button>
+                            <button type="button" class="warning" id="showCumulativeReportBtn">Show Cumulative DCB
+                            </button>
+                            <button type="button" class="success" id="downloadAllReportsBtn">Download All 3 PDFs
+                            </button>
                         </div>
                     </div>
 
@@ -2206,7 +2603,9 @@ button > *{position:relative;z-index:1;}
 
                     <div class="actions report-download-actions hidden" id="reportDownloadActions">
                         <span class="small" id="currentReportLabel"></span>
-                        <button type="button" class="success" id="downloadCurrentReportBtn">Download Current Report PDF</button>
+                        <button type="button" class="success" id="downloadCurrentReportBtn">Download Current Report
+                            PDF
+                        </button>
                     </div>
                 </section>
             </div>
@@ -2714,7 +3113,7 @@ button > *{position:relative;z-index:1;}
     let currentFinancialYear="";
     let MONTHS=buildMonths(currentFinancialYear);
     let db=readDb(), selectedVOId=null, monthIndex=0, dirty=false;
-    let selectedLoanType="bankLinkage", selectedMemberId="ALL";
+    let selectedLoanType="cif", selectedMemberId="ALL";
 
     /*
      * SINGLE SOURCE OF TRUTH FOR VO/MS DIFFERENCES
@@ -2737,6 +3136,10 @@ button > *{position:relative;z-index:1;}
         villageRequired:true,
         districtRequired:false,
         firstLocationField:"village",
+        loanTypes:[
+          {key:"cif",label:"1. VO CIF"},
+          {key:"internalLoan",label:"2. Internal"}
+        ],
         backupFilename:"vo-shg-backup.json",
         pdf:{
           headerFields:[
@@ -2762,6 +3165,13 @@ button > *{position:relative;z-index:1;}
         villageRequired:false,
         districtRequired:true,
         firstLocationField:"mandal",
+        loanTypes:[
+          {key:"cif",label:"1. VO CIF"},
+          {key:"sgsy",label:"2. SGSY"},
+          {key:"pmfme",label:"3. PMFME"},
+          {key:"nutrition",label:"4. Nutrition"},
+          {key:"education",label:"5. Education"}
+        ],
         backupFilename:"ms-vo-backup.json",
         pdf:{
           headerFields:[
@@ -2787,6 +3197,12 @@ button > *{position:relative;z-index:1;}
         villageRequired:true,
         districtRequired:false,
         firstLocationField:"village",
+        loanTypes:[
+          {key:"bankLinkage",label:"1. Bank Linkage"},
+          {key:"streeNidhi",label:"2. Sree Nidhi"},
+          {key:"voCif",label:"3. VO CIF"},
+          {key:"internalLoan",label:"4. Internal"}
+        ],
         backupFilename:"shg-member-backup.json",
         pdf:{
           headerFields:[
@@ -2802,6 +3218,8 @@ button > *{position:relative;z-index:1;}
     });
 
     function modeConfig(){return ACCOUNTING_CONFIG[currentMode]||ACCOUNTING_CONFIG.VO;}
+    function loanTypesForMode(){return modeConfig().loanTypes||ACCOUNTING_CONFIG.VO.loanTypes;}
+    function defaultLoanTypeKey(){const types=loanTypesForMode();return types.length?types[0].key:"cif";}
     function modeKey(){return modeConfig().storageKey;}
     function applyAccountingLabels(){
       const c=modeConfig();
@@ -2879,9 +3297,19 @@ button > *{position:relative;z-index:1;}
       set("childTableNameHead",`${c.child} Name`);
       set("saveAllBtn",c.parent==="SHG"?`Save All ${c.childPlural}`:`Save All ${c.childPlural}`);
       const loanFilterToolbar=document.getElementById("shgLoanFilterToolbar");
-      if(loanFilterToolbar)loanFilterToolbar.classList.toggle("hidden",c.parent!=="SHG");
-      const loanTypeHead=document.getElementById("loanTypeHead");
-      if(loanTypeHead)loanTypeHead.classList.toggle("hidden",c.parent!=="SHG");
+      if(loanFilterToolbar)loanFilterToolbar.classList.remove("hidden");
+      const rateField=document.getElementById("interestRateField");
+      if(rateField)rateField.classList.remove("hidden");
+      const loanTypeLabel=document.querySelector("#loanTypeFilter");
+      if(loanTypeLabel){
+        loanTypeLabel.innerHTML=loanTypesForMode().map(type=>`<option value="${type.key}">${type.label}</option>`).join("");
+      }
+      selectedLoanType=loanTypesForMode().some(type=>type.key===selectedLoanType)?selectedLoanType:defaultLoanTypeKey();
+      refreshLoanInterestRateInput();
+      const memberFilterField=document.getElementById("memberFilter")?.closest(".field");
+      if(memberFilterField)memberFilterField.classList.remove("hidden");
+      const memberFilterLabel=document.getElementById("memberFilterLabel");
+      if(memberFilterLabel)memberFilterLabel.textContent=c.child;
       document.querySelectorAll(".shg-saving-head").forEach(el=>el.classList.toggle("hidden",c.parent!=="SHG"));
       set("allPdfsBtn",`Download ${c.parent} PDF`);
       const h=document.querySelector('link[rel="icon"]');
@@ -2902,7 +3330,7 @@ button > *{position:relative;z-index:1;}
       localStorage.setItem(modeKey(),JSON.stringify(db));
       selectedVOId=null;
       monthIndex=0;
-      selectedLoanType="bankLinkage";
+      selectedLoanType=defaultLoanTypeKey();
       selectedMemberId="ALL";
       markClean();
       refresh();
@@ -3006,8 +3434,11 @@ button > *{position:relative;z-index:1;}
       MONTHS=buildMonths(currentFinancialYear);
 
       const rateInput=document.getElementById("shgRateInput");
-      const currentRate=rateInput?Number(rateInput.value):12;
+      const currentRate=rateInput?Number(rateInput.value):getCurrentLoanInterestRate(v);
       if(!Number.isFinite(currentRate)||currentRate<0||currentRate>100){alert("Enter a valid interest rate between 0 and 100%.");if(rateInput)rateInput.focus();return false;}
+      ensureIndividualLoanInterestRates(v);
+      const currentLoanKey=selectedLoanType||defaultLoanTypeKey();
+      v.loanInterestRates[currentLoanKey]=currentRate;
       v.interestRate=currentRate;
       const screenEntries=filteredRowEntries(v);
       screenEntries.forEach((entry,rowIndex)=>{
@@ -3058,55 +3489,70 @@ button > *{position:relative;z-index:1;}
     }
     window.addEventListener("beforeunload",function(e){if(dirty){e.preventDefault();e.returnValue="Unsaved changes will be lost.";}});
 
-    const SHG_LOAN_TYPES=Object.freeze([
-      {key:"bankLinkage",label:"1. Bank Linkage"},
-      {key:"streeNidhi",label:"2. Stree Nidhi"},
-      {key:"voCif",label:"3. VO CIF"},
-      {key:"internalLoan",label:"4. Internal Loan"}
-    ]);
+    const SHG_LOAN_TYPES=ACCOUNTING_CONFIG.SHG.loanTypes;
     function isSHGMode(){return modeConfig().parent==="SHG";}
-    function loanLabel(key){const x=SHG_LOAN_TYPES.find(t=>t.key===key);return x?x.label:key;}
-    function ensureShgLoanData(v){
+    function loanLabel(key){const x=loanTypesForMode().find(t=>t.key===key);return x?x.label:key;}
+    function ensureLoanData(v){
       if(!v||!Array.isArray(v.shgs))return;
+      const types=loanTypesForMode();
+      ensureIndividualLoanInterestRates(v);
       v.shgs.forEach(member=>{
         if(!member.loans)member.loans={};
-        SHG_LOAN_TYPES.forEach(type=>{
-          const oldMonths=(type.key==="bankLinkage"&&member.months&&Object.keys(member.months).length)?member.months:{};
+        types.forEach((type,index)=>{
           const loan=member.loans[type.key]||{};
-          if(!loan.months)loan.months=oldMonths;
+          /* Preserve legacy VO/MS monthly data by migrating it into CIF.
+             Existing SHG data remains in Bank Linkage. */
+          if(!loan.months){
+            if(member.months && Object.keys(member.months).length && index===0) loan.months=member.months;
+            else loan.months={};
+          }
           if(!Number.isInteger(loan.startMonthIndex))loan.startMonthIndex=Number.isInteger(member.startMonthIndex)?member.startMonthIndex:0;
-          if(loan.interestRate===undefined||loan.interestRate===null)loan.interestRate=Number(member.interestRate||v.interestRate||12);
+          const configuredRate=Number(v.loanInterestRates[type.key]);
+          const legacyRate=Number(loan.interestRate);
+          if(Number.isFinite(configuredRate)&&configuredRate>=0&&configuredRate<=100){
+            loan.interestRate=configuredRate;
+          }else if(Number.isFinite(legacyRate)&&legacyRate>=0&&legacyRate<=100){
+            v.loanInterestRates[type.key]=legacyRate;
+            loan.interestRate=legacyRate;
+          }else{
+            loan.interestRate=Number(v.loanInterestRates[type.key]||12);
+          }
           loan.name=member.name;
           member.loans[type.key]=loan;
         });
       });
     }
+    /* Backward-compatible name used by older SHG-specific code paths. */
+    function ensureShgLoanData(v){ensureLoanData(v);}
     function populateMemberFilter(){
       const sel=document.getElementById("memberFilter");
       if(!sel)return;
       const v=vo();
+      const childLabel=modeConfig().child||"Member";
       const wanted=selectedMemberId||"ALL";
-      sel.innerHTML='<option value="ALL">ALL</option>';
-      (v&&Array.isArray(v.shgs)?v.shgs:[]).forEach((member,i)=>{
-        const o=document.createElement("option");o.value=member.id;o.textContent=member.name||(`Member ${i+1}`);sel.appendChild(o);
+      sel.innerHTML=`<option value="ALL">ALL ${childLabel}s</option>`;
+      (v&&Array.isArray(v.shgs)?v.shgs:[]).forEach((child,i)=>{
+        const o=document.createElement("option");
+        o.value=child.id;
+        o.textContent=child.name||(`${childLabel} ${i+1}`);
+        sel.appendChild(o);
       });
       sel.value=(wanted==="ALL"||[...sel.options].some(o=>o.value===wanted))?wanted:"ALL";
       selectedMemberId=sel.value;
     }
     function filteredRowEntries(v){
       if(!v)return [];
-      if(!isSHGMode())return (v.shgs||[]).map((s,i)=>({member:s,loan:null,index:i,key:i,displayName:s.name||`${modeConfig().child} ${i+1}`}));
-      ensureShgLoanData(v);
+      ensureLoanData(v);
       const out=[];
       (v.shgs||[]).forEach((member,mi)=>{
         if(selectedMemberId!=="ALL"&&member.id!==selectedMemberId)return;
         const loan=member.loans&&member.loans[selectedLoanType];
-        if(loan)out.push({member,loan,index:mi,key:selectedLoanType,displayName:member.name||`Member ${mi+1}`});
+        if(loan)out.push({member,loan,index:mi,key:selectedLoanType,displayName:member.name||`${modeConfig().child} ${mi+1}`});
       });
       return out;
     }
     function selectedEntryByRow(i){return filteredRowEntries(vo())[i]||null;}
-    function activeAccount(entry){return isSHGMode()?entry.loan:entry.member;}
+    function activeAccount(entry){return entry.loan||entry.member;}
     function syncLoanFilterState(){
       const loanSel=document.getElementById("loanTypeFilter"),memberSel=document.getElementById("memberFilter");
       if(loanSel)loanSel.value=selectedLoanType;
@@ -3185,9 +3631,8 @@ button > *{position:relative;z-index:1;}
      document.getElementById("village").value=v.village||"";
      document.getElementById("mandal").value=v.mandal||"";
      document.getElementById("district").value=v.district||"";
-     const rateInput=document.getElementById("shgRateInput");
-     if(isSHGMode())ensureShgLoanData(v);
-     if(rateInput) rateInput.value=(v.interestRate!==undefined&&v.interestRate!==null)?v.interestRate:(v.shgs[0]&&v.shgs[0].interestRate!==undefined?v.shgs[0].interestRate:12);
+     ensureLoanData(v);
+     refreshLoanInterestRateInput();
      syncLoanFilterState();
      renderMonths();renderRows();
     }
@@ -3218,7 +3663,8 @@ button > *{position:relative;z-index:1;}
       if(!name){alert(`Enter a ${modeConfig().parent} name.`);return;}
       if(!FINANCIAL_YEARS.includes(financialYear)){alert("Please select a valid Financial Year.");if(fySelect)fySelect.focus();return;}
       if(db.vos.some(x=>String(x.name||"").trim().toLowerCase()===name.toLowerCase())){alert(`A ${modeConfig().parent} with this name already exists. Select it from the dropdown.`);return;}
-      const v={id:"VO-"+Date.now()+"-"+Math.random().toString(36).slice(2),name:name,voName:"",financialYear:financialYear,village:"",mandal:"",district:"",shgs:[]};
+      const v={id:"VO-"+Date.now()+"-"+Math.random().toString(36).slice(2),name:name,voName:"",financialYear:financialYear,village:"",mandal:"",district:"",shgs:[],loanInterestRates:{}};
+      loanTypesForMode().forEach(type=>{v.loanInterestRates[type.key]=12;});
       db.vos.push(v);selectedVOId=v.id;monthIndex=0;
       currentFinancialYear=financialYear;
       MONTHS=buildMonths(currentFinancialYear);
@@ -3237,15 +3683,47 @@ button > *{position:relative;z-index:1;}
       setTimeout(()=>document.getElementById(modeConfig().firstLocationField).focus(),50);
     }
 
+    function ensureIndividualLoanInterestRates(v){
+      if(!v)return;
+      if(!v.loanInterestRates || typeof v.loanInterestRates!=="object")v.loanInterestRates={};
+      const fallback=Number(v.interestRate);
+      const fallbackRate=Number.isFinite(fallback)&&fallback>=0&&fallback<=100?fallback:12;
+      loanTypesForMode().forEach(type=>{
+        if(v.loanInterestRates[type.key]===undefined || v.loanInterestRates[type.key]===null || !Number.isFinite(Number(v.loanInterestRates[type.key]))){
+          const existing=v.shgs?.[0]?.loans?.[type.key]?.interestRate;
+          v.loanInterestRates[type.key]=Number.isFinite(Number(existing))?Number(existing):fallbackRate;
+        }
+      });
+    }
+
+    function getCurrentLoanInterestRate(v){
+      if(!v)return 12;
+      ensureIndividualLoanInterestRates(v);
+      const key=selectedLoanType||defaultLoanTypeKey();
+      return Number(v.loanInterestRates[key] ?? 12);
+    }
+
+    function refreshLoanInterestRateInput(){
+      const v=vo(),el=document.getElementById("shgRateInput");
+      if(!el)return;
+      if(!v){el.value="12";return;}
+      ensureIndividualLoanInterestRates(v);
+      el.value=getCurrentLoanInterestRate(v);
+    }
+
     function updateInterestRateLive(){
       const v=vo(),el=document.getElementById("shgRateInput");if(!v||!el)return;
       const rate=Number(el.value);
       if(!Number.isFinite(rate)||rate<0||rate>100)return;
-      v.interestRate=rate;
+      ensureIndividualLoanInterestRates(v);
+      const key=selectedLoanType||defaultLoanTypeKey();
+      v.loanInterestRates[key]=rate;
+      ensureLoanData(v);
       v.shgs.forEach(s=>{
-        s.interestRate=rate;
-        if(isSHGMode()){ensureShgLoanData(v);SHG_LOAN_TYPES.forEach(type=>{s.loans[type.key].interestRate=rate;});}
+        s.loans[key].interestRate=rate;
       });
+      /* Keep the legacy parent/member rate as a fallback only. */
+      v.interestRate=rate;
       renderRows();markDirty();
     }
 
@@ -3258,12 +3736,16 @@ button > *{position:relative;z-index:1;}
       if(!name){alert(`Type ${modeConfig().child} name first.`);input.focus();return;}
       if(!Number.isFinite(rate)||rate<0||rate>100){alert("Enter a valid interest rate between 0 and 100%.");rateInput.focus();return;}
       if(v.shgs.some(s=>String(s.name||"").trim().toLowerCase()===name.toLowerCase())){alert(`That ${modeConfig().child} already exists in this ${modeConfig().parent}.`);input.select();return;}
+      ensureIndividualLoanInterestRates(v);
+      const selectedKey=selectedLoanType||defaultLoanTypeKey();
+      v.loanInterestRates[selectedKey]=rate;
       const member={id:"SHG-"+Date.now()+"-"+Math.random().toString(36).slice(2),name:name,interestRate:rate,startMonthIndex:monthIndex,months:{},loans:{}};
       v.shgs.push(member);
-      if(isSHGMode()){
-        SHG_LOAN_TYPES.forEach(type=>{member.loans[type.key]={name:name,interestRate:rate,startMonthIndex:monthIndex,months:{}};});
-      }
-      input.value="";v.interestRate=rate;markDirty();populateMemberFilter();renderRows();
+      loanTypesForMode().forEach(type=>{
+        const typeRate=Number(v.loanInterestRates[type.key]??12);
+        member.loans[type.key]={name:name,interestRate:typeRate,startMonthIndex:monthIndex,months:{}};
+      });
+      input.value="";v.interestRate=rate;refreshLoanInterestRateInput();markDirty();populateMemberFilter();renderRows();
       document.getElementById("saveStatus").textContent=`${modeConfig().child} added — save to keep changes`;
       input.focus();
     }
@@ -3365,13 +3847,18 @@ button > *{position:relative;z-index:1;}
      const body=document.getElementById("entryBody");body.innerHTML="";
      const v=vo();if(!v)return;
      if(!Array.isArray(v.shgs))v.shgs=[];
-     if(isSHGMode())ensureShgLoanData(v);
+     ensureLoanData(v);
      const entries=filteredRowEntries(v);
      const april=(monthIndex===0);
      entries.forEach((entry,rowIndex)=>{
       const s=entry.member;
       const account=activeAccount(entry);
-      if(account.interestRate===undefined||account.interestRate===null||account.interestRate==="")account.interestRate=12;
+      const configuredRate=Number(v.loanInterestRates?.[entry.key]);
+      if(Number.isFinite(configuredRate)&&configuredRate>=0&&configuredRate<=100){
+        account.interestRate=configuredRate;
+      }else if(account.interestRate===undefined||account.interestRate===null||account.interestRate===""){
+        account.interestRate=12;
+      }
       const startIdx=Number.isInteger(account.startMonthIndex)?account.startMonthIndex:(Number.isInteger(s.startMonthIndex)?s.startMonthIndex:0);
       if(monthIndex<startIdx)return;
       const key=MONTHS[monthIndex][0],saved=account.months[key],d=saved||blank();
@@ -3566,14 +4053,16 @@ button > *{position:relative;z-index:1;}
       /* First capture whatever is currently being edited on screen. */
       if(!saveCurrentScreen())return;
 
+      ensureIndividualLoanInterestRates(v);
       const rateInput=document.getElementById("shgRateInput");
-      const rate=rateInput?Number(rateInput.value):Number(v.interestRate||12);
+      const selectedKey=selectedLoanType||defaultLoanTypeKey();
+      const rate=rateInput?Number(rateInput.value):Number(v.loanInterestRates[selectedKey]||12);
       if(!Number.isFinite(rate)||rate<0||rate>100){
         alert("Enter a valid interest rate between 0 and 100%.");
         if(rateInput)rateInput.focus();
         return;
       }
-
+      v.loanInterestRates[selectedKey]=rate;
       v.interestRate=rate;
 
       /*
@@ -3582,15 +4071,14 @@ button > *{position:relative;z-index:1;}
        * values are recalculated from the previous month's saved data.
        * This makes Save All SHGs an actual all-month save operation.
        */
-      if(isSHGMode())ensureShgLoanData(v);
-      const allEntries=isSHGMode()
-        ? v.shgs.flatMap(member=>SHG_LOAN_TYPES.map(type=>({member,loan:member.loans[type.key],type})))
-        : v.shgs.map(member=>({member,loan:member,type:null}));
+      ensureLoanData(v);
+      const allEntries=v.shgs.flatMap(member=>loanTypesForMode().map(type=>({member,loan:member.loans[type.key],type})));
       allEntries.forEach(entry=>{
         const s=entry.member;
         const account=entry.loan;
         account.name=s.name;
-        account.interestRate=rate;
+        const accountRate=Number(v.loanInterestRates[entry.type.key] ?? account.interestRate ?? 12);
+        account.interestRate=accountRate;
         if(!account.months)account.months={};
         MONTHS.forEach((m,mi)=>{
           const key=m[0],existing=account.months[key];
@@ -3602,7 +4090,7 @@ button > *{position:relative;z-index:1;}
           const nextMonthStart=(startIdx>0&&mi===startIdx+1);
           if(creationMonth){d.opening=0;d.prevPrincipal=0;d.prevInterest=0;d.demandPrincipal=0;d.principalCollection="";d.interestCollection="";}
           else if(mi>0){const prev=lastConsideredMonth(account,mi);if(prev){const pc=calc(prev.data);d.opening=pc.totalLoanBalance;d.prevPrincipal=pc.balancePrincipal;d.prevInterest=pc.balanceInterest;}}
-          d.demandInterest=monthlyInterest(d.opening,rate);
+          d.demandInterest=monthlyInterest(d.opening,account.interestRate);
           if(monthIsConsidered(d))account.months[key]=d;else delete account.months[key];
         });
       });
@@ -3623,8 +4111,7 @@ button > *{position:relative;z-index:1;}
           oldMonths.forEach((oldMonth,i)=>{const data=oldData[oldMonth[0]];if(data)next[newMonths[i][0]]=data;});
           account.months=next;
         };
-        if(isSHGMode()){ensureShgLoanData(v);SHG_LOAN_TYPES.forEach(type=>rekey(s.loans[type.key]));}
-        else rekey(s);
+        ensureLoanData(v);loanTypesForMode().forEach(type=>rekey(s.loans[type.key]));
       });
     }
 
@@ -3841,10 +4328,68 @@ button > *{position:relative;z-index:1;}
 
     function pdfParentLabel(){return modeConfig().parent;}
     function pdfChildLabel(){return modeConfig().child;}
+    function pdfChildNameLabel(){
+      return currentMode==="SHG" ? "సభ్యురాలి" : pdfChildLabel();
+    }
+    function loanTypeDisplayLabel(key){
+      if(key==="ALL")return "ALL Loans";
+      const loanKey=String(key||"");
+      const teluguMap={
+        bankLinkage:"బ్యాంక్‌ లింకేజి అప్పు",
+        streeNidhi:"స్త్రీ నిధి అప్పు",
+        voCif:"VO CIF అప్పు",
+        internalLoan:"అంతర్గత అప్పు",
+        cif:"VO CIF అప్పు",
+        sgsy:"SGSY అప్పు",
+        pmfme:"PMFME అప్పు",
+        nutrition:"Nutrition అప్పు",
+        education:"Education అప్పు"
+      };
+      if(teluguMap[loanKey])return teluguMap[loanKey];
+      const label=loanLabel(key);
+      return String(label||key||"").replace(/^\s*\d+\.\s*/g,"").trim();
+    }
+    function pdfActiveLoanTypeKey(){
+      const candidate=reportPreviewActive ? reportPreviewLoanType : (selectedLoanType||defaultLoanTypeKey());
+      return candidate||defaultLoanTypeKey();
+    }
+    function pdfLoanTypeHeaderLabel(key=null){
+      return loanTypeDisplayLabel(key||pdfActiveLoanTypeKey());
+    }
+    function pdfDcbTopHeaderText(loanKey=null){
+      const loan=pdfLoanTypeHeaderLabel(loanKey);
+      if(currentMode==="SHG")return `సభ్యురాలి వారీగా- ${esc(loan)} - DCB వివరాలు`;
+      if(currentMode==="VO")return `SHG వారీగా- ${esc(loan)} - DCB వివరాలు`;
+      return `VO వారీగా- ${esc(loan)} - DCB వివరాలు`;
+    }
+    function pdfLedgerTopHeaderText(v,entry){
+      /* LL uses one single title line with explicit system labels.
+         SHG also includes the linked VO name in the same line. */
+      const loan=pdfLoanTypeHeaderLabel(entry?.loanKey||defaultLoanTypeKey());
+      const parentName=String(v?.name||"").trim();
+      let subject="";
+      if(currentMode==="SHG"){
+        const voName=String(v?.voName||document.getElementById("linkedVoName")?.value||"").trim();
+        subject=`SHG : ${parentName}`;
+        if(voName)subject+=`, VO : ${voName}`;
+      }else if(currentMode==="MS"){
+        subject=`MS : ${parentName}`;
+      }else{
+        subject=`VO : ${parentName}`;
+      }
+      return `${esc(subject)}, ${esc(loan)} - అప్పులెడ్జర్ ${esc(pdfFinancialYear(v))}`;
+    }
     function pdfLocationLabelTelugu(){return modeConfig().pdf.ledgerFields[0].label;}
     function pdfLocationValue(v){return v[modeConfig().pdf.ledgerFields[0].field]||"";}
     function pdfHeaderLocationText(v){
       const c=modeConfig();
+      if(currentMode==="SHG"){
+        const shgName=esc(v.name||"");
+        const voName=esc(v.voName||document.getElementById("linkedVoName")?.value||"");
+        const village=esc(v.village||"");
+        const mandal=esc(v.mandal||"");
+        return `SHG : ${shgName},&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;VO : ${voName},&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;గ్రామం : ${village},&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;మండలం : ${mandal}`;
+      }
       return `${pdfParentLabel()} : ${esc(v.name||"")},&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;${c.pdf.headerFields.map(item=>`${item.label} : ${esc(v[item.field]||"")}`).join(",&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;")}`;
     }
 
@@ -4293,8 +4838,10 @@ button > *{position:relative;z-index:1;}
 
           const blank=page.querySelector(".dcb-top-blank");
           const head=page.querySelector(".dcb-head,.cumulative-dcb-head");
+          const reportTypeRow=page.querySelector(".dcb-report-type-full-row,.cumulative-dcb-report-type-full-row");
 
           const blankH=blank ? blank.getBoundingClientRect().height*72/96 : 0;
+          const reportTypeH=reportTypeRow ? reportTypeRow.getBoundingClientRect().height*72/96 : 0;
           const headH=head ? head.getBoundingClientRect().height*72/96 : 0;
           const thead=table.tHead;
           const theadH=thead ? thead.getBoundingClientRect().height*72/96 : 0;
@@ -4307,6 +4854,7 @@ button > *{position:relative;z-index:1;}
             pagePaddingTop-
             pagePaddingBottom-
             blankH-
+            reportTypeH-
             headH-
             theadH-
             totalH-
@@ -4823,7 +5371,8 @@ button > *{position:relative;z-index:1;}
             page.style.setProperty("padding-right",`${marginPt.toFixed(4)}pt`,"important");
           }
 
-          [frame,table,head].forEach(el=>{
+          const reportTypeRow=page && page.querySelector(".dcb-report-type-full-row,.cumulative-dcb-report-type-full-row");
+          [frame,table,head,reportTypeRow].filter(Boolean).forEach(el=>{
             el.style.setProperty("width",`${widthPx.toFixed(3)}px`,"important");
             el.style.setProperty("max-width",`${widthPx.toFixed(3)}px`,"important");
             el.style.setProperty("min-width",`${widthPx.toFixed(3)}px`,"important");
@@ -4834,25 +5383,63 @@ button > *{position:relative;z-index:1;}
 
           void table.offsetWidth;
 
-          const dataCols=Array.from(table.querySelectorAll(":scope > colgroup > col"));
-          const headCols=Array.from(head.querySelectorAll(":scope > colgroup > col"));
-
           /*
-           * Copy each final rendered data-column width one-for-one to the
-           * corresponding header column. The two elements are both tables
-           * with table-layout:fixed and border-collapse:collapse.
+           * FINAL PIXEL-TO-PIXEL ALIGNMENT
+           * --------------------------------
+           * Use the FINAL rendered table border as the source of truth.
+           * Summing <col> widths can differ from the painted table border by
+           * a small amount because the table uses collapsed borders. That
+           * difference is visible at the highlighted right edge in the PDF.
+           *
+           * The divider is taken from the actual rendered number-row cell at
+           * leftSpan, so the header split and both outer edges land on the
+           * exact same physical coordinates as the data table.
            */
-          dataCols.forEach((dc,i)=>{
-            const hc=headCols[i];
-            if(!hc)return;
-            const r=dc.getBoundingClientRect();
-            hc.style.setProperty("width",`${r.width.toFixed(3)}px`,"important");
+          const tableRect=table.getBoundingClientRect();
+          const numberRow=table.querySelector("thead tr.number-head");
+          const numberCells=numberRow ? Array.from(numberRow.children) : [];
+          const leftSpan=parseInt(head.dataset.leftSpan||"0",10)||0;
+
+          let tableWidthPx=tableRect.width;
+          let leftWidthPx=0;
+
+          if(numberCells.length && leftSpan>0 && numberCells[leftSpan-1]){
+            const boundaryCellRect=numberCells[leftSpan-1].getBoundingClientRect();
+            leftWidthPx=Math.max(0,boundaryCellRect.right-tableRect.left);
+          }
+
+          if(!(tableWidthPx>0)){
+            const dataCols=Array.from(table.querySelectorAll(":scope > colgroup > col"));
+            tableWidthPx=dataCols.reduce((sum,dc)=>sum+dc.getBoundingClientRect().width,0);
+          }
+
+          if(!(leftWidthPx>0)){
+            const dataCols=Array.from(table.querySelectorAll(":scope > colgroup > col"));
+            leftWidthPx=dataCols.slice(0,leftSpan).reduce((sum,dc)=>sum+dc.getBoundingClientRect().width,0);
+          }
+
+          leftWidthPx=Math.min(Math.max(0.1,leftWidthPx),Math.max(0.2,tableWidthPx-0.1));
+          const rightWidthPx=Math.max(0.1,tableWidthPx-leftWidthPx);
+
+          head.style.setProperty("display","grid","important");
+          head.style.setProperty("grid-template-columns",`${leftWidthPx.toFixed(3)}px ${rightWidthPx.toFixed(3)}px`,"important");
+          head.style.setProperty("width",`${tableWidthPx.toFixed(3)}px`,"important");
+          head.style.setProperty("max-width",`${tableWidthPx.toFixed(3)}px`,"important");
+          head.style.setProperty("min-width",`${tableWidthPx.toFixed(3)}px`,"important");
+          head.style.setProperty("box-sizing","border-box","important");
+
+          const children=Array.from(head.children);
+          children.forEach((el,i)=>{
+            const cw=i===0?leftWidthPx:rightWidthPx;
+            el.style.setProperty("width",`${Math.max(.1,cw).toFixed(3)}px`,"important");
+            el.style.setProperty("min-width",`${Math.max(.1,cw).toFixed(3)}px`,"important");
+            el.style.setProperty("max-width",`${Math.max(.1,cw).toFixed(3)}px`,"important");
+            el.style.setProperty("box-sizing","border-box","important");
           });
 
           void head.offsetWidth;
         }
 
-        /* Every Monthly DCB page independently. */
         doc.querySelectorAll(".dcb-page").forEach(page=>{
           sync(
             page.querySelector(".dcb-frame"),
@@ -4861,7 +5448,6 @@ button > *{position:relative;z-index:1;}
           );
         });
 
-        /* Every Cumulative DCB page independently. */
         doc.querySelectorAll(".cumulative-dcb-page").forEach(page=>{
           sync(
             page.querySelector(".cumulative-dcb-frame"),
@@ -4963,8 +5549,30 @@ html,body{
   height:22pt;
   border-bottom:1px solid #555;
 }
+.pdf-report-type-header{
+  width:100%;
+  min-height:24pt;
+  height:24pt;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  box-sizing:border-box;
+  border:1px solid #555;
+  border-bottom:0;
+  font-family:"Gidugu",Arial,sans-serif;
+  font-size:15.5pt;
+  font-weight:100;
+  line-height:1;
+  white-space:nowrap;
+  overflow:hidden;
+}
+.ledger-report-type-header{
+  display:none !important;
+}
 .ledger-title-row{
-  height:28pt;
+  height:34pt;
+  border-top:1px solid #555;
   display:grid;
   grid-template-columns:1fr 55pt 50pt;
   border-bottom:1px solid #555;
@@ -4975,12 +5583,27 @@ html,body{
   display:flex;
   align-items:center;
   justify-content:center;
+  gap:0;
   text-align:center;
-  font-size:17pt;
-<!--  font-weight:700;-->
+  font-size:15.5pt;
   line-height:1;
   border-right:1px solid #555;
   white-space:nowrap;
+  overflow:hidden;
+  min-width:0;
+}
+.ledger-loan-title,.ledger-name-title{
+  display:inline-block;
+  white-space:nowrap;
+  flex:0 1 auto;
+  min-width:0;
+  overflow:hidden;
+  text-overflow:clip;
+}
+.ledger-title-separator{
+  display:inline-block;
+  flex:0 0 auto;
+  font-weight:700;
 }
 .page-label{
   display:flex;
@@ -5155,6 +5778,31 @@ html,body{
   border-bottom:0;
 }
 
+/* Final PDF header alignment: every top header block uses the exact same
+   content width and only one horizontal rule separates adjacent rows. */
+.pdf-report-type-header,
+.dcb-report-type-full-row,
+.cumulative-dcb-report-type-full-row{
+  margin-left:0 !important;
+  margin-right:0 !important;
+  box-sizing:border-box !important;
+}
+.ledger-title-row,
+.dcb-head,
+.cumulative-dcb-head{
+  margin-left:0 !important;
+  margin-right:0 !important;
+  box-sizing:border-box !important;
+}
+.ledger-title-row{
+  border-top:0 !important;
+}
+.dcb-head,
+.cumulative-dcb-head{
+  border-top:1px solid #555 !important;
+}
+
+
 /* Yellow is a cell fill only; no pseudo-elements or extra yellow rules. */
 .meta-value.highlight::before,
 .meta-value.highlight::after{
@@ -5185,6 +5833,34 @@ html,body{
 .dcb-top-blank{
   height:22pt;
  <!-- border-bottom:1px solid #555;-->
+}
+
+/* Full-width loan-type title row for DCB and Cumulative DCB.
+   This is intentionally outside the fixed-layout table so PDF engines cannot
+   collapse a colspan header into the first column after column fitting. */
+.dcb-report-type-full-row,
+.cumulative-dcb-report-type-full-row{
+  width:var(--dcb-width,785.197pt);
+  height:24pt;
+  min-height:24pt;
+  box-sizing:border-box;
+  border:1px solid #555;
+  border-bottom:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  font-family:"Gidugu",Arial,sans-serif;
+  font-size:15.5pt;
+  font-weight:100;
+  line-height:1;
+  white-space:nowrap;
+  overflow:hidden;
+  margin:0;
+  padding:0 1.5pt;
+}
+.cumulative-dcb-report-type-full-row{
+  width:var(--cumulative-dcb-width,785.197pt);
 }
 /* Default A4 safe-width boundary for Monthly DCB; runtime may use 6 mm fallback. */
 .dcb-page .dcb-frame,
@@ -5231,6 +5907,11 @@ html,body{
 .dcb-head-left,.dcb-head-right{
   text-align:center;
   vertical-align:middle;
+}
+.dcb-head .pdf-report-type-row th{
+  height:24pt;
+  border-bottom:1px solid #555;
+  font-size:15.5pt;
 }
 .dcb-head-left{
   border-right:1px solid #555;
@@ -5355,6 +6036,11 @@ html,body{
   text-align:center;
   vertical-align:middle;
 }
+.cumulative-dcb-head .pdf-report-type-row th{
+  height:24pt;
+  border-bottom:1px solid #555;
+  font-size:15.5pt;
+}
 .cumulative-dcb-head-left{
   border-right:1px solid #555;
 }
@@ -5437,7 +6123,199 @@ html,body{
 
 </style>
 </head>
-<body>${body}</body>
+<body>${body}<style id="report-ledger-exact-layout-fix">
+/* REPORT CENTER ONLY: restore the Loan Ledger screen preview to the same
+   structure, typography and metadata geometry used by the PDF. */
+@media screen{
+  .report-preview .ledger-page{
+    font-family:"Gidugu",Arial,sans-serif !important;
+    color:#111 !important;
+  }
+  .report-preview .ledger-frame{
+    width:var(--ledger-width,784.5pt) !important;
+    min-width:var(--ledger-width,784.5pt) !important;
+    max-width:var(--ledger-width,784.5pt) !important;
+    margin:0 !important;
+    border:1px solid #555 !important;
+    box-sizing:border-box !important;
+  }
+  .report-preview .ledger-blank{
+    height:22pt !important;
+    border-bottom:1px solid #555 !important;
+    box-sizing:border-box !important;
+  }
+  .report-preview .ledger-title-row{
+    display:grid !important;
+    grid-template-columns:minmax(0,1fr) 55pt 50pt !important;
+    width:100% !important;
+    height:34pt !important;
+    min-height:34pt !important;
+    border-top:0 !important;
+    border-bottom:1px solid #555 !important;
+    box-sizing:border-box !important;
+    position:relative !important;
+    overflow:hidden !important;
+  }
+  .report-preview .ledger-title{
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    width:auto !important;
+    min-width:0 !important;
+    height:100% !important;
+    border-right:1px solid #555 !important;
+    font-family:"Gidugu",Arial,sans-serif !important;
+    font-size:15.5pt !important;
+    line-height:1 !important;
+    text-align:center !important;
+    white-space:nowrap !important;
+    overflow:hidden !important;
+    box-sizing:border-box !important;
+  }
+  .report-preview .ledger-loan-title,
+  .report-preview .ledger-name-title{
+    display:inline-block !important;
+    white-space:nowrap !important;
+    font-family:"Gidugu",Arial,sans-serif !important;
+    font-size:15.5pt !important;
+    line-height:1 !important;
+  }
+  .report-preview .page-label{
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    width:auto !important;
+    height:100% !important;
+    font-family:Arial,sans-serif !important;
+    font-size:8pt !important;
+    font-weight:700 !important;
+    box-sizing:border-box !important;
+  }
+  .report-preview .page-number{
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    width:auto !important;
+    height:100% !important;
+    font-family:"Gidugu",Arial,sans-serif !important;
+    font-size:17pt !important;
+    line-height:1 !important;
+    font-weight:100 !important;
+    box-sizing:border-box !important;
+  }
+  .report-preview .ledger-title-row::after{
+    top:0 !important;
+    bottom:0 !important;
+    right:50pt !important;
+    width:1px !important;
+    background:#c00000 !important;
+  }
+  .report-preview .ledger-meta{
+    display:grid !important;
+    width:100% !important;
+    grid-template-columns:22% 24.45% 53.55% !important;
+    grid-template-rows:28pt 28pt 20pt !important;
+    box-sizing:border-box !important;
+    font-family:"Gidugu",Arial,sans-serif !important;
+  }
+  .report-preview .ledger-meta .meta-row{
+    display:grid !important;
+    grid-template-columns:1.05fr 1.18fr 1.05fr 1.18fr 1.05fr .72fr !important;
+    grid-column:1 / -1 !important;
+    width:100% !important;
+    height:auto !important;
+    min-height:0 !important;
+    border-bottom:1px solid #555 !important;
+    box-sizing:border-box !important;
+  }
+  .report-preview .ledger-meta .meta-row > div{
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    width:auto !important;
+    min-width:0 !important;
+    height:100% !important;
+    border-right:1px solid #555 !important;
+    border-bottom:0 !important;
+    font-family:"Gidugu",Arial,sans-serif !important;
+    font-size:13pt !important;
+    line-height:1 !important;
+    text-align:center !important;
+    white-space:nowrap !important;
+    overflow:hidden !important;
+    box-sizing:border-box !important;
+  }
+  .report-preview .ledger-meta .meta-row > div:last-child{
+    border-right:0 !important;
+  }
+  .report-preview .ledger-meta .meta-key{
+    font-family:"Gidugu",Arial,sans-serif !important;
+    font-size:13pt !important;
+  }
+  .report-preview .ledger-meta .meta-value,
+  .report-preview .ledger-meta .meta-empty{
+    font-family:"Gidugu",Arial,sans-serif !important;
+    font-size:13pt !important;
+  }
+  .report-preview .ledger-meta .meta-value.highlight{
+    min-height:0 !important;
+    width:auto !important;
+    align-self:stretch !important;
+  }
+  .report-preview .ledger-meta .meta-row:first-child .meta-value.highlight{
+    background:#ffff00 !important;
+  }
+  .report-preview .ledger-table{
+    width:var(--ledger-width,784.5pt) !important;
+    min-width:var(--ledger-width,784.5pt) !important;
+    max-width:var(--ledger-width,784.5pt) !important;
+    margin:0 !important;
+    border-collapse:collapse !important;
+    table-layout:fixed !important;
+    border:1px solid #555 !important;
+    box-sizing:border-box !important;
+    font-family:"Gidugu",Arial,sans-serif !important;
+  }
+  .report-preview .ledger-table th,
+  .report-preview .ledger-table td{
+    border:1px solid #555 !important;
+    box-sizing:border-box !important;
+  }
+  .report-preview .ledger-table thead th{
+    font-family:"Gidugu",Arial,sans-serif !important;
+    font-size:12pt !important;
+    line-height:1 !important;
+    font-weight:100 !important;
+  }
+  .report-preview .ledger-table tbody td{
+    font-family:"Gidugu",Arial,sans-serif !important;
+    font-size:13pt !important;
+    line-height:1 !important;
+    font-weight:400 !important;
+    white-space:nowrap !important;
+    overflow:visible !important;
+  }
+}
+</style>
+
+</body>
+
+<style id="pdf-header-line-and-alignment-fix">
+.pdf-report-type-header,
+.dcb-report-type-full-row,
+.cumulative-dcb-report-type-full-row{
+  box-sizing:border-box !important;
+  margin-left:0 !important;
+  margin-right:0 !important;
+  border-bottom:0 !important;
+}
+.ledger-title-row{border-top:0 !important;}
+.ledger-report-type-header{border-bottom:0 !important;}
+.dcb-head,.cumulative-dcb-head{border-top:1px solid #555 !important;}
+.dcb-head,.cumulative-dcb-head{table-layout:fixed !important;border-collapse:collapse !important;}
+.dcb-head > colgroup > col,.cumulative-dcb-head > colgroup > col{box-sizing:border-box !important;}
+.dcb-head tbody tr:first-child th,.cumulative-dcb-head tbody tr:first-child th{box-sizing:border-box !important;overflow:hidden !important;white-space:nowrap !important;}
+</style>
 </html>`);
 
       w.document.close();
@@ -5504,24 +6382,18 @@ html,body{
      */
     let reportPreviewActive=false;
     let reportPreviewMemberId="ALL";
-    let reportPreviewLoanType="bankLinkage";
+    let reportPreviewLoanType="cif";
 
-    function reportAccounts(v){
+    function reportAccounts(v,forcedLoanKey=null){
       if(!v)return [];
       const memberFilter=reportPreviewActive ? reportPreviewMemberId : "ALL";
-      const loanFilter=reportPreviewActive ? reportPreviewLoanType : "bankLinkage";
+      const loanFilter=forcedLoanKey || (reportPreviewActive ? reportPreviewLoanType : (selectedLoanType||defaultLoanTypeKey()));
 
-      if(!isSHGMode()){
-        return (v.shgs||[])
-          .map((member,i)=>({member,account:member,loanKey:null,index:i}))
-          .filter(entry=>memberFilter==="ALL"||entry.member.id===memberFilter);
-      }
-
-      ensureShgLoanData(v);
+      ensureLoanData(v);
       const out=[];
       (v.shgs||[]).forEach(member=>{
         if(memberFilter!=="ALL"&&member.id!==memberFilter)return;
-        const types=loanFilter==="ALL" ? SHG_LOAN_TYPES : SHG_LOAN_TYPES.filter(type=>type.key===loanFilter);
+        const types=loanFilter==="ALL" ? loanTypesForMode() : loanTypesForMode().filter(type=>type.key===loanFilter);
         types.forEach(type=>{
           const account=member.loans[type.key];
           if(account)out.push({member,account,loanKey:type.key});
@@ -5529,8 +6401,17 @@ html,body{
       });
       return out;
     }
+
+    function reportLoanTypesForPdf(v){
+      const types=loanTypesForMode();
+      const selected=reportPreviewActive ? reportPreviewLoanType : (selectedLoanType||defaultLoanTypeKey());
+      if(selected==="ALL")return types;
+      return types.filter(type=>type.key===selected);
+    }
     function reportChildName(entry){
-      return entry.loanKey ? `${entry.member.name||""} - ${loanLabel(entry.loanKey)}` : (entry.member.name||"");
+      /* Keep the SHG / VO / Member name clean. Loan type is shown separately
+         in the report header and in the "అప్పు రకం" field. */
+      return entry?.member?.name||"";
     }
 
     function monthlyPDF(asPart=false){
@@ -5546,12 +6427,16 @@ html,body{
 
       let out="";
 
-      MONTHS.forEach((m,mi)=>{
+      /* When ALL Loans is selected, render one completely separate set of
+       * DCB pages for each loan type. Never mix different loan types on the
+       * same DCB page. */
+      reportLoanTypesForPdf(v).forEach(loanType=>{
+        MONTHS.forEach((m,mi)=>{
         const allRows=[];
         const totals=Array(15).fill(0);
         let monthlySerial=0;
 
-        reportAccounts(v).forEach((entry,i)=>{
+        reportAccounts(v,loanType.key).forEach((entry,i)=>{
           const s=entry.member, account=entry.account;
           const d=account.months[m[0]];
           if(!monthIsConsidered(d)) return;
@@ -5639,19 +6524,17 @@ html,body{
               <div class="dcb-frame">
                 <!-- Blank/tab-space row at the top of every DCB page. -->
                 <div class="dcb-top-blank"></div>
-                <table class="dcb-head">
-                  <colgroup>${dcbColStyle}</colgroup>
-                  <tbody>
-                    <tr>
-                      <th colspan="10" class="dcb-head-left telugu">
-                        ${pdfHeaderLocationText(v)}
-                      </th>
-                      <th colspan="7" class="dcb-head-right">
-                        DCB-${m[0].toUpperCase()}
-                      </th>
-                    </tr>
-                  </tbody>
-                </table>
+                <div class="dcb-report-type-full-row telugu">
+                  ${pdfDcbTopHeaderText(loanType.key)}
+                </div>
+                <div class="dcb-head dcb-head-grid" data-left-span="10" data-right-span="7">
+                  <div class="dcb-head-left telugu">
+                    ${pdfHeaderLocationText(v)}
+                  </div>
+                  <div class="dcb-head-right">
+                    DCB-${m[0].toUpperCase()}
+                  </div>
+                </div>
 
                 <table class="dcb-table">
                   <colgroup>
@@ -5660,7 +6543,7 @@ html,body{
                   <thead>
                     <tr class="group-head">
                       <th rowspan="2">S.N</th>
-                      <th rowspan="2"><span class="telugu">${pdfChildLabel()} పేరు</span></th>
+                      <th rowspan="2"><span class="telugu">${pdfChildNameLabel()} పేరు</span></th>
                       <th rowspan="2"><span class="telugu">ప్రారంభ<br>అప్పు నిల్వ</span></th>
                       <th colspan="2"><span class="telugu">గత నెల బకాయి<br>వివరాలు</span></th>
                       <th colspan="2"><span class="telugu">ఈ నెల డిమాండ్</span></th>
@@ -5701,6 +6584,7 @@ html,body{
               </div>
             </section>`;
         });
+      });
       });
 
       if(asPart) return out;
@@ -5761,11 +6645,16 @@ html,body{
         `--cumulative-dcb-right:${MARGIN.toFixed(3)}pt;`;
 
       /* Numeric columns 3 through 13 = 11 displayed columns. */
-      const totals=Array(11).fill(0);
-      const rows=[];
-      let cumulativeSerial=0;
+      let out="";
 
-      reportAccounts(v).forEach((entry,i)=>{
+      /* When ALL Loans is selected, each loan type gets its own completely
+       * separate cumulative DCB page set. No mixed-loan rows are printed. */
+      reportLoanTypesForPdf(v).forEach(loanType=>{
+        const totals=Array(11).fill(0);
+        const rows=[];
+        let cumulativeSerial=0;
+
+      reportAccounts(v,loanType.key).forEach((entry,i)=>{
         const s=entry.member, account=entry.account;
         const startIdx=Number.isInteger(account.startMonthIndex)?account.startMonthIndex:0;
         const april=account.months[MONTHS[0][0]]||blank();
@@ -5882,6 +6771,8 @@ html,body{
         `);
       });
 
+      if(!rows.length)return;
+
       const MAX_ROWS=25;
       const chunks=[];
       for(let i=0;i<rows.length;i+=MAX_ROWS){
@@ -5895,8 +6786,6 @@ html,body{
         "11","12","13"
       ];
 
-      let out="";
-
       chunks.forEach((chunk,idx)=>{
         const last=idx===chunks.length-1;
 
@@ -5905,26 +6794,24 @@ html,body{
             <div class="cumulative-dcb-frame">
               <div class="dcb-top-blank"></div>
 
-              <table class="cumulative-dcb-head">
-                <colgroup>${colStyle}</colgroup>
-                <tbody>
-                  <tr>
-                    <th colspan="8" class="cumulative-dcb-head-left telugu">
-                      ${pdfHeaderLocationText(v)}
-                    </th>
-                    <th colspan="7" class="cumulative-dcb-head-right">
-                      Cumulative DCB ${esc(pdfFinancialYear(v))}
-                    </th>
-                  </tr>
-                </tbody>
-              </table>
+              <div class="cumulative-dcb-report-type-full-row telugu">
+                ${pdfDcbTopHeaderText(loanType.key)}
+              </div>
+              <div class="cumulative-dcb-head cumulative-dcb-head-grid" data-left-span="8" data-right-span="5">
+                <div class="cumulative-dcb-head-left telugu">
+                  ${pdfHeaderLocationText(v)}
+                </div>
+                <div class="cumulative-dcb-head-right">
+                  Cumulative DCB ${esc(pdfFinancialYear(v))}
+                </div>
+              </div>
 
               <table class="cumulative-dcb-table">
                 <colgroup>${colStyle}</colgroup>
                 <thead>
                   <tr class="group-head">
                     <th rowspan="2">S.N</th>
-                    <th rowspan="2"><span class="telugu">${pdfChildLabel()} పేరు</span></th>
+                    <th rowspan="2"><span class="telugu">${pdfChildNameLabel()} పేరు</span></th>
                     <th rowspan="2"><span class="telugu">ప్రారంభ<br>అప్పు నిల్వ</span></th>
 
                     <th colspan="3">
@@ -5976,6 +6863,7 @@ html,body{
               </table>
             </div>
           </section>`;
+      });
       });
 
       if(asPart) return out;
@@ -6075,14 +6963,16 @@ html,body{
               <div class="ledger-blank"></div>
 
               <div class="ledger-title-row">
-                <div class="ledger-title telugu">${esc(v.name||"")} ${pdfParentLabel()} - అప్పు లెడ్జర్ ${esc(pdfFinancialYear(v))}</div>
+                <div class="ledger-title telugu">
+                  <span class="ledger-loan-title">${pdfLedgerTopHeaderText(v,entry)}</span>
+                </div>
                 <div class="page-label">Page No:</div>
                 <div class="page-number">${ledgerSerial}</div>
               </div>
 
               <div class="ledger-meta">
                 <div class="meta-row">
-                  <div class="meta-key telugu">${pdfChildLabel()} పేరు :</div>
+                  <div class="meta-key telugu">${pdfChildNameLabel()} పేరు :</div>
                   <div class="meta-value highlight telugu">${esc(reportChildName(entry))}</div>
                   ${pdfLedgerLocationMeta(v)}
                 </div>
@@ -6102,7 +6992,7 @@ html,body{
                   <div class="meta-key telugu">వాయిదా మొత్తం రూ. :</div>
                   <div class="meta-empty"></div>
                   <div class="meta-key telugu">అప్పు రకం :</div>
-                  <div class="meta-value highlight">CIF</div>
+                  <div class="meta-value highlight">${esc(loanTypeDisplayLabel(entry?.loanKey||defaultLoanTypeKey()))}</div>
                 </div>
               </div>
 
@@ -6210,13 +7100,10 @@ html,body{
       const field=document.getElementById("reportLoanField");
       const sel=document.getElementById("reportLoanFilter");
       if(!field||!sel)return;
-      if(!isSHGMode()){
-        field.classList.add("hidden");
-        return;
-      }
       field.classList.remove("hidden");
-      sel.innerHTML='<option value="ALL">ALL Loans</option>'+SHG_LOAN_TYPES.map(type=>`<option value="${type.key}">${type.label}</option>`).join("");
-      sel.value=[...sel.options].some(o=>o.value===reportPreviewLoanType)?reportPreviewLoanType:"bankLinkage";
+      const types=loanTypesForMode();
+      sel.innerHTML='<option value="ALL">ALL Loans</option>'+types.map(type=>`<option value="${type.key}">${type.label}</option>`).join("");
+      sel.value=[...sel.options].some(o=>o.value===reportPreviewLoanType)?reportPreviewLoanType:defaultLoanTypeKey();
       reportPreviewLoanType=sel.value;
     }
 
@@ -6287,26 +7174,29 @@ html,body{
       else if(type==="LL")html=ledgerPDF(true)||"";
       else if(type==="CUMULATIVE")html=cumulativeDcbPDF(true)||"";
 
-      const selectedMonth=MONTHS[monthIndex]||["",""];
-      const selectedChildId=reportPreviewMemberId||"ALL";
-      const selectedChild=selectedChildId==="ALL"?"ALL":((v.shgs||[]).find((item,i)=>(item.id||String(i))===selectedChildId)?.name||"ALL");
-      let reportContext=`${pdfParentLabel()}: ${esc(v.name||"")}`;
-      if(currentMode==="SHG") reportContext+=` | VO: ${esc(v.voName||document.getElementById("linkedVoName")?.value||"")}`;
-      reportContext+=` | ${pdfChildLabel()}: ${esc(selectedChild)}`;
-      // Month metadata is shown only for the DCB report. Loan Ledger and
-      // Cumulative DCB must not display Month metadata.
-      if(type==="DCB") reportContext+=` | Month: ${esc(selectedMonth[1]||"")}`;
-      html=`<div class="report-ui-context" style="font-size:13px;color:#17365d;margin:0 0 8px;padding:4px 2px;">${reportContext}</div>`+html;
-
       const preview=document.getElementById("reportPreview");
       const downloads=document.getElementById("reportDownloadActions");
       const label=document.getElementById("currentReportLabel");
       if(!preview)return;
 
+      /* Restore the report context line that was shown above the report preview.
+         This is screen-only metadata; the PDF generation itself is untouched. */
+      let selectedChild="ALL";
+      if(reportPreviewMemberId!=="ALL"){
+        const matched=(v.shgs||[]).find((member,index)=>String(member.id||index)===String(reportPreviewMemberId));
+        selectedChild=matched?.name||"";
+      }
+      const selectedMonth=MONTHS[monthIndex]||["",""];
+      let reportContext=`${pdfParentLabel()}: ${esc(v.name||"")}`;
+      if(currentMode==="SHG") reportContext+=` | VO: ${esc(v.voName||document.getElementById("linkedVoName")?.value||"")}`;
+      reportContext+=` | ${pdfChildLabel()}: ${esc(selectedChild)}`;
+      if(type==="DCB") reportContext+=` | Month: ${esc(selectedMonth[1]||"")}`;
+      const contextHtml=`<div class="report-ui-context">${reportContext}</div>`;
+
       if(!html.trim()){
-        preview.innerHTML='<div class="notice">No report data is available for the selected filter.</div>';
+        preview.innerHTML=contextHtml+'<div class="notice">No report data is available for the selected filter.</div>';
       }else{
-        preview.innerHTML=html;
+        preview.innerHTML=contextHtml+html;
       }
       preview.classList.remove("hidden");
       if(downloads)downloads.classList.remove("hidden");
@@ -6315,7 +7205,35 @@ html,body{
         currentDownload.textContent=type==="DCB"?"Download DCB PDF":(type==="LL"?"Download Loan Ledger PDF":"Download Cumulative DCB PDF");
       }
       if(label)label.textContent=type==="DCB"?"Showing DCB Report":(type==="LL"?"Showing Loan Ledger Report":"Showing Cumulative DCB Report");
-      preview.scrollIntoView({behavior:"smooth",block:"start"});
+
+      /*
+       * Report Center uses the exact same generated report HTML as the PDF.
+       * Fit the rendered report tables with the same A4/table fitter used by
+       * the PDF print window, then copy the final DCB/Cumulative header split.
+       * This is scoped to the report-preview tables; the dashboard entry table
+       * is not a PDF table and is therefore untouched.
+       */
+      const fitReportPreview=()=>{
+        try{
+          if(typeof fitAllPDFTablesInPrintWindow==="function"){
+            fitAllPDFTablesInPrintWindow(window);
+          }
+          if(typeof syncDcbHeadersAfterFit==="function"){
+            syncDcbHeadersAfterFit(window);
+          }
+        }catch(e){
+          try{console.warn("Report preview fitting error:",e);}catch(ignore){}
+        }
+        preview.scrollIntoView({behavior:"smooth",block:"start"});
+      };
+
+      if(document.fonts&&document.fonts.ready){
+        document.fonts.ready.then(()=>{
+          requestAnimationFrame(()=>requestAnimationFrame(fitReportPreview));
+        }).catch(()=>setTimeout(fitReportPreview,60));
+      }else{
+        setTimeout(fitReportPreview,60);
+      }
     }
 
     function downloadAllReports(){
@@ -7067,7 +7985,8 @@ html,body{
     document.getElementById("shgNameInput").onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();addSHG();}};
     document.getElementById("loanTypeFilter").onchange=e=>{
       if(dirty&&!saveCurrentScreen()){e.target.value=selectedLoanType;return;}
-      selectedLoanType=e.target.value||"bankLinkage";
+      selectedLoanType=e.target.value||defaultLoanTypeKey();
+      refreshLoanInterestRateInput();
       renderRows();
       markClean();
     };
@@ -7269,5 +8188,300 @@ html,body{
       selectSystem(window.selectedLoginSystem||"VO");
     })();
 </script>
+
+<style id="report-ledger-preview-final-geometry">
+    /* REPORT CENTER ONLY: make Loan Ledger preview use the same geometry as the PDF.
+       PDF/print styles are intentionally untouched. */
+    @media screen{
+      .report-preview .ledger-page{
+        width:100% !important;
+        min-width:0 !important;
+        min-height:0 !important;
+        height:auto !important;
+        padding:20px 28px 28px !important;
+        margin:0 0 18px !important;
+        box-sizing:border-box !important;
+        background:#fff !important;
+        color:#111 !important;
+        font-family:"Gidugu",Arial,sans-serif !important;
+        overflow:visible !important;
+      }
+      .report-preview .ledger-frame{
+        width:100% !important;
+        min-width:0 !important;
+        max-width:none !important;
+        margin:0 !important;
+        border:1px solid #555 !important;
+        box-sizing:border-box !important;
+        overflow:visible !important;
+      }
+      .report-preview .ledger-blank{
+        width:100% !important;
+        height:22pt !important;
+        min-height:22pt !important;
+        border:0 !important;
+        border-bottom:1px solid #555 !important;
+        box-sizing:border-box !important;
+      }
+      .report-preview .ledger-title-row{
+        display:grid !important;
+        grid-template-columns:minmax(0,1fr) 55pt 50pt !important;
+        width:100% !important;
+        height:34pt !important;
+        min-height:34pt !important;
+        margin:0 !important;
+        padding:0 !important;
+        border:0 !important;
+        border-bottom:1px solid #555 !important;
+        box-sizing:border-box !important;
+        position:relative !important;
+        overflow:hidden !important;
+      }
+      .report-preview .ledger-title{
+        display:flex !important;
+        align-items:center !important;
+        justify-content:center !important;
+        width:100% !important;
+        height:100% !important;
+        min-width:0 !important;
+        margin:0 !important;
+        padding:0 4pt !important;
+        border:0 !important;
+        border-right:1px solid #555 !important;
+        box-sizing:border-box !important;
+        text-align:center !important;
+        white-space:nowrap !important;
+        overflow:hidden !important;
+        font-family:"Gidugu",Arial,sans-serif !important;
+        font-size:15.5pt !important;
+        line-height:1 !important;
+        font-weight:100 !important;
+      }
+      .report-preview .ledger-loan-title,
+      .report-preview .ledger-name-title{
+        display:inline-block !important;
+        white-space:nowrap !important;
+        font-family:"Gidugu",Arial,sans-serif !important;
+        font-size:15.5pt !important;
+        line-height:1 !important;
+        font-weight:100 !important;
+      }
+      .report-preview .page-label,
+      .report-preview .page-number{
+        display:flex !important;
+        align-items:center !important;
+        justify-content:center !important;
+        width:100% !important;
+        height:100% !important;
+        margin:0 !important;
+        padding:0 !important;
+        border:0 !important;
+        box-sizing:border-box !important;
+        text-align:center !important;
+        overflow:hidden !important;
+      }
+      .report-preview .page-label{
+        border-right:1px solid #555 !important;
+        font-family:Arial,sans-serif !important;
+        font-size:8pt !important;
+        font-weight:700 !important;
+      }
+      .report-preview .page-number{
+        font-family:"Gidugu",Arial,sans-serif !important;
+        font-size:17pt !important;
+        font-weight:100 !important;
+        line-height:1 !important;
+      }
+      .report-preview .ledger-title-row::after{
+        display:none !important;
+      }
+
+      /* Three metadata rows: exactly six cells across, matching the PDF. */
+      .report-preview .ledger-meta{
+        display:block !important;
+        width:100% !important;
+        margin:0 !important;
+        padding:0 !important;
+        box-sizing:border-box !important;
+        font-family:"Gidugu",Arial,sans-serif !important;
+      }
+      .report-preview .ledger-meta .meta-row{
+        display:grid !important;
+        grid-template-columns:1.05fr 1.18fr 1.05fr 1.18fr 1.05fr .72fr !important;
+        width:100% !important;
+        height:28pt !important;
+        min-height:28pt !important;
+        margin:0 !important;
+        padding:0 !important;
+        grid-column:auto !important;
+        border:0 !important;
+        border-bottom:1px solid #555 !important;
+        box-sizing:border-box !important;
+      }
+      .report-preview .ledger-meta .meta-row:last-child{
+        height:20pt !important;
+        min-height:20pt !important;
+        border-bottom:0 !important;
+      }
+      .report-preview .ledger-meta .meta-row > div{
+        display:flex !important;
+        align-items:center !important;
+        justify-content:center !important;
+        width:100% !important;
+        height:100% !important;
+        min-width:0 !important;
+        margin:0 !important;
+        padding:0 3pt !important;
+        border:0 !important;
+        border-right:1px solid #555 !important;
+        box-sizing:border-box !important;
+        font-family:"Gidugu",Arial,sans-serif !important;
+        font-size:13pt !important;
+        line-height:1 !important;
+        text-align:center !important;
+        white-space:nowrap !important;
+        overflow:hidden !important;
+      }
+      .report-preview .ledger-meta .meta-row > div:last-child{
+        border-right:0 !important;
+      }
+      .report-preview .ledger-meta .meta-key,
+      .report-preview .ledger-meta .meta-value,
+      .report-preview .ledger-meta .meta-empty{
+        font-family:"Gidugu",Arial,sans-serif !important;
+        font-size:13pt !important;
+        line-height:1 !important;
+      }
+      .report-preview .ledger-meta .meta-value.highlight{
+        align-self:stretch !important;
+        min-height:0 !important;
+        width:100% !important;
+      }
+      .report-preview .ledger-meta .meta-row:first-child .meta-value.highlight{
+        background:#ffff00 !important;
+      }
+
+      .report-preview .ledger-table{
+        display:table !important;
+        width:100% !important;
+        min-width:0 !important;
+        max-width:none !important;
+        margin:0 !important;
+        border-collapse:collapse !important;
+        border-spacing:0 !important;
+        table-layout:fixed !important;
+        box-sizing:border-box !important;
+        border:1px solid #555 !important;
+        font-family:"Gidugu",Arial,sans-serif !important;
+      }
+      .report-preview .ledger-table col{
+        width:auto !important;
+      }
+      .report-preview .ledger-table th,
+      .report-preview .ledger-table td{
+        border:1px solid #555 !important;
+        box-sizing:border-box !important;
+        text-align:center !important;
+        vertical-align:middle !important;
+        overflow:hidden !important;
+      }
+      .report-preview .ledger-table thead .group-head{height:28pt !important;}
+      .report-preview .ledger-table thead .sub-head{height:20pt !important;}
+      .report-preview .ledger-table thead .number-head{display:none !important;}
+      .report-preview .ledger-table thead th{
+        font-family:"Gidugu",Arial,sans-serif !important;
+        font-size:12pt !important;
+        font-weight:100 !important;
+        line-height:1 !important;
+        white-space:normal !important;
+      }
+      .report-preview .ledger-table tbody tr{
+        height:23.17pt !important;
+      }
+      .report-preview .ledger-table tbody td{
+        font-family:"Gidugu",Arial,sans-serif !important;
+        font-size:13pt !important;
+        font-weight:400 !important;
+        line-height:1 !important;
+        white-space:nowrap !important;
+        text-align:center !important;
+        vertical-align:middle !important;
+        padding:0 2pt !important;
+      }
+      .report-preview .ledger-table td.name,
+      .report-preview .ledger-table td.date{
+        text-align:center !important;
+        padding-left:0 !important;
+        padding-right:0 !important;
+      }
+    }
+</style>
 </body>
+
+<style id="pdf-header-line-and-alignment-fix">
+    .pdf-report-type-header,
+    .dcb-report-type-full-row,
+    .cumulative-dcb-report-type-full-row{
+      box-sizing:border-box !important;
+      margin-left:0 !important;
+      margin-right:0 !important;
+      border-bottom:0 !important;
+    }
+    .ledger-title-row{border-top:0 !important;}
+    .ledger-report-type-header{border-bottom:0 !important;}
+    .dcb-head,.cumulative-dcb-head{border-top:1px solid #555 !important;}
+</style>
+
+<style id="dcb-head-grid-exact-alignment">
+    /* Exact DCB/Cumulative DCB metadata alignment: the split is derived from the
+       final fitted data-table column widths, not from HTML table colspan layout. */
+    .dcb-head-grid,.cumulative-dcb-head-grid{
+      display:grid !important;
+      grid-template-columns:50% 50%;
+      width:100% !important;
+      height:24pt !important;
+      min-height:24pt !important;
+      box-sizing:border-box !important;
+      border:1px solid #555 !important;
+      border-bottom:0 !important;
+      margin:0 !important;
+      padding:0 !important;
+      table-layout:auto !important;
+      overflow:hidden !important;
+    }
+    .dcb-head-grid > div,.cumulative-dcb-head-grid > div{
+      min-width:0 !important;
+      width:auto !important;
+      height:24pt !important;
+      box-sizing:border-box !important;
+      display:flex !important;
+      align-items:center !important;
+      justify-content:center !important;
+      text-align:center !important;
+      overflow:hidden !important;
+      white-space:nowrap !important;
+      padding:0 1.5pt !important;
+      border:0 !important;
+      font-family:"Gidugu",Arial,sans-serif !important;
+      font-size:15.5pt !important;
+      font-weight:100 !important;
+      line-height:1 !important;
+    }
+    .dcb-head-grid > div + div,.cumulative-dcb-head-grid > div + div{
+      border-left:1px solid #555 !important;
+    }
+</style>
 </html>
+<style id="dcb-cumulative-loan-header-full-row-fix">
+    /* DCB and Cumulative DCB use a standalone full-width title row.
+       Loan Ledger keeps its existing flex title row. */
+    .dcb-report-type-full-row,
+    .cumulative-dcb-report-type-full-row{
+      display:flex !important;
+      align-items:center !important;
+      justify-content:center !important;
+      text-align:center !important;
+      overflow:hidden !important;
+      white-space:nowrap !important;
+    }
+</style>
