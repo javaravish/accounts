@@ -3920,6 +3920,7 @@ button > *{position:relative;z-index:1;}
       query,
       where,
       setDoc,
+      deleteDoc,
       runTransaction
     } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
 
@@ -4298,6 +4299,7 @@ button > *{position:relative;z-index:1;}
       query,
       where,
       setDoc,
+      deleteDoc,
       runTransaction,
 
       loadCloudDb,
@@ -8909,13 +8911,31 @@ html,body{
         box.innerHTML=rows.map(r=>{
           const status=String(r.status||"PENDING").toUpperCase();
           const safe=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
-          const actions=status==="PENDING"?`<div class="auth-actions" style="margin-top:8px;"><button type="button" class="success admin-request-action" data-request-action="approve" data-request-id="${safe(r.id)}">Approve</button><button type="button" class="danger admin-request-action" data-request-action="reject" data-request-id="${safe(r.id)}">Reject</button></div>`:"";
+          const actions=status==="PENDING"?`<div class="auth-actions" style="margin-top:8px;"><button type="button" class="success admin-request-action" data-request-action="approve" data-request-id="${safe(r.id)}">Approve</button><button type="button" class="danger admin-request-action" data-request-action="reject" data-request-id="${safe(r.id)}">Reject</button><button type="button" class="danger admin-request-delete" data-request-id="${safe(r.id)}">Delete</button></div>`:`<div class="auth-actions" style="margin-top:8px;"><button type="button" class="danger admin-request-delete" data-request-id="${safe(r.id)}">Delete</button></div>`;
           return `<div style="border:1px solid #d5dce4;border-radius:8px;padding:10px;margin-bottom:8px;background:#fff;"><div><b>Name:</b> ${safe(r.name)}</div><div><b>Username:</b> ${safe(r.username)}</div><div><b>Email:</b> ${safe(r.email)}</div><div><b>Mobile:</b> ${safe(r.mobile)}</div><div><b>Requested Access:</b> ${safe(r.system)}</div><div><b>Status:</b> ${safe(status)}</div><div><b>Requested:</b> ${safe(r.requestedAt)}</div>${actions}</div>`;
         }).join("");
       }catch(err){
         console.error("Could not load access requests:",err);
         box.innerHTML="Unable to load access requests.";
         if(msg){msg.textContent=friendlyAuthError(err);msg.className="auth-msg error";}
+      }
+    }
+
+    async function handleAdminRequestDelete(requestId){
+      const msg=document.getElementById("adminAccessMsg");
+      try{
+        if(!requestId)throw new Error("Invalid access request.");
+        if(!confirm("Delete this access request?\n\nThis removes only the access request record. The user's Firebase account and existing access are not deleted."))return;
+        const db=window.firebaseCloud.getFirestore();
+        const requestRef=window.firebaseCloud.doc(db,"accessRequests",requestId);
+        const requestSnap=await window.firebaseCloud.getDoc(requestRef);
+        if(!requestSnap.exists())throw new Error("Request no longer exists.");
+        await window.firebaseCloud.deleteDoc(requestRef);
+        if(msg){msg.textContent="Access request deleted.";msg.className="auth-msg ok";}
+        await loadAdminAccessRequests();
+      }catch(err){
+        console.error("Admin request delete failed:",err);
+        if(msg){msg.textContent=err.message||"Unable to delete access request.";msg.className="auth-msg error";}
       }
     }
 
@@ -9492,6 +9512,12 @@ html,body{
     }
 
     document.addEventListener("click",function(e){
+      const deleteBtn=e.target.closest(".admin-request-delete");
+      if(deleteBtn){
+        e.preventDefault();
+        handleAdminRequestDelete(deleteBtn.dataset.requestId);
+        return;
+      }
       const adminBtn=e.target.closest(".admin-request-action");
       if(!adminBtn)return;
       e.preventDefault();
