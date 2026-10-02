@@ -4788,7 +4788,7 @@ button > *{position:relative;z-index:1;}
         const nextMonthStart=(monthIndex===startIdx+1 && startIdx>0);
         if(april){
         }else if(creationMonth){
-          raw.opening=0;raw.prevPrincipal=0;raw.prevInterest=0;raw.demandPrincipal=0;raw.principalCollection="";raw.interestCollection="";
+          raw.opening=0;raw.prevPrincipal=0;raw.prevInterest=0;raw.demandPrincipal=0;raw.principalCollection=0;raw.interestCollection=0;
         }else if(nextMonthStart){
           const prev=lastConsideredMonth(account,monthIndex);
           if(prev){const pc=calc(prev.data);raw.opening=pc.totalLoanBalance;raw.prevPrincipal=pc.balancePrincipal;raw.prevInterest=pc.balanceInterest;}
@@ -4892,7 +4892,7 @@ button > *{position:relative;z-index:1;}
       if(memberSel)memberSel.value=selectedMemberId;
     }
 
-    function blank(){return{opening:0,prevPrincipal:0,prevInterest:0,demandPrincipal:0,demandInterest:0,principalCollection:"",interestCollection:"",newLoan:0,savingOpening:0,savingCurrent:0,savingDisbursed:0};}
+    function blank(){return{opening:0,prevPrincipal:0,prevInterest:0,demandPrincipal:0,demandInterest:0,principalCollection:0,interestCollection:0,newLoan:0,savingOpening:0,savingCurrent:0,savingDisbursed:0};}
     function hasValue(x){return x!==undefined&&x!==null&&String(x).trim()!=="";}
     function monthIsConsidered(d){
       if(!d)return false;
@@ -5203,7 +5203,7 @@ button > *{position:relative;z-index:1;}
       const nextMonthStart=(!april && monthIndex===startIdx+1 && startIdx>0);
       if(creationMonth){
         opening=0;prevP=0;prevI=0;demandP=0;
-        d.principalCollection="";d.interestCollection="";
+        d.principalCollection=0;d.interestCollection=0;
       }else if(nextMonthStart){
         const prev=lastConsideredMonth(account,monthIndex);
         if(prev){const pc=calc(prev.data);opening=pc.totalLoanBalance;prevP=pc.balancePrincipal;prevI=pc.balanceInterest;}
@@ -5301,7 +5301,7 @@ button > *{position:relative;z-index:1;}
      const creationMonth=(!april && monthIndex===startIdx && startIdx>0);
      const nextMonthStart=(!april && monthIndex===startIdx+1 && startIdx>0);
      let prevP=d.prevPrincipal,prevI=d.prevInterest,demandP=d.demandPrincipal,opening=d.opening;
-     if(creationMonth){opening=0;prevP=0;prevI=0;demandP=0;d.principalCollection="";d.interestCollection="";}
+     if(creationMonth){opening=0;prevP=0;prevI=0;demandP=0;d.principalCollection=0;d.interestCollection=0;}
      else if(nextMonthStart){const prev=safePrevMonth(account,monthIndex);if(prev){const pc=calc(prev);opening=pc.totalLoanBalance;prevP=pc.balancePrincipal;prevI=pc.balanceInterest;}}
      else if(!april){const prev=safePrevMonth(account,monthIndex);if(prev){const pc=calc(prev);opening=pc.totalLoanBalance;prevP=pc.balancePrincipal;prevI=pc.balanceInterest;}}
      const demandI=monthlyInterest(opening,rate);
@@ -5368,7 +5368,7 @@ button > *{position:relative;z-index:1;}
          ? (Number(prevData.savingOpening)||0)+(Number(prevData.savingCurrent)||0)-(Number(prevData.savingDisbursed)||0)
          : 0;
      }
-     if(creationMonth){raw.opening=0;raw.prevPrincipal=0;raw.prevInterest=0;raw.demandPrincipal=0;raw.principalCollection="";raw.interestCollection="";}
+     if(creationMonth){raw.opening=0;raw.prevPrincipal=0;raw.prevInterest=0;raw.demandPrincipal=0;raw.principalCollection=0;raw.interestCollection=0;}
      else if(nextMonthStart){const prev=lastConsideredMonth(account,monthIndex);const pc=prev?calc(prev.data):null;if(pc){raw.opening=pc.totalLoanBalance;raw.prevPrincipal=pc.balancePrincipal;raw.prevInterest=pc.balanceInterest;}}
      else if(!april){const prev=lastConsideredMonth(account,monthIndex);const pc=prev?calc(prev.data):null;if(pc){raw.opening=pc.totalLoanBalance;raw.prevPrincipal=pc.balancePrincipal;raw.prevInterest=pc.balanceInterest;}}
      raw.demandInterest=monthlyInterest(raw.opening,rate);
@@ -5420,7 +5420,7 @@ button > *{position:relative;z-index:1;}
           if(mi<startIdx)return;
           const creationMonth=(startIdx>0&&mi===startIdx);
           const nextMonthStart=(startIdx>0&&mi===startIdx+1);
-          if(creationMonth){d.opening=0;d.prevPrincipal=0;d.prevInterest=0;d.demandPrincipal=0;d.principalCollection="";d.interestCollection="";}
+          if(creationMonth){d.opening=0;d.prevPrincipal=0;d.prevInterest=0;d.demandPrincipal=0;d.principalCollection=0;d.interestCollection=0;}
           else if(mi>0){const prev=lastConsideredMonth(account,mi);if(prev){const pc=calc(prev.data);d.opening=pc.totalLoanBalance;d.prevPrincipal=pc.balancePrincipal;d.prevInterest=pc.balanceInterest;}}
           d.demandInterest=monthlyInterest(d.opening,account.interestRate);
           if(monthIsConsidered(d))account.months[key]=d;else delete account.months[key];
@@ -9706,6 +9706,76 @@ html,body{
 
     /* Initial dashboard refresh is performed after successful login. */
     })();
+/* =========================================================
+   ENTER KEY = NEXT ROW, SAME COLUMN
+   ---------------------------------------------------------
+   - Tab keeps its normal browser behavior.
+   - Enter moves to the next visible row.
+   - The column stays the same.
+   - Works with dynamically-created table rows.
+   - Does not change calculations, saving, PDF, filters, etc.
+   ========================================================= */
+
+document.addEventListener("keydown", function(e) {
+  if (e.key !== "Enter") return;
+
+  const current = e.target;
+
+  /* Only handle inputs/selects inside the accounting table. */
+  if (!current.closest("#entryBody")) return;
+
+  /* Do not interfere with textarea elements if any are added later. */
+  if (current.tagName === "TEXTAREA") return;
+
+  e.preventDefault();
+
+  const currentCell = current.closest("td");
+  const currentRow = current.closest("tr");
+
+  if (!currentCell || !currentRow) return;
+
+  /* Find the column number of the current cell. */
+  const cells = Array.from(currentRow.children);
+  const columnIndex = cells.indexOf(currentCell);
+
+  if (columnIndex < 0) return;
+
+  /* Find the next actual data row. */
+  let nextRow = currentRow.nextElementSibling;
+
+  while (nextRow) {
+    const nextCell = nextRow.children[columnIndex];
+
+    if (nextCell) {
+      /*
+       * Find the first usable form control in the same column.
+       * Disabled calculated cells are skipped automatically.
+       */
+      const nextControl = nextCell.querySelector(
+        "input:not([disabled]), select:not([disabled]), textarea:not([disabled])"
+      );
+
+      if (nextControl) {
+        nextControl.focus();
+
+        /* Select existing numeric/text value for quick replacement. */
+        if (
+          nextControl.tagName === "INPUT" &&
+          nextControl.type !== "button" &&
+          nextControl.type !== "submit"
+        ) {
+          try {
+            nextControl.select();
+          } catch (_) {}
+        }
+
+        return;
+      }
+    }
+
+    nextRow = nextRow.nextElementSibling;
+  }
+});
 </script>
 
 <script>
