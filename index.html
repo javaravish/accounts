@@ -3869,6 +3869,12 @@ button > *{position:relative;z-index:1;}
                                 <option value="cif">1. CIF</option>
                             </select>
                         </div>
+                        <div class="field hidden" id="reportMonthField">
+                            <label for="reportMonthFilter">Month</label>
+                            <select id="reportMonthFilter">
+                                <option value="ALL">ALL Months</option>
+                            </select>
+                        </div>
                         <div class="actions report-type-actions">
                             <button type="button" class="warning" id="showDcbReportBtn">Show DCB</button>
                             <button type="button" class="warning" id="showLedgerReportBtn">Show Loan Ledger</button>
@@ -4138,14 +4144,82 @@ button > *{position:relative;z-index:1;}
 
     async function loadCloudDb(mode){
       if(!currentUser) return null;
+
+      /*
+       * New storage layout: each VO/MS/SHG parent record is stored in its
+       * own Firestore document under users/{uid}/modeData/{mode}/records.
+       * This avoids Firestore's 1 MiB document limit when an account contains
+       * many SHGs and many months.
+       */
+      try{
+        const recordsRef=collection(firestore,"users",currentUser.uid,"modeData",mode,"records");
+        const recordsSnap=await getDocs(recordsRef);
+        if(!recordsSnap.empty){
+          const vos=[];
+          recordsSnap.forEach(s=>{
+            const d=s.data()||{};
+            if(d.data)vos.push(d.data);
+          });
+          vos.sort((a,b)=>String(a.id||"").localeCompare(String(b.id||"")));
+          if(vos.length)return {vos};
+        }
+      }catch(err){
+        console.warn("Chunked cloud load unavailable; trying legacy storage:",err);
+      }
+
+      /* Backward compatibility with the existing single-document layout. */
       const snap = await getDoc(userDocRef());
       if(!snap.exists()) return null;
       const data = snap.data()||{};
       const field = mode === "MS" ? "msData" : (mode === "SHG" ? "shgData" : "voData");
       if(data[field] && Array.isArray(data[field].vos)) return data[field];
-      // Backward compatibility: existing VO users have the old `vos` field.
       if(mode === "VO" && Array.isArray(data.vos)) return {vos:data.vos};
       return null;
+    }
+
+
+    function isFirestoreDocumentTooLarge(err){
+      const code=String(err?.code||"").toLowerCase();
+      const message=String(err?.message||err||"");
+      return code.includes("resource-exhausted") || /1\s*MiB|1048576|maximum.*size|document.*too large|exceeds.*maximum/i.test(message);
+    }
+
+    async function saveCloudDbChunked(db,mode){
+      if(!currentUser) return;
+      const recordsRef=collection(firestore,"users",currentUser.uid,"modeData",mode,"records");
+      const vos=Array.isArray(db?.vos)?db.vos:[];
+      const activeIds=new Set();
+
+      for(let i=0;i<vos.length;i++){
+        const record=vos[i];
+        const id=String(record?.id||`record_${i}`).replace(/\//g,"_");
+        activeIds.add(id);
+        await setDoc(doc(recordsRef,id),{data:record,ownerUid:currentUser.uid,mode,updatedAt:new Date().toISOString()},{merge:true});
+      }
+
+      /* Remove old chunk records when a parent/member was deleted. */
+      const existing=await getDocs(recordsRef);
+      const deletes=[];
+      existing.forEach(s=>{if(!activeIds.has(s.id))deletes.push(deleteDoc(s.ref));});
+      if(deletes.length)await Promise.all(deletes);
+    }
+
+    function describeCloudSaveError(err){
+      const code=String(err?.code||'').replace(/^firebase\./,'');
+      const message=String(err?.message||err||'Unknown Firebase error');
+      if(code.includes('permission-denied')){
+        return `Firebase rejected the cloud save (permission-denied). Your internet is working, but the Firestore security rules are not allowing this account to write this data.\n\nDetails: ${message}`;
+      }
+      if(code.includes('resource-exhausted') || /1 MiB|1048576|maximum.*size|document.*too large/i.test(message)){
+        return `Firebase rejected the cloud save because the Firestore document is too large. The data needs to be split into smaller cloud records instead of one large document.\n\nDetails: ${message}`;
+      }
+      if(code.includes('unauthenticated')){
+        return `The Firebase login session is no longer authenticated. Please sign out, sign in again, and save again.\n\nDetails: ${message}`;
+      }
+      if(code.includes('unavailable') || code.includes('deadline-exceeded') || /network|offline|failed to fetch/i.test(message)){
+        return `Firebase could not reach the cloud service. Your general internet connection can still be working; this can be a Firebase/network request problem. Please wait a moment and try Save All again.\n\nDetails: ${message}`;
+      }
+      return `Cloud synchronization failed even though the data was saved locally.\n\nFirebase error${code ? ` (${code})` : ''}: ${message}`;
     }
 
     async function saveCloudDb(db,mode){
@@ -4156,9 +4230,20 @@ button > *{position:relative;z-index:1;}
         updatedAt: new Date().toISOString(),
         ownerUid: currentUser.uid
       };
-      // Keep legacy VO data synchronized for existing deployments.
       if(mode === "VO") payload.vos=Array.isArray(db.vos)?db.vos:[];
-      await setDoc(userDocRef(),payload,{merge:true});
+
+      try{
+        /* Keep the existing layout for small accounts. */
+        await setDoc(userDocRef(),payload,{merge:true});
+        return;
+      }catch(err){
+        /* Large accounts cannot fit in one Firestore document.  Automatically
+         * switch to one-document-per-parent storage instead of reporting a
+         * misleading internet failure. */
+        if(!isFirestoreDocumentTooLarge(err)) throw err;
+        console.warn("Legacy cloud document is too large; switching to chunked storage.",err);
+        await saveCloudDbChunked(db,mode);
+      }
     }
 
     function queueCloudSave(db){
@@ -4172,7 +4257,8 @@ button > *{position:relative;z-index:1;}
         }catch(err){
           console.error("Firebase auto-save failed:",err);
           const el=document.getElementById("saveStatus");
-          if(el) el.textContent="Local saved • Cloud save failed";
+          const code=String(err?.code||"").replace(/^firebase\./,"");
+          if(el) el.textContent=`Wait Data Saving...${code?` (${code})`:""}`;
         }
       },700);
     }
@@ -4564,6 +4650,7 @@ button > *{position:relative;z-index:1;}
       set("loginMsBtn","MS Login");
       set("loginShgBtn","SHG Login");
       updateReportCenterLabels();
+      syncReportMonthOptions();
       set("parentSelectionTitle",`${c.parent} Selection & Creation`);
       set("existingParentLabel",`Existing ${c.parent}`);
       set("existingParentOption",`-- Select existing ${c.parent} --`);
@@ -4798,8 +4885,31 @@ button > *{position:relative;z-index:1;}
           if(pc){raw.opening=pc.totalLoanBalance;raw.prevPrincipal=pc.balancePrincipal;raw.prevInterest=pc.balanceInterest;}
         }
         raw.demandInterest=monthlyInterest(raw.opening,currentRate);
-        if(monthIsConsidered(raw))account.months[key]=raw;
-        else if(account.months[key])delete account.months[key];
+
+        /*
+         * Current Month Principal is valid data by itself.  The value the
+         * user has entered on the current screen is authoritative for this
+         * month.  Immediately propagate that value through every later
+         * saved month so repeated edits/saves always remain consistent.
+         */
+        const demandPrincipalEntered=hasValue(document.getElementById("demandP-"+rowIndex)?.value);
+        if(monthIsConsidered(raw)||hasSavingData||demandPrincipalEntered){
+          account.months[key]=raw;
+
+          for(let mi=monthIndex+1;mi<MONTHS.length;mi++){
+            const futureKey=MONTHS[mi][0];
+            const future=account.months[futureKey];
+            if(!future)continue;
+            const previous=account.months[MONTHS[mi-1][0]];
+            if(previous && hasValue(previous.demandPrincipal)){
+              future.demandPrincipal=Number(previous.demandPrincipal)||0;
+              future.demandInterest=monthlyInterest(future.opening,account.interestRate);
+              account.months[futureKey]=future;
+            }
+          }
+        }else if(account.months[key]){
+          delete account.months[key];
+        }
       });
       writeDb();refreshVOSelect();markClean();document.getElementById("saveStatus").textContent="Saved";return true;
     }
@@ -4910,8 +5020,12 @@ button > *{position:relative;z-index:1;}
        */
       const principalEntered = hasValue(d.principalCollection);
       const interestEntered  = hasValue(d.interestCollection);
+      const demandPrincipalEntered = hasValue(d.demandPrincipal);
 
-      return principalEntered || interestEntered;
+      // A saved Current Month Principal also makes the month reportable.
+      // This allows Save All SHGs to materialize every month and include
+      // every SHG/month in reports and PDFs even when no collection exists.
+      return principalEntered || interestEntered || demandPrincipalEntered;
     }
     function lastConsideredMonth(shg,idx){
       if(!shg||!shg.months)return null;
@@ -5196,9 +5310,26 @@ button > *{position:relative;z-index:1;}
       const key=MONTHS[monthIndex][0],saved=account.months[key],d=saved||blank();
       if(!saved&&monthIndex===0){d.principalCollection=0;d.interestCollection=0;}
       let opening=d.opening, prevP=d.prevPrincipal, prevI=d.prevInterest;
-      let demandP=hasValue(saved&&saved.demandPrincipal)
-        ? Number(saved.demandPrincipal)||0
-        : (monthIndex>0 ? previousMonthDemandPrincipal(account,monthIndex) : Number(d.demandPrincipal)||0);
+      /*
+       * CURRENT MONTH PRINCIPAL - FORWARD PROPAGATION
+       * ------------------------------------------------
+       * April (or the account creation month) is the starting value.
+       * Every following month always inherits the immediately previous
+       * month's Current Month Principal, even if the current month already
+       * has saved data.  This deliberately affects ONLY demandPrincipal.
+       */
+      /*
+       * CURRENT MONTH PRINCIPAL
+       * ------------------------
+       * The saved value in the current month is authoritative for that
+       * month.  Every later month inherits the immediately previous
+       * month's value.  This allows a user to change any month and make
+       * that new value flow forward from that month onward.
+       */
+      let demandP=Number(d.demandPrincipal)||0;
+      if(!saved && monthIndex>0){
+        demandP=previousMonthDemandPrincipal(account,monthIndex);
+      }
       const creationMonth=(!april && monthIndex===startIdx && startIdx>0);
       const nextMonthStart=(!april && monthIndex===startIdx+1 && startIdx>0);
       if(creationMonth){
@@ -5315,7 +5446,9 @@ button > *{position:relative;z-index:1;}
     function previousMonthDemandPrincipal(shg,idx){
      if(!shg||idx<=0||!shg.months)return 0;
      const prev=shg.months[MONTHS[idx-1][0]];
-     return prev && hasValue(prev.demandPrincipal) ? Number(prev.demandPrincipal)||0 : 0;
+     return prev && hasValue(prev.demandPrincipal)
+       ? Number(prev.demandPrincipal)||0
+       : 0;
     }
 
     function safePrevMonth(shg,idx){
@@ -5349,7 +5482,7 @@ button > *{position:relative;z-index:1;}
       writeDb();
     }
 
-    window.saveRow=function(i){
+    window.saveRow=async function(i){
      const v=vo();if(!v)return;
      const entry=selectedEntryByRow(i);if(!entry)return;
      const s=entry.member,account=activeAccount(entry),name=document.getElementById("name-"+i).value.trim();
@@ -5373,17 +5506,32 @@ button > *{position:relative;z-index:1;}
      else if(!april){const prev=lastConsideredMonth(account,monthIndex);const pc=prev?calc(prev.data):null;if(pc){raw.opening=pc.totalLoanBalance;raw.prevPrincipal=pc.balancePrincipal;raw.prevInterest=pc.balanceInterest;}}
      raw.demandInterest=monthlyInterest(raw.opening,rate);
      const hasSavingData=isSHGMode() && [raw.savingOpening,raw.savingCurrent,raw.savingDisbursed].some(n=>(Number(n)||0)!==0);
-     if(monthIsConsidered(raw)||hasSavingData)account.months[MONTHS[monthIndex][0]]=raw;else if(account.months[MONTHS[monthIndex][0]])delete account.months[MONTHS[monthIndex][0]];
-     writeDb();markClean();document.getElementById("saveStatus").textContent="Saved "+name+" – "+MONTHS[monthIndex][0];
+     const demandPrincipalEntered=hasValue(document.getElementById("demandP-"+i)?.value);
+     if(monthIsConsidered(raw)||hasSavingData||demandPrincipalEntered)account.months[MONTHS[monthIndex][0]]=raw;else if(account.months[MONTHS[monthIndex][0]])delete account.months[MONTHS[monthIndex][0]];
+     writeDb();
+     if(window.firebaseCloud && window.firebaseCloud.saveCloudDb && window.firebaseCloud.currentUser){
+       try{
+         await window.firebaseCloud.saveCloudDb(db,activeMode);
+       }catch(err){
+         console.error("Row cloud sync failed:",err);
+         document.getElementById("saveStatus").textContent="Wait Data Saving...";
+         alert(describeCloudSaveError(err));
+         return;
+       }
+     }
+     markClean();document.getElementById("saveStatus").textContent="Saved "+name+" – "+MONTHS[monthIndex][0];
     };
 
 
-    function saveAll(){
+    async function saveAll(){
       const v=vo();
       if(!v)return;
 
-      /* First capture whatever is currently being edited on screen. */
-      if(!saveCurrentScreen())return;
+      /* First capture whatever is currently being edited on screen.
+       * saveCurrentScreen() is async because it also synchronizes to Firestore.
+       * It MUST be awaited here; otherwise Save All continues while the first
+       * cloud write is still running, causing races and misleading failures. */
+      if(!(await saveCurrentScreen()))return;
 
       ensureIndividualLoanInterestRates(v);
       const rateInput=document.getElementById("shgRateInput");
@@ -5412,25 +5560,74 @@ button > *{position:relative;z-index:1;}
         const accountRate=Number(v.loanInterestRates[entry.type.key] ?? account.interestRate ?? 12);
         account.interestRate=accountRate;
         if(!account.months)account.months={};
+
+        /*
+         * SAVE ALL SHGs = materialize the complete Apr-Mar sequence for
+         * every SHG/loan account.  Each month's Current Month Principal is
+         * authoritative if it already exists; otherwise it inherits the
+         * immediately previous month's value.  Therefore changing any
+         * month creates a new value from that month forward, and repeating
+         * Save All never destroys the user's latest change.
+         */
+        let carriedDemandPrincipal=0;
         MONTHS.forEach((m,mi)=>{
-          const key=m[0],existing=account.months[key];
-          if(!existing)return;
-          const d={...blank(),...existing};
+          const key=m[0];
+          const existing=account.months[key];
+          const d={...blank(),...(existing||{})};
           const startIdx=Number.isInteger(account.startMonthIndex)?account.startMonthIndex:(Number.isInteger(s.startMonthIndex)?s.startMonthIndex:0);
           if(mi<startIdx)return;
+
           const creationMonth=(startIdx>0&&mi===startIdx);
-          const nextMonthStart=(startIdx>0&&mi===startIdx+1);
-          if(creationMonth){d.opening=0;d.prevPrincipal=0;d.prevInterest=0;d.demandPrincipal=0;d.principalCollection=0;d.interestCollection=0;}
-          else if(mi>0){const prev=lastConsideredMonth(account,mi);if(prev){const pc=calc(prev.data);d.opening=pc.totalLoanBalance;d.prevPrincipal=pc.balancePrincipal;d.prevInterest=pc.balanceInterest;}}
+          if(creationMonth){
+            d.opening=0;
+            d.prevPrincipal=0;
+            d.prevInterest=0;
+            d.demandPrincipal=0;
+            d.principalCollection=0;
+            d.interestCollection=0;
+            carriedDemandPrincipal=0;
+          }else{
+            if(existing && hasValue(existing.demandPrincipal)){
+              // Existing value is the user's latest value for this month.
+              carriedDemandPrincipal=Number(existing.demandPrincipal)||0;
+            }else{
+              // No saved value yet: inherit the immediately previous month.
+              d.demandPrincipal=carriedDemandPrincipal;
+            }
+
+            if(mi>0){
+              const prev=lastConsideredMonth(account,mi);
+              if(prev){
+                const pc=calc(prev.data);
+                d.opening=pc.totalLoanBalance;
+                d.prevPrincipal=pc.balancePrincipal;
+                d.prevInterest=pc.balanceInterest;
+              }
+            }
+          }
+
+          // Keep the carried value in sync with the final value written.
+          carriedDemandPrincipal=Number(d.demandPrincipal)||0;
           d.demandInterest=monthlyInterest(d.opening,account.interestRate);
-          if(monthIsConsidered(d))account.months[key]=d;else delete account.months[key];
+          account.months[key]=d;
         });
       });
       writeDb();
+      if(window.firebaseCloud && window.firebaseCloud.saveCloudDb && window.firebaseCloud.currentUser){
+        try{
+          document.getElementById("saveStatus").textContent="Saving to cloud…";
+          await window.firebaseCloud.saveCloudDb(db,activeMode);
+        }catch(err){
+          console.error("Save All cloud sync failed:",err);
+          document.getElementById("saveStatus").textContent="Wait Data Saving...";
+          alert(describeCloudSaveError(err));
+          return;
+        }
+      }
       refreshVOSelect();
       markClean();
-      document.getElementById("saveStatus").textContent="All entered months saved";
-      alert(`All ${modeConfig().childPlural} and all entered months have been saved.`);
+      document.getElementById("saveStatus").textContent="All data saved and synchronized";
+      alert(`All ${modeConfig().childPlural}, all months, and all Current Month Principal values have been saved and synchronized.`);
     }
 
     function rekeyMonthsForFinancialYear(v, oldFinancialYear, newFinancialYear){
@@ -7715,6 +7912,7 @@ html,body{
     let reportPreviewActive=false;
     let reportPreviewMemberId="ALL";
     let reportPreviewLoanType="cif";
+    let reportPreviewMonth="ALL";
 
     function reportAccounts(v,forcedLoanKey=null){
       if(!v)return [];
@@ -7762,8 +7960,12 @@ html,body{
       /* When ALL Loans is selected, render one completely separate set of
        * DCB pages for each loan type. Never mix different loan types on the
        * same DCB page. */
+      const dcbMonths=(reportPreviewActive && reportPreviewMonth!=="ALL")
+        ? MONTHS.filter(m=>m[0]===reportPreviewMonth)
+        : MONTHS;
+
       reportLoanTypesForPdf(v).forEach(loanType=>{
-        MONTHS.forEach((m,mi)=>{
+        dcbMonths.forEach((m,mi)=>{
         const allRows=[];
         const totals=Array(15).fill(0);
         let monthlySerial=0;
@@ -8439,6 +8641,18 @@ html,body{
       reportPreviewLoanType=sel.value;
     }
 
+    function syncReportMonthOptions(){
+      const field=document.getElementById("reportMonthField");
+      const sel=document.getElementById("reportMonthFilter");
+      if(!field||!sel)return;
+      field.classList.toggle("hidden",currentReportType!=="DCB");
+      const current=reportPreviewMonth||"ALL";
+      const months=Array.isArray(MONTHS)?MONTHS:[];
+      sel.innerHTML='<option value="ALL">ALL Months</option>'+months.map(m=>`<option value="${m[0]}">${m[1]}</option>`).join("");
+      sel.value=[...sel.options].some(o=>o.value===current)?current:"ALL";
+      reportPreviewMonth=sel.value;
+    }
+
     function updateReportCenterLabels(){
       const c=modeConfig();
       const title=document.getElementById("reportCenterTitle");
@@ -8455,8 +8669,10 @@ html,body{
       reportPreviewActive=false;
       reportPreviewMemberId="ALL";
       reportPreviewLoanType="bankLinkage";
+      reportPreviewMonth="ALL";
       currentReportType="";
       updateReportCenterLabels();
+      syncReportMonthOptions();
       populateReportMemberFilter();
       syncReportLoanOptions();
       const section=document.getElementById("reportCenterSection");
@@ -8473,6 +8689,8 @@ html,body{
     function closeReportCenter(){
       reportPreviewActive=false;
       currentReportType="";
+      reportPreviewMonth="ALL";
+      syncReportMonthOptions();
       const section=document.getElementById("reportCenterSection");
       if(section)section.classList.add("hidden");
       const preview=document.getElementById("reportPreview");
@@ -8496,6 +8714,8 @@ html,body{
       reportPreviewLoanType=document.getElementById("reportLoanFilter")?.value||"bankLinkage";
       currentReportType=type;
       reportPreviewActive=true;
+      if(type!=="DCB")reportPreviewMonth="ALL";
+      syncReportMonthOptions();
 
       document.querySelectorAll("#reportCenterSection .report-type-actions button").forEach(btn=>btn.classList.remove("report-selected"));
       const selectedButton=type==="DCB"?document.getElementById("showDcbReportBtn"):type==="LL"?document.getElementById("showLedgerReportBtn"):document.getElementById("showCumulativeReportBtn");
@@ -8518,7 +8738,8 @@ html,body{
         const matched=(v.shgs||[]).find((member,index)=>String(member.id||index)===String(reportPreviewMemberId));
         selectedChild=matched?.name||"";
       }
-      const selectedMonth=MONTHS[monthIndex]||["",""];
+      const selectedMonthKey=type==="DCB"&&reportPreviewMonth!=="ALL" ? reportPreviewMonth : MONTHS[monthIndex]?.[0];
+      const selectedMonth=MONTHS.find(m=>m[0]===selectedMonthKey)||MONTHS[monthIndex]||["",""];
       let reportContext=`${pdfParentLabel()}: ${esc(v.name||"")}`;
       if(currentMode==="SHG") reportContext+=` | VO: ${esc(v.voName||document.getElementById("linkedVoName")?.value||"")}`;
       reportContext+=` | ${pdfChildLabel()}: ${esc(selectedChild)}`;
@@ -9612,9 +9833,15 @@ html,body{
       renderRows();
       markClean();
     };
-    document.getElementById("saveAllBtn").onclick=()=>{
-      try{saveAll();}
-      catch(err){console.error("Save All Children failed:",err);alert("Could not save all child records. Please check the current entries and try again.");}
+    document.getElementById("saveAllBtn").onclick=async()=>{
+      try{await saveAll();}
+      catch(err){
+        console.error("Save All Children failed:",err);
+        const msg=describeCloudSaveError(err);
+        const status=document.getElementById("saveStatus");
+        if(status)status.textContent="Save failed: "+msg;
+        alert("Could not save all child records.\n\n"+msg);
+      }
     };
     /*
      * PDF button handlers.
@@ -9649,6 +9876,10 @@ html,body{
     document.getElementById("reportLoanFilter").onchange=e=>{
       reportPreviewLoanType=e.target.value||"bankLinkage";
       if(currentReportType)showReportInUi(currentReportType);
+    };
+    document.getElementById("reportMonthFilter").onchange=e=>{
+      reportPreviewMonth=e.target.value||"ALL";
+      if(currentReportType==="DCB")showReportInUi("DCB");
     };
     document.getElementById("backupBtn").onclick=exportBackup;
     document.getElementById("importBtn").onclick=()=>{
