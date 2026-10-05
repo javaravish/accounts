@@ -1,0 +1,1238 @@
+/* ================================================================
+   Original inline style block 35: login-header-footer-audit-layout
+   Preserved exactly in cascade order.
+   ================================================================ */
+/* =========================================================
+           LOGIN PAGE: GOVERNMENT / SERP HEADER + AUDIT IMAGE + FOOTER
+           The authentication element IDs are unchanged so existing
+           Firebase login, signup and password-reset JavaScript keeps
+           working exactly as before.
+           ========================================================= */
+        #loginScreen.hidden{display:none !important;}
+
+        #loginScreen{
+          min-height:100vh !important;
+          width:100% !important;
+          display:flex !important;
+          flex-direction:column !important;
+          align-items:stretch !important;
+          justify-content:flex-start !important;
+          padding:0 !important;
+          margin:0 !important;
+          background:linear-gradient(180deg,#eef4f8 0%,#f7f9fb 55%,#eef3f7 100%) !important;
+          color:#202733 !important;
+        }
+
+        #loginScreen .login-page-header{
+          width:100% !important;
+          min-height:92px !important;
+          display:grid !important;
+          grid-template-columns:120px minmax(0,1fr) 120px !important;
+          align-items:center !important;
+          gap:16px !important;
+          padding:10px 24px !important;
+          background:#17365d !important;
+          color:#fff !important;
+          border-bottom:4px solid #d5a623 !important;
+          box-shadow:0 3px 12px rgba(0,0,0,.14) !important;
+          flex:0 0 auto !important;
+        }
+
+        #loginScreen .login-header-logo{
+          height:72px !important;
+          display:flex !important;
+          align-items:center !important;
+          justify-content:center !important;
+        }
+
+        #loginScreen .login-header-logo img{
+          display:block !important;
+          max-width:100% !important;
+          max-height:72px !important;
+          width:auto !important;
+          height:auto !important;
+          object-fit:contain !important;
+          background:#fff !important;
+          border-radius:8px !important;
+          padding:3px !important;
+          box-shadow:0 2px 8px rgba(0,0,0,.16) !important;
+        }
+
+        #loginScreen .login-header-left img{
+          width:72px !important;
+          height:72px !important;
+          border-radius:50% !important;
+          padding:2px !important;
+        }
+
+        #loginScreen .login-header-right img{
+          width:92px !important;
+          height:70px !important;
+          object-fit:contain !important;
+        }
+
+        #loginScreen .login-header-title{
+          min-width:0 !important;
+          text-align:center !important;
+          line-height:1.15 !important;
+        }
+
+        #loginScreen .login-header-main-title{
+          font-size:clamp(21px,3vw,30px) !important;
+          font-weight:800 !important;
+          letter-spacing:.3px !important;
+          text-shadow:0 1px 2px rgba(0,0,0,.22) !important;
+        }
+
+        #loginScreen .login-header-subtitle{
+          margin-top:6px !important;
+          font-size:clamp(12px,1.4vw,16px) !important;
+          font-weight:600 !important;
+          opacity:.92 !important;
+          letter-spacing:.35px !important;
+        }
+
+        #loginScreen .login-page-main{
+          width:100% !important;
+          flex:1 1 auto !important;
+          display:flex !important;
+          align-items:center !important;
+          justify-content:center !important;
+          padding:30px 22px !important;
+        }
+
+        #loginScreen .login-main-layout{
+          width:min(1080px,100%) !important;
+          display:grid !important;
+          grid-template-columns:minmax(0,1.35fr) minmax(360px,390px) !important;
+          align-items:center !important;
+          gap:34px !important;
+        }
+
+        #loginScreen .login-audit-panel{
+          width:100% !important;
+          min-width:0 !important;
+          display:flex !important;
+          align-items:center !important;
+          justify-content:center !important;
+          overflow:hidden !important;
+          border-radius:16px !important;
+          background:#fff !important;
+          border:1px solid #d5dce4 !important;
+          box-shadow:0 14px 36px rgba(23,54,93,.14) !important;
+          padding:0 !important;
+        }
+
+        #loginScreen .login-audit-image{
+          display:block !important;
+          width:100% !important;
+          height:auto !important;
+          max-height:420px !important;
+          object-fit:cover !important;
+          object-position:center !important;
+        }
+
+        #loginScreen #loginCard{
+          width:100% !important;
+          max-width:390px !important;
+          justify-self:center !important;
+          background:#fff !important;
+          border:1px solid #d5dce4 !important;
+          border-radius:16px !important;
+          padding:28px !important;
+          box-shadow:0 14px 38px rgba(23,54,93,.16) !important;
+        }
+
+        #loginScreen #loginCard h1{
+          margin:0 0 7px !important;
+          font-size:25px !important;
+          color:#17365d !important;
+          text-align:center !important;
+        }
+
+        #loginScreen #loginCard p{
+          margin:0 0 20px !important;
+          text-align:center !important;
+          color:#667085 !important;
+          font-size:13px !important;
+        }
+
+        #loginScreen .login-page-footer{
+          width:100% !important;
+          flex:0 0 auto !important;
+          text-align:center !important;
+          padding:14px 18px 16px !important;
+          background:#17365d !important;
+          color:#fff !important;
+          border-top:4px solid #d5a623 !important;
+          box-shadow:0 -3px 12px rgba(0,0,0,.08) !important;
+        }
+
+        #loginScreen .login-footer-title{
+          font-size:15px !important;
+          font-weight:800 !important;
+          margin-bottom:4px !important;
+        }
+
+        #loginScreen .login-footer-text{
+          font-size:12px !important;
+          opacity:.92 !important;
+          margin-bottom:5px !important;
+        }
+
+        #loginScreen .login-footer-copy{
+          font-size:11px !important;
+          opacity:.76 !important;
+        }
+
+        @media screen and (max-width:900px){
+          #loginScreen .login-page-header{
+            min-height:82px !important;
+            grid-template-columns:76px minmax(0,1fr) 76px !important;
+            gap:9px !important;
+            padding:8px 12px !important;
+          }
+          #loginScreen .login-header-logo{
+            height:62px !important;
+          }
+          #loginScreen .login-header-left img{
+            width:58px !important;
+            height:58px !important;
+          }
+          #loginScreen .login-header-right img{
+            width:70px !important;
+            height:58px !important;
+          }
+          #loginScreen .login-page-main{
+            padding:20px 12px !important;
+          }
+          #loginScreen .login-main-layout{
+            grid-template-columns:minmax(0,1fr) minmax(330px,390px) !important;
+            gap:18px !important;
+          }
+          #loginScreen .login-audit-image{
+            max-height:330px !important;
+          }
+          #loginScreen #loginCard{
+            padding:22px !important;
+          }
+        }
+
+        @media screen and (max-width:700px){
+          #loginScreen .login-page-header{
+            grid-template-columns:58px minmax(0,1fr) 58px !important;
+            gap:6px !important;
+            padding:7px 8px !important;
+          }
+          #loginScreen .login-header-logo{
+            height:52px !important;
+          }
+          #loginScreen .login-header-left img{
+            width:48px !important;
+            height:48px !important;
+          }
+          #loginScreen .login-header-right img{
+            width:56px !important;
+            height:48px !important;
+          }
+          #loginScreen .login-header-main-title{
+            font-size:18px !important;
+          }
+          #loginScreen .login-header-subtitle{
+            font-size:10px !important;
+            margin-top:4px !important;
+          }
+          #loginScreen .login-page-main{
+            padding:16px 10px !important;
+          }
+          #loginScreen .login-main-layout{
+            grid-template-columns:1fr !important;
+            gap:16px !important;
+            width:min(440px,100%) !important;
+          }
+          #loginScreen .login-audit-panel{
+            order:1 !important;
+            border-radius:12px !important;
+          }
+          #loginScreen .login-audit-image{
+            width:100% !important;
+            max-height:250px !important;
+            object-fit:cover !important;
+          }
+          #loginScreen #loginCard{
+            order:2 !important;
+            max-width:none !important;
+            padding:20px 16px !important;
+            border-radius:12px !important;
+          }
+          #loginScreen #loginCard h1{
+            font-size:21px !important;
+          }
+        }
+
+        @media screen and (max-width:420px){
+          #loginScreen .login-page-header{
+            grid-template-columns:48px minmax(0,1fr) 48px !important;
+          }
+          #loginScreen .login-header-left img{
+            width:42px !important;
+            height:42px !important;
+          }
+          #loginScreen .login-header-right img{
+            width:48px !important;
+            height:42px !important;
+          }
+          #loginScreen .login-header-main-title{
+            font-size:15px !important;
+          }
+          #loginScreen .login-header-subtitle{
+            font-size:9px !important;
+          }
+          #loginScreen .login-page-main{
+            padding:12px 8px !important;
+          }
+          #loginScreen .login-audit-image{
+            max-height:210px !important;
+          }
+          #loginScreen #loginCard{
+            padding:18px 14px !important;
+          }
+          #loginScreen .login-page-footer{
+            padding:11px 10px 12px !important;
+          }
+          #loginScreen .login-footer-title{
+            font-size:13px !important;
+          }
+          #loginScreen .login-footer-text{
+            font-size:10px !important;
+          }
+          #loginScreen .login-footer-copy{
+            font-size:9px !important;
+          }
+        }
+
+/* ================================================================
+   Original inline style block 36: app-wide-audit-header-footer
+   Preserved exactly in cascade order.
+   ================================================================ */
+/* Application-wide header/footer. Screen only; PDF/print layouts are untouched. */
+        @media screen {
+          #appShell{
+            min-height:100vh !important;
+            display:flex !important;
+            flex-direction:column !important;
+          }
+          #appShell.hidden{display:none !important;}
+          #appShell > main{
+            flex:1 0 auto !important;
+            width:100% !important;
+          }
+
+          #appShell .app-global-header{
+            display:block !important;
+            width:100% !important;
+            padding:0 !important;
+            margin:0 !important;
+            background:#fff !important;
+            color:#17365d !important;
+            border:0 !important;
+            border-radius:0 !important;
+            box-shadow:0 2px 10px rgba(0,0,0,.10) !important;
+            position:relative !important;
+            z-index:20 !important;
+          }
+          #appShell .app-global-banner{
+            width:min(100%,1100px) !important;
+            min-height:92px !important;
+            margin:0 auto !important;
+            display:grid !important;
+            grid-template-columns:110px minmax(0,1fr) 110px !important;
+            align-items:center !important;
+            gap:10px !important;
+            padding:5px 18px !important;
+            background:linear-gradient(100deg,#245a92 0%,#2f679d 22%,#f1f5f8 50%,#2f679d 78%,#245a92 100%) !important;
+            position:relative !important;
+            overflow:hidden !important;
+          }
+          #appShell .app-global-banner::before{
+            content:"" !important;
+            position:absolute !important;
+            inset:0 !important;
+            background:
+              radial-gradient(70% 120% at 50% 115%,rgba(255,255,255,.92) 0 38%,transparent 39%),
+              linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,0)) !important;
+            pointer-events:none !important;
+          }
+          #appShell .app-global-logo{
+            position:relative !important;
+            z-index:1 !important;
+            display:flex !important;
+            align-items:center !important;
+            justify-content:center !important;
+            height:82px !important;
+          }
+          #appShell .app-global-logo img{
+            display:block !important;
+            object-fit:contain !important;
+            background:transparent !important;
+            border:0 !important;
+            box-shadow:none !important;
+            padding:0 !important;
+          }
+          #appShell .app-global-left img{
+            width:64px !important;
+            height:64px !important;
+            border-radius:50% !important;
+          }
+          #appShell .app-global-right img{
+            width:82px !important;
+            height:64px !important;
+          }
+          #appShell .app-global-title{
+            position:relative !important;
+            z-index:1 !important;
+            min-width:0 !important;
+            text-align:center !important;
+            color:#17436e !important;
+            line-height:1.05 !important;
+          }
+          #appShell .app-global-main-title{
+            font-size:26px !important;
+            font-weight:500 !important;
+            letter-spacing:.2px !important;
+          }
+          #appShell .app-global-subtitle{
+            margin-top:5px !important;
+            font-size:13px !important;
+            font-weight:600 !important;
+            color:#47688c !important;
+          }
+
+          #appShell .app-global-nav{
+            width:min(100%,1100px) !important;
+            min-height:36px !important;
+            margin:0 auto !important;
+            display:flex !important;
+            align-items:center !important;
+            gap:0 !important;
+            padding:0 28px !important;
+            background:#fff !important;
+            border-top:1px solid #e5e7eb !important;
+            border-bottom:1px solid #d8dee7 !important;
+            box-shadow:0 2px 5px rgba(0,0,0,.08) !important;
+          }
+          #appShell .app-global-nav button{
+            position:relative !important;
+            overflow:visible !important;
+            min-height:34px !important;
+            padding:7px 16px !important;
+            margin:0 !important;
+            border:0 !important;
+            border-radius:0 !important;
+            background:#fff !important;
+            color:#064b84 !important;
+            font-size:11px !important;
+            font-weight:700 !important;
+            box-shadow:none !important;
+            transform:none !important;
+            filter:none !important;
+            animation:none !important;
+          }
+          #appShell .app-global-nav button::before{display:none !important;}
+          #appShell .app-global-nav button:hover{
+            background:#eef5fb !important;
+            color:#17365d !important;
+            transform:none !important;
+            box-shadow:none !important;
+            filter:none !important;
+          }
+          #appShell .app-global-nav #logoutBtn{
+            color:#b71c1c !important;
+          }
+          #appShell .app-global-login-status{
+            margin-left:auto !important;
+            padding:0 4px 0 12px !important;
+            color:#2d6b00 !important;
+            font-size:11px !important;
+            font-style:italic !important;
+            font-weight:700 !important;
+            white-space:nowrap !important;
+          }
+
+          #appShell .app-global-footer{
+            width:100% !important;
+            flex:0 0 auto !important;
+            margin:18px 0 0 !important;
+            padding:18px 16px 14px !important;
+            background:#17365d !important;
+            color:#fff !important;
+            text-align:center !important;
+            border-top:4px solid #d5a623 !important;
+            box-sizing:border-box !important;
+          }
+          #appShell .app-footer-title{
+            font-size:15px !important;
+            font-weight:800 !important;
+          }
+          #appShell .app-footer-subtitle{
+            margin-top:4px !important;
+            font-size:12px !important;
+            opacity:.92 !important;
+          }
+          #appShell .app-footer-links{
+            margin-top:6px !important;
+            font-size:11px !important;
+            opacity:.88 !important;
+          }
+          #appShell .app-footer-copy{
+            margin-top:7px !important;
+            font-size:10px !important;
+            opacity:.75 !important;
+          }
+
+          @media(max-width:700px){
+            #appShell .app-global-banner{
+              grid-template-columns:64px minmax(0,1fr) 64px !important;
+              min-height:72px !important;
+              padding:4px 8px !important;
+              gap:4px !important;
+            }
+            #appShell .app-global-logo{height:64px !important;}
+            #appShell .app-global-left img{width:48px !important;height:48px !important;}
+            #appShell .app-global-right img{width:58px !important;height:48px !important;}
+            #appShell .app-global-main-title{font-size:19px !important;}
+            #appShell .app-global-subtitle{font-size:10px !important;margin-top:3px !important;}
+            #appShell .app-global-nav{
+              padding:0 6px !important;
+              overflow-x:auto !important;
+              justify-content:flex-start !important;
+              -webkit-overflow-scrolling:touch !important;
+            }
+            #appShell .app-global-nav button{
+              flex:0 0 auto !important;
+              padding:7px 11px !important;
+              font-size:10px !important;
+            }
+            #appShell .app-global-login-status{
+              flex:0 0 auto !important;
+              margin-left:auto !important;
+              font-size:9px !important;
+              padding-left:8px !important;
+            }
+          }
+          @media(max-width:430px){
+            #appShell .app-global-banner{
+              grid-template-columns:50px minmax(0,1fr) 50px !important;
+            }
+            #appShell .app-global-left img{width:40px !important;height:40px !important;}
+            #appShell .app-global-right img{width:46px !important;height:40px !important;}
+            #appShell .app-global-main-title{font-size:16px !important;}
+            #appShell .app-global-subtitle{font-size:8.5px !important;}
+            #appShell .app-global-nav{
+              justify-content:flex-start !important;
+            }
+            #appShell .app-global-login-status{
+              display:none !important;
+            }
+            #appShell .app-footer-title{font-size:13px !important;}
+            #appShell .app-footer-subtitle,
+            #appShell .app-footer-links{font-size:10px !important;}
+          }
+        }
+
+/* ================================================================
+   Original inline style block 37: app-header-exact-login-style
+   Preserved exactly in cascade order.
+   ================================================================ */
+/* Logged-in pages: use the exact same header as the login page.
+           The navigation/status bar remains directly underneath, as requested. */
+        @media screen{
+          #appShell .app-global-header{
+            width:100% !important;
+            min-height:0 !important;
+            #background:#17365d !important;
+            color:#fff !important;
+            border:0 !important;
+            border-bottom:0 !important;
+            border-radius:0 !important;
+            box-shadow:none !important;
+            padding:0 !important;
+          }
+          #appShell .app-global-banner{
+            width:100% !important;
+            max-width:none !important;
+            min-height:92px !important;
+            margin:0 !important;
+            display:grid !important;
+            grid-template-columns:120px minmax(0,1fr) 120px !important;
+            align-items:center !important;
+            gap:16px !important;
+            padding:10px 24px !important;
+            background:#17365d !important;
+            color:#fff !important;
+            border-bottom:4px solid #d5a623 !important;
+            box-sizing:border-box !important;
+            position:relative !important;
+            overflow:hidden !important;
+          }
+          #appShell .app-global-banner::before{display:none !important;}
+          #appShell .app-global-logo{
+            height:72px !important;
+            display:flex !important;
+            align-items:center !important;
+            justify-content:center !important;
+            position:relative !important;
+            z-index:1 !important;
+          }
+          #appShell .app-global-logo img{
+            display:block !important;
+            max-width:100% !important;
+            max-height:72px !important;
+            width:auto !important;
+            height:auto !important;
+            object-fit:contain !important;
+            background:#fff !important;
+            border-radius:8px !important;
+            padding:3px !important;
+            box-shadow:0 2px 8px rgba(0,0,0,.16) !important;
+          }
+          #appShell .app-global-left img{
+            width:72px !important;
+            height:72px !important;
+            border-radius:50% !important;
+            padding:2px !important;
+          }
+          #appShell .app-global-right img{
+            width:92px !important;
+            height:70px !important;
+            object-fit:contain !important;
+          }
+          #appShell .app-global-title{
+            min-width:0 !important;
+            text-align:center !important;
+            line-height:1.15 !important;
+            color:#fff !important;
+            position:relative !important;
+            z-index:1 !important;
+          }
+          #appShell .app-global-main-title{
+            font-size:clamp(21px,3vw,30px) !important;
+            font-weight:800 !important;
+            letter-spacing:.3px !important;
+            text-shadow:0 1px 2px rgba(0,0,0,.22) !important;
+            color:#fff !important;
+          }
+          #appShell .app-global-subtitle{
+            margin-top:6px !important;
+            font-size:clamp(12px,1.4vw,16px) !important;
+            font-weight:600 !important;
+            opacity:.92 !important;
+            letter-spacing:.35px !important;
+            color:#fff !important;
+          }
+          /* Keep the logged-in data/navigation exactly below the header, like the second screenshot. */
+          #appShell .app-global-nav{
+            width:min(100%,1100px) !important;
+            min-height:36px !important;
+            margin:0 auto !important;
+            padding:0 28px !important;
+            display:flex !important;
+            align-items:center !important;
+            gap:0 !important;
+            background:#fff !important;
+            border-top:1px solid #e5e7eb !important;
+            border-bottom:1px solid #d8dee7 !important;
+            box-shadow:0 2px 5px rgba(0,0,0,.08) !important;
+            box-sizing:border-box !important;
+          }
+          #appShell .app-global-nav button{
+            min-height:0px !important;
+            padding:7px 16px !important;
+            margin:0 !important;
+            border:0 !important;
+            border-radius:0 !important;
+            background:#fff !important;
+            color:#064b84 !important;
+            font-size:13px !important;
+            font-weight:700 !important;
+            box-shadow:none !important;
+            transform:none !important;
+            filter:none !important;
+            animation:none !important;
+          }
+          #appShell .app-global-nav button:hover{
+            background:#eef5fb !important;
+            color:#17365d !important;
+            transform:none !important;
+            box-shadow:none !important;
+            filter:none !important;
+          }
+          #appShell .app-global-nav #logoutBtn{color:#b71c1c !important;}
+          #appShell .app-global-login-status{
+            margin-left:auto !important;
+            padding:0 4px 0 12px !important;
+            color:#2d6b00 !important;
+            font-size:11px !important;
+            font-style:italic !important;
+            font-weight:700 !important;
+            white-space:nowrap !important;
+          }
+        }
+        @media screen and (max-width:700px){
+          #appShell .app-global-banner{
+            min-height:82px !important;
+            grid-template-columns:76px minmax(0,1fr) 76px !important;
+            gap:9px !important;
+            padding:8px 12px !important;
+          }
+          #appShell .app-global-logo{height:62px !important;}
+          #appShell .app-global-left img{width:58px !important;height:58px !important;}
+          #appShell .app-global-right img{width:70px !important;height:58px !important;}
+          #appShell .app-global-main-title{font-size:18px !important;}
+          #appShell .app-global-subtitle{font-size:11px !important;margin-top:4px !important;}
+          #appShell .app-global-nav{padding:0 6px !important;overflow-x:auto !important;-webkit-overflow-scrolling:touch !important;}
+          #appShell .app-global-nav button{flex:0 0 auto !important;padding:7px 11px !important;font-size:10px !important;}
+          #appShell .app-global-login-status{flex:0 0 auto !important;font-size:9px !important;padding-left:8px !important;}
+        }
+        @media screen and (max-width:430px){
+          #appShell .app-global-banner{grid-template-columns:58px minmax(0,1fr) 58px !important;gap:6px !important;padding:7px 8px !important;}
+          #appShell .app-global-logo{height:52px !important;}
+          #appShell .app-global-left img{width:48px !important;height:48px !important;}
+          #appShell .app-global-right img{width:56px !important;height:48px !important;}
+          #appShell .app-global-main-title{font-size:16px !important;}
+          #appShell .app-global-subtitle{font-size:8.5px !important;}
+          #appShell .app-global-login-status{display:block !important;font-size:8px !important;}
+        }
+
+/* ================================================================
+   Original inline style block 38: final-vo-selection-creation-ui
+   Preserved exactly in cascade order.
+   ================================================================ */
+/* =========================================================
+           DESKTOP HOME PAGE
+           Existing VO | Create New VO
+
+           New VO Name | Financial Year
+           Create VO   | Cancel
+           ========================================================= */
+        @media screen and (min-width:901px){
+
+            /* Existing VO selector and Create New VO button have the
+               same width/height on the Home page. */
+            #voSelectionToolbar{
+                display:grid !important;
+                grid-template-columns:255px 255px !important;
+                gap:10px !important;
+                width:100% !important;
+                max-width:none !important;
+                align-items:end !important;
+            }
+
+            #voSelectionToolbar > .field{
+                width:255px !important;
+                min-width:255px !important;
+                max-width:255px !important;
+                flex:none !important;
+                margin:0 !important;
+            }
+
+            #voSelectionToolbar #homeNewVoBtn{
+                width:255px !important;
+                min-width:255px !important;
+                max-width:255px !important;
+                height:38px !important;
+                min-height:38px !important;
+                margin:0 !important;
+                box-sizing:border-box !important;
+            }
+
+            /* New VO Name | Financial Year */
+            #newVoForm .toolbar{
+                display:grid !important;
+                grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;
+                gap:10px !important;
+                width:100% !important;
+                max-width:none !important;
+                align-items:end !important;
+            }
+
+            #newVoForm .toolbar > .field{
+                width:100% !important;
+                min-width:0 !important;
+                max-width:none !important;
+                flex:none !important;
+                margin:0 !important;
+            }
+
+            #newVoForm .toolbar > .field > input,
+            #newVoForm .toolbar > .field > select{
+                display:block !important;
+                width:100% !important;
+                min-width:0 !important;
+                max-width:none !important;
+                box-sizing:border-box !important;
+            }
+
+            /* Create VO | Cancel */
+            #newVoForm .toolbar > #createVoBtn,
+            #newVoForm .toolbar > #cancelVoBtn{
+                width:100% !important;
+                min-width:0 !important;
+                max-width:none !important;
+                margin:0 !important;
+                box-sizing:border-box !important;
+            }
+
+            #newVoForm .toolbar > #createVoBtn{
+                grid-column:1 !important;
+                grid-row:2 !important;
+            }
+
+            #newVoForm .toolbar > #cancelVoBtn{
+                grid-column:2 !important;
+                grid-row:2 !important;
+            }
+        }
+
+        /* =========================================================
+           MOBILE / TABLET
+           New VO Name | Financial Year
+           Create VO   | Cancel
+           ========================================================= */
+        @media screen and (max-width:900px){
+
+            #newVoForm{
+                width:100% !important;
+                margin-top:14px !important;
+            }
+
+            #newVoForm .toolbar{
+                display:grid !important;
+                grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;
+                gap:10px !important;
+                width:100% !important;
+                max-width:none !important;
+                align-items:end !important;
+            }
+
+            #newVoForm .toolbar > .field{
+                grid-column:auto !important;
+                width:100% !important;
+                min-width:0 !important;
+                max-width:none !important;
+                flex:none !important;
+                margin:0 !important;
+            }
+
+            #newVoForm .toolbar > .field > input,
+            #newVoForm .toolbar > .field > select{
+                display:block !important;
+                width:100% !important;
+                min-width:0 !important;
+                max-width:none !important;
+                box-sizing:border-box !important;
+            }
+
+            #newVoForm .toolbar > #createVoBtn,
+            #newVoForm .toolbar > #cancelVoBtn{
+                grid-column:auto !important;
+                width:100% !important;
+                min-width:0 !important;
+                max-width:none !important;
+                margin:0 !important;
+                box-sizing:border-box !important;
+            }
+
+            #newVoForm .toolbar > #createVoBtn{
+                grid-column:1 !important;
+                grid-row:2 !important;
+            }
+
+            #newVoForm .toolbar > #cancelVoBtn{
+                grid-column:2 !important;
+                grid-row:2 !important;
+            }
+        }
+
+        /* Very small phones: keep the requested 2-column layout. */
+        @media screen and (max-width:420px){
+            #newVoForm .toolbar{
+                grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;
+                gap:8px !important;
+            }
+
+            #newVoForm .toolbar > .field,
+            #newVoForm .toolbar > #createVoBtn,
+            #newVoForm .toolbar > #cancelVoBtn{
+                min-width:0 !important;
+            }
+        }
+
+/* ================================================================
+   Original inline style block 39: final-vo-six-items-equal-width
+   Preserved exactly in cascade order.
+   ================================================================ */
+/* =========================================================
+           FINAL DESKTOP FIX
+           All 6 VO creation controls have exactly the same width
+           as Existing VO / Create New VO: 255px.
+
+           Desktop:
+           Existing VO      | Create New VO
+           New VO Name      | Financial Year
+           Create VO        | Cancel
+
+           Mobile/tablet layout is intentionally untouched.
+           UI ONLY — no functionality changes.
+           ========================================================= */
+        @media screen and (min-width:901px){
+
+            /* First row: Existing VO | Create New VO */
+            #voSelectionToolbar{
+                display:grid !important;
+                grid-template-columns:255px 255px !important;
+                column-gap:10px !important;
+                row-gap:10px !important;
+                width:520px !important;
+                max-width:520px !important;
+                min-width:520px !important;
+                align-items:end !important;
+            }
+
+            #voSelectionToolbar > .field,
+            #voSelectionToolbar #homeNewVoBtn{
+                width:255px !important;
+                min-width:255px !important;
+                max-width:255px !important;
+                box-sizing:border-box !important;
+                margin:0 !important;
+            }
+
+            #voSelectionToolbar #homeNewVoBtn{
+                height:38px !important;
+                min-height:38px !important;
+                max-height:38px !important;
+            }
+
+            /* Second + third rows: all four controls exactly 255px */
+            #newVoForm{
+                width:520px !important;
+                max-width:520px !important;
+                min-width:520px !important;
+            }
+
+            #newVoForm .toolbar{
+                display:grid !important;
+                grid-template-columns:255px 255px !important;
+                column-gap:10px !important;
+                row-gap:10px !important;
+                width:520px !important;
+                max-width:520px !important;
+                min-width:520px !important;
+                align-items:end !important;
+            }
+
+            #newVoForm .toolbar > .field{
+                width:255px !important;
+                min-width:255px !important;
+                max-width:255px !important;
+                flex:none !important;
+                box-sizing:border-box !important;
+                margin:0 !important;
+            }
+
+            #newVoForm .toolbar > .field > input,
+            #newVoForm .toolbar > .field > select{
+                display:block !important;
+                width:255px !important;
+                min-width:255px !important;
+                max-width:255px !important;
+                box-sizing:border-box !important;
+            }
+
+            #newVoForm .toolbar > #createVoBtn,
+            #newVoForm .toolbar > #cancelVoBtn{
+                width:255px !important;
+                min-width:255px !important;
+                max-width:255px !important;
+                box-sizing:border-box !important;
+                margin:0 !important;
+            }
+
+            #newVoForm .toolbar > #createVoBtn{
+                grid-column:1 !important;
+                grid-row:2 !important;
+            }
+
+            #newVoForm .toolbar > #cancelVoBtn{
+                grid-column:2 !important;
+                grid-row:2 !important;
+            }
+        }
+
+/* ================================================================
+   Original inline style block 40: final-shg-creation-exact-layout
+   Preserved exactly in cascade order.
+   ================================================================ */
+/* =========================================================
+           FINAL SHG / VO / MEMBER CREATION TOOLBAR
+           UI ONLY — existing functionality is unchanged.
+
+           DESKTOP:
+           Add Name | Loan | Interest Rate | Add
+           SHG/VO/Member selector directly below Add Name
+
+           MOBILE / TABLET:
+           Add Name | Loan | Interest Rate
+           Add       | SHG/VO/Member
+           ========================================================= */
+
+        /* ---------------------------------------------------------
+           DESKTOP
+           All 4 first-row controls have exactly the same width.
+           SHG/VO/Member selector is directly below Add Name.
+           --------------------------------------------------------- */
+        @media screen and (min-width:901px){
+
+            #shgToolbar{
+                display:grid !important;
+                grid-template-columns:repeat(4,minmax(0,1fr)) !important;
+                grid-template-rows:auto auto !important;
+                column-gap:10px !important;
+                row-gap:10px !important;
+                width:100% !important;
+                max-width:100% !important;
+                min-width:0 !important;
+                align-items:end !important;
+                flex:none !important;
+                flex-wrap:initial !important;
+                white-space:normal !important;
+            }
+
+            /* Add SHG / VO / Member Name */
+            #shgToolbar > #addChildField{
+                grid-column:1 !important;
+                grid-row:1 !important;
+                width:100% !important;
+                min-width:0 !important;
+                max-width:none !important;
+                margin:0 !important;
+                flex:none !important;
+            }
+
+            /* Loan + SHG/VO/Member filter wrapper */
+            #shgToolbar > #shgLoanFilterToolbar:not(.hidden){
+                display:contents !important;
+                width:auto !important;
+                min-width:0 !important;
+                max-width:none !important;
+                margin:0 !important;
+                padding:0 !important;
+            }
+
+            /* Preserve hidden state */
+            #shgToolbar > #shgLoanFilterToolbar.hidden{
+                display:none !important;
+            }
+
+            /* Loan — column 2 */
+            #shgToolbar > #shgLoanFilterToolbar:not(.hidden) > .loan-filter-field:nth-child(1){
+                grid-column:2 !important;
+                grid-row:1 !important;
+                width:100% !important;
+                min-width:0 !important;
+                max-width:none !important;
+                margin:0 !important;
+                flex:none !important;
+            }
+
+            /* SHG / VO / Member — directly below Add Name */
+            #shgToolbar > #shgLoanFilterToolbar:not(.hidden) > .loan-filter-field:nth-child(2){
+                grid-column:1 !important;
+                grid-row:2 !important;
+                width:100% !important;
+                min-width:0 !important;
+                max-width:none !important;
+                margin:0 !important;
+                flex:none !important;
+            }
+
+            #shgToolbar > #shgLoanFilterToolbar:not(.hidden) > .loan-filter-field select{
+                display:block !important;
+                width:100% !important;
+                min-width:0 !important;
+                max-width:none !important;
+                box-sizing:border-box !important;
+            }
+
+            /* Interest Rate — column 3 */
+            #shgToolbar > #interestRateField{
+                grid-column:3 !important;
+                grid-row:1 !important;
+                width:100% !important;
+                min-width:0 !important;
+                max-width:none !important;
+                margin:0 !important;
+                flex:none !important;
+            }
+
+            #shgToolbar > #interestRateField input{
+                display:block !important;
+                width:100% !important;
+                min-width:0 !important;
+                max-width:none !important;
+                box-sizing:border-box !important;
+            }
+
+            /* Add SHG — column 4 */
+            #shgToolbar > #addShgBtn{
+                grid-column:4 !important;
+                grid-row:1 !important;
+                width:100% !important;
+                min-width:0 !important;
+                max-width:none !important;
+                margin:0 !important;
+                box-sizing:border-box !important;
+                flex:none !important;
+                white-space:nowrap !important;
+            }
+        }
+
+
+        /* ---------------------------------------------------------
+           MOBILE / TABLET
+           Row 1: Add Name | Loan | Interest Rate
+           Row 2: Add SHG  | SHG / VO / Member
+           All controls in each row are equal width.
+           --------------------------------------------------------- */
+        @media screen and (max-width:900px){
+
+            #shgToolbar{
+                display:grid !important;
+                grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+                grid-template-rows:auto auto !important;
+                column-gap:9px !important;
+                row-gap:9px !important;
+                width:100% !important;
+                max-width:100% !important;
+                min-width:0 !important;
+                align-items:end !important;
+                flex:none !important;
+                flex-wrap:initial !important;
+                white-space:normal !important;
+            }
+
+            /* Add SHG / VO / Member Name — row 1 col 1 */
+            #shgToolbar > #addChildField{
+                grid-column:1 !important;
+                grid-row:1 !important;
+                width:100% !important;
+                min-width:0 !important;
+                max-width:none !important;
+                margin:0 !important;
+                flex:none !important;
+            }
+
+            /* Loan + SHG/VO/Member wrapper */
+            #shgToolbar > #shgLoanFilterToolbar:not(.hidden){
+                display:contents !important;
+                width:auto !important;
+                min-width:0 !important;
+                max-width:none !important;
+                margin:0 !important;
+                padding:0 !important;
+            }
+
+            #shgToolbar > #shgLoanFilterToolbar.hidden{
+                display:none !important;
+            }
+
+            /* Loan — row 1 col 2 */
+            #shgToolbar > #shgLoanFilterToolbar:not(.hidden) > .loan-filter-field:nth-child(1){
+                grid-column:2 !important;
+                grid-row:1 !important;
+                width:100% !important;
+                min-width:0 !important;
+                max-width:none !important;
+                margin:0 !important;
+                flex:none !important;
+            }
+
+            /* SHG / VO / Member — row 2 col 2 */
+            #shgToolbar > #shgLoanFilterToolbar:not(.hidden) > .loan-filter-field:nth-child(2){
+                grid-column:2 !important;
+                grid-row:2 !important;
+                width:100% !important;
+                min-width:0 !important;
+                max-width:none !important;
+                margin:0 !important;
+                flex:none !important;
+            }
+
+            #shgToolbar > #shgLoanFilterToolbar:not(.hidden) > .loan-filter-field select{
+                display:block !important;
+                width:100% !important;
+                min-width:0 !important;
+                max-width:none !important;
+                box-sizing:border-box !important;
+            }
+
+            /* Interest Rate — row 1 col 3 */
+            #shgToolbar > #interestRateField{
+                grid-column:3 !important;
+                grid-row:1 !important;
+                width:100% !important;
+                min-width:0 !important;
+                max-width:none !important;
+                margin:0 !important;
+                flex:none !important;
+            }
+
+            #shgToolbar > #interestRateField input{
+                display:block !important;
+                width:100% !important;
+                min-width:0 !important;
+                max-width:none !important;
+                box-sizing:border-box !important;
+            }
+
+            /* Add SHG — row 2 col 1 */
+            #shgToolbar > #addShgBtn{
+                grid-column:1 !important;
+                grid-row:2 !important;
+                width:100% !important;
+                min-width:0 !important;
+                max-width:none !important;
+                margin:0 !important;
+                box-sizing:border-box !important;
+                flex:none !important;
+                white-space:nowrap !important;
+            }
+        }
+
+
+        /* ---------------------------------------------------------
+           SMALL PHONES
+           Keep the exact same 3-column / 2-column arrangement.
+           --------------------------------------------------------- */
+        @media screen and (max-width:420px){
+
+            #shgToolbar{
+                grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+                column-gap:6px !important;
+                row-gap:7px !important;
+            }
+
+            #shgToolbar > #addChildField,
+            #shgToolbar > #interestRateField,
+            #shgToolbar > #addShgBtn,
+            #shgToolbar > #shgLoanFilterToolbar:not(.hidden) > .loan-filter-field{
+                min-width:0 !important;
+            }
+
+            #shgToolbar > #shgLoanFilterToolbar:not(.hidden) > .loan-filter-field select{
+                font-size:13px !important;
+                padding-left:8px !important;
+                padding-right:24px !important;
+            }
+        }

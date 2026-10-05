@@ -1,0 +1,1416 @@
+/* ================================================================
+   Original inline style block 02: shg-toolbar-single-row-fix
+   Preserved exactly in cascade order.
+   ================================================================ */
+#shgToolbar{
+          display:flex !important;
+          flex-direction:row !important;
+          flex-wrap:nowrap !important;
+          align-items:flex-end !important;
+          gap:10px !important;
+          width:100% !important;
+          white-space:nowrap !important;
+        }
+        #shgToolbar > .field:first-child{
+          flex:1 1 auto !important;
+          min-width:220px !important;
+        }
+        #shgToolbar > .field:nth-of-type(2){
+          flex:0 0 180px !important;
+          width:180px !important;
+          min-width:180px !important;
+        }
+        #shgToolbar > button{
+          flex:0 0 auto !important;
+          white-space:nowrap !important;
+        }
+
+      /* FINAL SHG-PAGE RULE:
+         Create New VO is available only on the Home / initial page.
+         The selected-VO / SHG page must never display it. */
+      #voDetailsToolbar.show-details #homeNewVoBtn{
+        display:none !important;
+      }
+      #voDetailsToolbar.show-details ~ .actions #newVoBtn{
+        display:none !important;
+      }
+
+
+      /* Home / initial page: show the Home-page Create New VO button. */
+      #voDetailsToolbar:not(.show-details) #homeNewVoBtn{
+        display:inline-block !important;
+      }
+
+/* ================================================================
+   Original inline style block 03: pdf-final-wrap-rules
+   Preserved exactly in cascade order.
+   ================================================================ */
+@media print{
+          .dcb-table thead th, .cumulative-dcb-table thead th, .ledger-table thead th{
+            white-space:normal!important;
+            overflow-wrap:anywhere!important;
+            word-break:break-word!important;
+          }
+          .dcb-table tbody td.pdf-final-wrap, .cumulative-dcb-table tbody td.pdf-final-wrap, .ledger-table tbody td.pdf-final-wrap{
+            white-space:normal!important;
+            overflow-wrap:anywhere!important;
+            word-break:break-word!important;
+            overflow:hidden!important;
+          }
+        }
+        /* Mobile + Tablet only: smaller Show/Hide password button */
+@media screen and (max-width:900px){
+  .auth-box .password-wrap .toggle-pass,
+  #loginCard .password-wrap .toggle-pass{
+    min-height:28px !important;
+    height:28px !important;
+    padding:4px 6px !important;
+    font-size:9px !important;
+    line-height:1 !important;
+    width:auto !important;
+    min-width:0 !important;
+    right:4px !important;
+  }
+
+  .auth-box .password-wrap input,
+  #loginCard .password-wrap input{
+    padding-right:60px !important;
+  }
+}
+
+/* ================================================================
+   Original inline style block 04: mobile-friendly-ui
+   Preserved exactly in cascade order.
+   ================================================================ */
+/* =========================================================
+           MOBILE / TABLET FRIENDLY UI
+           Screen-only rules: these do NOT affect PDF/print layouts.
+           ========================================================= */
+
+        @media screen and (max-width: 900px){
+          main{
+            width:100%;
+            max-width:none;
+            margin:10px auto;
+            padding:0 10px;
+          }
+
+          .card{
+            padding:14px;
+            border-radius:8px;
+          }
+
+          header{
+            padding:12px 14px;
+            gap:9px;
+            flex-wrap:nowrap;
+          }
+
+          header h1{
+            font-size:19px;
+            line-height:1.2;
+            min-width:0;
+          }
+
+          #homeBtn{
+            flex:0 0 auto;
+            padding:9px 12px;
+          }
+
+          .toolbar,
+          #voDetailsToolbar,
+          #newVoForm .toolbar{
+            width:100%;
+            max-width:none !important;
+          }
+
+          .toolbar .field{
+            min-width:0;
+            width:100%;
+          }
+
+          #voDetailsToolbar.show-details .initial-hidden-field{
+            width:100%;
+          }
+
+          #newVoForm .field{
+            flex:1 1 100% !important;
+            max-width:none !important;
+          }
+
+          #createVoBtn,
+          #cancelVoBtn{
+            flex:1 1 140px;
+          }
+
+          /* The desktop toolbar intentionally stays on one row.
+             On smaller screens it becomes a clean vertical stack. */
+          #shgToolbar{
+            display:flex !important;
+            flex-direction:column !important;
+            flex-wrap:nowrap !important;
+            align-items:stretch !important;
+            width:100% !important;
+            gap:9px !important;
+            white-space:normal !important;
+          }
+
+          #shgToolbar > .field:first-child,
+          #shgToolbar > .field:nth-of-type(2){
+            flex:1 1 auto !important;
+            width:100% !important;
+            max-width:none !important;
+            min-width:0 !important;
+          }
+
+          #addShgBtn{
+            width:100%;
+            min-height:42px;
+          }
+
+          .actions{
+            gap:8px;
+          }
+
+          .actions > button{
+            min-height:42px;
+          }
+
+          /* Month tabs scroll horizontally instead of becoming tiny/wrapped. */
+          .months{
+            flex-wrap:nowrap;
+            overflow-x:auto;
+            overflow-y:hidden;
+            padding:3px 2px 7px;
+            -webkit-overflow-scrolling:touch;
+            scrollbar-width:thin;
+          }
+
+          .months button{
+            flex:0 0 auto;
+            min-height:40px;
+          }
+
+          /* The accounting table remains wide for readability, but the table
+             itself is horizontally swipe/scroll friendly on phones. */
+          .tablewrap{
+            width:100%;
+            overflow-x:auto;
+            overflow-y:hidden;
+            -webkit-overflow-scrolling:touch;
+            touch-action:pan-x;
+            border-radius:5px;
+          }
+
+          .entry{
+            min-width:1450px;
+          }
+
+          .notice{
+            font-size:12px;
+            line-height:1.45;
+          }
+        }
+
+        @media screen and (max-width:600px){
+          body{
+            font-size:14px;
+          }
+
+          header{
+            padding:10px 12px;
+          }
+
+          header h1{
+            font-size:16px;
+          }
+
+          #homeBtn{
+            padding:8px 10px;
+            font-size:12px;
+          }
+
+          h2{
+            font-size:20px;
+            margin-bottom:12px;
+          }
+
+          .card{
+            padding:12px;
+            margin-bottom:12px;
+          }
+
+          input,
+          select{
+            min-height:42px;
+            font-size:16px; /* avoids iOS input zoom */
+          }
+
+          button{
+            min-height:42px;
+          }
+
+          .actions > button{
+            flex:1 1 calc(50% - 8px);
+            min-width:135px;
+          }
+
+          #newVoForm .toolbar{
+            display:flex;
+            flex-direction:column;
+            align-items:stretch;
+          }
+
+          #createVoBtn,
+          #cancelVoBtn{
+            width:100%;
+            flex:0 0 auto;
+          }
+
+          #loginCard{
+            width:100%;
+            padding:22px 18px;
+          }
+
+          #loginCard h1{
+            font-size:21px;
+          }
+
+          .entry{
+            min-width:1450px;
+          }
+        }
+
+        @media screen and (max-width:420px){
+          header h1{
+            font-size:15px;
+          }
+
+          #homeBtn{
+            font-size:11px;
+            padding:8px 9px;
+          }
+
+          .actions > button{
+            flex:1 1 100%;
+            width:100%;
+          }
+
+          .months button{
+            font-size:12px;
+            padding:8px 11px;
+          }
+        }
+
+/* ================================================================
+   Original inline style block 05: vo-selection-creation-details-layout-final
+   Preserved exactly in cascade order.
+   ================================================================ */
+/* VO Selection & Creation stays visible on both Home and SHG pages.
+           VO Details is a separate card shown only when a VO is selected. */
+        #voSelectionToolbar{
+          max-width:100% !important;
+          align-items:flex-end !important;
+        }
+        /* Keep Existing VO and Create New VO the same fixed size as the
+           original Home-page controls, including when shown on the SHG page. */
+        #voSelectionToolbar > .field{
+          flex:0 0 255px !important;
+          width:255px !important;
+          max-width:255px !important;
+          min-width:255px !important;
+        }
+        #voSelectionToolbar #homeNewVoBtn{
+          display:inline-block !important;
+          flex:0 0 255px !important;
+          width:255px !important;
+          max-width:255px !important;
+          min-width:255px !important;
+          height:38px !important;
+          min-height:38px !important;
+          padding:9px 13px !important;
+        }
+        #voDetailsSection{
+          display:block;
+        }
+        #voDetailsSection.hidden{
+          display:none !important;
+        }
+        #voDetailsToolbar{
+          width:100% !important;
+          max-width:100% !important;
+          display:grid !important;
+          grid-template-columns:repeat(4,minmax(0,1fr)) !important;
+          gap:10px !important;
+          align-items:end !important;
+        }
+        #voDetailsToolbar > .field{
+          width:100% !important;
+          min-width:0 !important;
+          max-width:none !important;
+          flex:none !important;
+        }
+        #voDetailsToolbar input{
+          width:100% !important;
+          min-width:0 !important;
+        }
+        #voDetailsActions{
+          display:flex !important;
+          align-items:center !important;
+          gap:8px !important;
+          margin-top:12px !important;
+        }
+        #voDetailsSection .selected-vo-only{
+          display:inline-block !important;
+        }
+        @media(max-width:900px){
+          #voSelectionToolbar{
+            display:grid !important;
+            grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;
+            gap:10px !important;
+          }
+          #voSelectionToolbar > .field{
+            width:100% !important;
+            max-width:none !important;
+            min-width:0 !important;
+            flex:none !important;
+          }
+          #voSelectionToolbar #homeNewVoBtn{
+            width:100% !important;
+            max-width:none !important;
+            min-width:0 !important;
+            flex:none !important;
+            height:38px !important;
+          }
+          #voDetailsToolbar{
+            grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+          }
+          #voDetailsActions{
+            display:grid !important;
+            grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;
+          }
+          #voDetailsActions #saveStatus{
+            grid-column:1 / -1 !important;
+          }
+        }
+        @media(max-width:600px){
+          #voSelectionToolbar{
+            grid-template-columns:1fr !important;
+          }
+          #voDetailsToolbar{
+            grid-template-columns:1fr !important;
+          }
+          #voDetailsActions{
+            grid-template-columns:1fr !important;
+          }
+          #voDetailsActions #saveStatus{
+            grid-column:auto !important;
+          }
+        }
+
+/* ================================================================
+   Original inline style block 06: shg-details-and-loan-filter-layout
+   Preserved exactly in cascade order.
+   ================================================================ */
+#loanTypeHead.hidden{display:none !important;}
+        .shg-saving-head,.shg-saving-cell{display:table-cell;}
+        .entry .shg-saving-cell input{width:100%;min-width:80px;padding:6px;font-size:11px;text-align:right;box-sizing:border-box;}
+        .entry .shg-saving-cell input:disabled{background:#eee;color:#555;border:1px solid #aeb8c4;cursor:not-allowed;opacity:1;}
+        @media screen and (max-width:900px){
+          #voDetailsToolbar.shg-details{
+            grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;
+            gap:10px !important;
+          }
+          #voDetailsToolbar.shg-details > .field{
+            grid-column:auto !important;
+            width:100% !important;
+            min-width:0 !important;
+          }
+          #voDetailsToolbar.shg-details > .field > input,
+          #voDetailsToolbar.shg-details > .field > select{
+            width:100% !important;
+            min-width:0 !important;
+            box-sizing:border-box !important;
+          }
+        }
+
+/* ================================================================
+   Original inline style block 07: account-auth-ui
+   Preserved exactly in cascade order.
+   ================================================================ */
+.auth-link{border:0;background:none;color:#1769aa;padding:6px;font-weight:bold;cursor:pointer}.auth-link:hover{box-shadow:none;transform:none;background:none}
+        .auth-modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:18px;z-index:1000}.auth-modal.hidden{display:none!important}.auth-box{width:min(480px,100%);max-height:90vh;overflow:auto;background:#fff;border-radius:14px;padding:24px;box-shadow:0 18px 60px rgba(0,0,0,.25)}.auth-box h2{color:#17365d;margin-top:0}.auth-box .field{margin-bottom:12px;min-width:0}.auth-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.auth-actions button{flex:1 1 140px}.auth-msg{font-size:13px;min-height:20px;margin-top:10px}.auth-msg.error{color:#c62828}.auth-msg.ok{color:#18864b}.profile-summary{background:#f4f6f8;border-radius:8px;padding:12px;margin-bottom:14px;font-size:13px;line-height:1.7}.password-wrap{position:relative}.password-wrap input{padding-right:80px}.toggle-pass{position:absolute;right:5px;top:5px;padding:6px 8px;background:#e6ebf1;font-size:11px}.recaptcha-box{margin:10px 0}
+        @media(max-width:600px){.auth-box{padding:18px}.auth-actions button{flex-basis:100%}#profileBtn{font-size:12px;padding:8px 9px}}
+
+/* ================================================================
+   Original inline style block 08: mobile-tablet-vo-selection-size-final
+   Preserved exactly in cascade order.
+   ================================================================ */
+/* Mobile/tablet only:
+           Existing VO selector, VO Name, Village and Mandal are equal-width.
+           District remains full-width. */
+        @media screen and (max-width:900px){
+          #voDetailsToolbar.show-details{
+            display:grid !important;
+            grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;
+            column-gap:10px !important;
+            row-gap:10px !important;
+            width:100% !important;
+            max-width:100% !important;
+            align-items:start !important;
+          }
+
+          #voDetailsToolbar.show-details > .field{
+            width:100% !important;
+            min-width:0 !important;
+            max-width:none !important;
+            flex:none !important;
+            margin:0 !important;
+          }
+
+          #voDetailsToolbar.show-details > .field:nth-of-type(1),
+          #voDetailsToolbar.show-details > .field:nth-of-type(2),
+          #voDetailsToolbar.show-details > .field:nth-of-type(3),
+          #voDetailsToolbar.show-details > .field:nth-of-type(4){
+            grid-column:auto !important;
+          }
+
+          #voDetailsToolbar.show-details > .field:nth-of-type(5){
+            grid-column:1 / -1 !important;
+          }
+
+          /* The Existing VO dropdown must be exactly the same width as the
+             neighboring VO Name/Village/Mandal text boxes. */
+          #voDetailsToolbar.show-details > .field:nth-of-type(1) > select,
+          #voDetailsToolbar.show-details > .field:nth-of-type(2) > input,
+          #voDetailsToolbar.show-details > .field:nth-of-type(3) > input,
+          #voDetailsToolbar.show-details > .field:nth-of-type(4) > input,
+          #voDetailsToolbar.show-details > .field:nth-of-type(5) > input{
+            display:block !important;
+            width:100% !important;
+            min-width:0 !important;
+            max-width:none !important;
+            box-sizing:border-box !important;
+          }
+        }
+
+/* ================================================================
+   Original inline style block 09: mobile-tablet-vo-action-buttons-final
+   Preserved exactly in cascade order.
+   ================================================================ */
+/* Mobile/tablet only:
+           Save VO | Delete VO
+           Create New VO (full width below)
+        */
+        @media screen and (max-width:900px){
+          #voDetailsToolbar.show-details + .actions{
+            display:grid !important;
+            grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;
+            gap:8px !important;
+            width:100% !important;
+            align-items:stretch !important;
+          }
+
+          #voDetailsToolbar.show-details + .actions > button.selected-vo-only{
+            width:100% !important;
+            min-width:0 !important;
+            margin:0 !important;
+          }
+
+
+          #voDetailsToolbar.show-details + .actions #saveStatus{
+            grid-column:1 / -1 !important;
+          }
+        }
+
+/* ================================================================
+   Original inline style block 10: mobile-tablet-district-same-as-existing-vo
+   Preserved exactly in cascade order.
+   ================================================================ */
+/* Mobile/tablet only:
+           District uses the same single-column width as Existing VO,
+           instead of spanning the full row. */
+        @media screen and (max-width:900px){
+          #voDetailsToolbar.show-details{
+            grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;
+          }
+
+          #voDetailsToolbar.show-details > .field:nth-of-type(5){
+            grid-column:1 !important;
+            width:100% !important;
+          }
+
+          #voDetailsToolbar.show-details > .field:nth-of-type(5) > input{
+            width:100% !important;
+            min-width:0 !important;
+            max-width:none !important;
+            box-sizing:border-box !important;
+          }
+        }
+
+/* ================================================================
+   Original inline style block 11: mobile-tablet-vo-requested-layout
+   Preserved exactly in cascade order.
+   ================================================================ */
+/* Mobile/tablet only:
+           Existing VO = full width
+           VO Name | Village
+           Mandal  | District
+        */
+        @media screen and (max-width:900px){
+          #voDetailsToolbar.show-details{
+            display:grid !important;
+            grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;
+            column-gap:10px !important;
+            row-gap:10px !important;
+            width:100% !important;
+            max-width:100% !important;
+            align-items:start !important;
+          }
+
+          #voDetailsToolbar.show-details > .field{
+            width:100% !important;
+            min-width:0 !important;
+            max-width:none !important;
+            flex:none !important;
+            margin:0 !important;
+          }
+
+          /* Existing VO full width */
+          #voDetailsToolbar.show-details > .field:nth-of-type(1){
+            grid-column:1 / -1 !important;
+          }
+
+          /* VO Name | Village */
+          #voDetailsToolbar.show-details > .field:nth-of-type(2),
+          #voDetailsToolbar.show-details > .field:nth-of-type(3){
+            grid-column:auto !important;
+          }
+
+          /* Mandal | District */
+          #voDetailsToolbar.show-details > .field:nth-of-type(4),
+          #voDetailsToolbar.show-details > .field:nth-of-type(5){
+            grid-column:auto !important;
+          }
+
+          #voDetailsToolbar.show-details > .field > input,
+          #voDetailsToolbar.show-details > .field > select{
+            display:block !important;
+            width:100% !important;
+            min-width:0 !important;
+            max-width:none !important;
+            box-sizing:border-box !important;
+            margin:0 !important;
+          }
+        }
+
+/* ================================================================
+   Original inline style block 12: mobile-tablet-data-management-buttons-layout
+   Preserved exactly in cascade order.
+   ================================================================ */
+/* Mobile/tablet only:
+           Download Backup | Restore Backup
+           Merge Backup = full width below
+        */
+        @media screen and (max-width:900px){
+          #dataManagementSection .actions{
+            display:grid !important;
+            grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;
+            gap:10px !important;
+            width:100% !important;
+          }
+
+          #dataManagementSection .actions > button{
+            width:100% !important;
+            min-width:0 !important;
+            min-height:54px !important;
+            margin:0 !important;
+          }
+
+          #dataManagementSection .actions #importAllBtn{
+            grid-column:1 / -1 !important;
+          }
+        }
+
+/* ================================================================
+   Original inline style block 13: mobile-tablet-create-vo-cancel-layout
+   Preserved exactly in cascade order.
+   ================================================================ */
+/* Mobile/tablet only:
+           New VO Name = full width
+           Create VO | Cancel = side by side
+        */
+        @media screen and (max-width:900px){
+          #newVoForm .toolbar{
+            display:grid !important;
+            grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;
+            column-gap:10px !important;
+            row-gap:10px !important;
+            width:100% !important;
+            max-width:100% !important;
+            align-items:end !important;
+          }
+
+          #newVoForm .toolbar > .field{
+            grid-column:1 / -1 !important;
+            width:100% !important;
+            min-width:0 !important;
+            max-width:none !important;
+            flex:none !important;
+            margin:0 !important;
+          }
+
+          #newVoForm .toolbar > #createVoBtn,
+          #newVoForm .toolbar > #cancelVoBtn{
+            grid-column:auto !important;
+            width:100% !important;
+            min-width:0 !important;
+            max-width:none !important;
+            margin:0 !important;
+            box-sizing:border-box !important;
+          }
+
+          #newVoForm .toolbar > .field > input{
+            display:block !important;
+            width:100% !important;
+            min-width:0 !important;
+            max-width:none !important;
+            box-sizing:border-box !important;
+            margin:0 !important;
+          }
+        }
+
+/* ================================================================
+   Original inline style block 14: mobile-tablet-shg-name-add-layout
+   Preserved exactly in cascade order.
+   ================================================================ */
+/* Mobile/tablet only:
+           SHG Name text box | Add SHG button side by side
+        */
+        @media screen and (max-width:900px){
+          #shgToolbar{
+            display:grid !important;
+            grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;
+            column-gap:10px !important;
+            row-gap:10px !important;
+            width:100% !important;
+            max-width:100% !important;
+            align-items:end !important;
+          }
+
+          #shgToolbar > .field{
+            width:100% !important;
+            min-width:0 !important;
+            max-width:none !important;
+            flex:none !important;
+            margin:0 !important;
+          }
+
+          #shgToolbar > .field input,
+          #shgToolbar > .field select{
+            width:100% !important;
+            min-width:0 !important;
+            max-width:none !important;
+            box-sizing:border-box !important;
+          }
+
+          #shgToolbar > button{
+            width:100% !important;
+            min-width:0 !important;
+            margin:0 !important;
+          }
+        }
+
+/* ================================================================
+   Original inline style block 15: profile-mobile-edit-style
+   Preserved exactly in cascade order.
+   ================================================================ */
+.profile-edit-mobile{padding:4px 8px;font-size:11px;margin-left:5px;vertical-align:middle}
+        #profileMobileEdit .auth-actions{margin-top:8px}
+        #profileMobileEdit .auth-actions button{min-width:0}
+
+/* ================================================================
+   Original inline style block 16: direct-mobile-edit-no-otp
+   Preserved exactly in cascade order.
+   ================================================================ */
+#profileMobileInput{vertical-align:middle;}
+
+/* ================================================================
+   Original inline style block 17: profile-button-click-fix
+   Preserved exactly in cascade order.
+   ================================================================ */
+#profileBtn{
+          position:relative !important;
+          z-index:10001 !important;
+          pointer-events:auto !important;
+        }
+
+/* ================================================================
+   Original inline style block 18: desktop-vo-fields-existing-top
+   Preserved exactly in cascade order.
+   ================================================================ */
+/* Desktop only:
+           Existing VO = full width on top
+           VO Name | Village | Mandal | District = same width, side by side below
+           Mobile/tablet layout is untouched.
+        */
+        @media screen and (min-width:901px){
+          #voDetailsToolbar.show-details{
+            display:grid !important;
+            grid-template-columns:repeat(var(--details-cols,4),minmax(0,1fr)) !important;
+            column-gap:10px !important;
+            row-gap:10px !important;
+            width:100% !important;
+            max-width:100% !important;
+            align-items:end !important;
+          }
+
+          #voDetailsToolbar.show-details > .field{
+            width:100% !important;
+            min-width:0 !important;
+            max-width:none !important;
+            flex:none !important;
+            margin:0 !important;
+          }
+
+          /* Existing VO stays on top, but has the same width as one field below */
+          #voDetailsToolbar.show-details > .field:nth-of-type(1){
+            grid-column:1 !important;
+          }
+
+          /* Exact field columns are assigned by applyAccountingLabels(). */
+          #voDetailsToolbar.show-details > .field#financialYearField{
+            grid-column:2 !important;
+          }
+
+          #voDetailsToolbar.show-details > .field > input,
+          #voDetailsToolbar.show-details > .field > select{
+            display:block !important;
+            width:100% !important;
+            min-width:0 !important;
+            max-width:none !important;
+            box-sizing:border-box !important;
+            margin:0 !important;
+          }
+
+          /* Keep the initial Create New VO button from affecting the desktop
+             four-field layout when the details fields are shown. */
+          #voDetailsToolbar.show-details > #homeNewVoBtn{
+            display:none !important;
+          }
+        }
+
+/* ================================================================
+   Original inline style block 19: password-show-button-centered
+   Preserved exactly in cascade order.
+   ================================================================ */
+/* Keep the Show/Hide button vertically centered on the right side of
+           the password input, including Create Account on mobile/tablet. */
+        .password-wrap{
+          position:relative !important;
+        }
+        .password-wrap input{
+          padding-right:80px !important;
+        }
+        .password-wrap .toggle-pass{
+          position:absolute !important;
+          right:5px !important;
+          top:68% !important;
+          transform:translateY(-50%) !important;
+          margin:0 !important;
+          z-index:2 !important;
+          padding:6px 8px !important;
+          line-height:1.2 !important;
+        }
+
+/* ================================================================
+   Original inline style block 20: true-input-middle-show-button
+   Preserved exactly in cascade order.
+   ================================================================ */
+/* Put Show/Hide exactly at the vertical center of the password input,
+           not at the center of the whole field (label + input). */
+        .auth-box .password-wrap{
+          position:relative !important;
+        }
+        .auth-box .password-wrap .toggle-pass{
+          top:calc(35% + 17px) !important;
+          right:5px !important;
+          transform:translateY(-50%) !important;
+          margin:0 !important;
+          z-index:5 !important;
+        }
+        .auth-box .password-wrap input{
+          padding-right:80px !important;
+        }
+
+/* ================================================================
+   Original inline style block 21: signup-submit-state
+   Preserved exactly in cascade order.
+   ================================================================ */
+#signupCreateBtn:disabled{opacity:.65;cursor:wait;}
+
+/* ================================================================
+   Original inline style block 22: signup-final-fix
+   Preserved exactly in cascade order.
+   ================================================================ */
+#signupCreateBtn:disabled{opacity:.65;cursor:wait;}
+        #signupModal .auth-msg.error{white-space:normal;line-height:1.35;}
+
+/* ================================================================
+   Original inline style block 23: signup-profile-only-ui
+   Preserved exactly in cascade order.
+   ================================================================ */
+.auth-modal{
+          position:fixed;inset:0;background:rgba(0,0,0,.45);
+          display:flex;align-items:center;justify-content:center;
+          padding:20px;z-index:9999;
+        }
+        .auth-box{
+          width:min(430px,100%);background:#fff;border-radius:12px;
+          padding:24px;box-shadow:0 18px 50px rgba(0,0,0,.22);
+        }
+        .auth-box h2{margin:0 0 8px;color:#17365d}
+        .auth-box .small{margin:0 0 18px;color:#667085;font-size:13px}
+        .auth-box .field{margin-bottom:12px}
+        .auth-actions{display:flex;gap:8px;margin-top:14px}
+        .auth-actions button{flex:1}
+        .auth-msg{min-height:18px;margin-top:12px;text-align:center;font-size:13px;font-weight:bold}
+        .auth-msg.error{color:#c62828}.auth-msg.ok{color:#18864b}
+        .auth-box .password-wrap{position:relative}
+        .auth-box .password-wrap input{padding-right:80px}
+        .auth-box .password-wrap .toggle-pass{
+          position:absolute;right:5px;top:calc(50% + 14px);
+          transform:translateY(-50%);padding:6px 8px;
+          background:#e6ebf1;color:#263445;font-size:11px;z-index:5;
+        }
+        @media(max-width:600px){
+          .auth-box{padding:18px}
+          .auth-actions{flex-direction:column}
+        }
+
+/* ================================================================
+   Original inline style block 24: mobile-tablet-vo-side-by-side-final
+   Preserved exactly in cascade order.
+   ================================================================ */
+/* FINAL MOBILE/TABLET OVERRIDE ONLY
+           Desktop (min-width: 901px) is untouched.
+           Mobile + tablet keep the VO controls side-by-side. */
+        @media screen and (max-width:900px){
+          /* VO Selection: Existing VO | Create New VO */
+          #voSelectionToolbar{
+            display:grid !important;
+            grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;
+            gap:10px !important;
+            width:100% !important;
+            max-width:100% !important;
+            align-items:end !important;
+          }
+
+          #voSelectionToolbar > .field{
+            grid-column:auto !important;
+            width:100% !important;
+            min-width:0 !important;
+            max-width:none !important;
+            flex:none !important;
+            margin:0 !important;
+          }
+
+          #voSelectionToolbar #homeNewVoBtn{
+            grid-column:auto !important;
+            width:100% !important;
+            min-width:0 !important;
+            max-width:none !important;
+            flex:none !important;
+            margin:0 !important;
+            height:42px !important;
+            min-height:38px !important;
+          }
+
+          /* VO Details: VO Name | Village / Mandal | District */
+          #voDetailsToolbar.show-details{
+            display:grid !important;
+            grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;
+            column-gap:10px !important;
+            row-gap:10px !important;
+            width:100% !important;
+            max-width:100% !important;
+            align-items:end !important;
+          }
+
+          #voDetailsToolbar.show-details > .field{
+            grid-column:auto !important;
+            width:100% !important;
+            min-width:0 !important;
+            max-width:none !important;
+            flex:none !important;
+            margin:0 !important;
+          }
+
+          #voDetailsToolbar.show-details > .field > input,
+          #voDetailsToolbar.show-details > .field > select{
+            display:block !important;
+            width:100% !important;
+            min-width:0 !important;
+            max-width:none !important;
+            box-sizing:border-box !important;
+            margin:0 !important;
+          }
+        }
+
+        /* Keep the same 2-column layout even on small phones. */
+        @media screen and (max-width:600px){
+          #voSelectionToolbar{
+            grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;
+          }
+
+          #voDetailsToolbar.show-details{
+            grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;
+          }
+        }
+
+/* ================================================================
+   Original inline style block 25: FINAL-mobile-tablet-vo-details-2col
+   Preserved exactly in cascade order.
+   ================================================================ */
+/* FINAL FIX: VO Details fields stay side-by-side on mobile/tablet.
+           CSS-only; IDs/HTML/JavaScript functionality are unchanged. */
+        @media screen and (max-width:900px){
+          #voDetailsSection #voDetailsToolbar{
+            display:grid !important;
+            grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;
+            column-gap:10px !important;
+            row-gap:10px !important;
+            width:100% !important;
+            max-width:100% !important;
+            align-items:end !important;
+          }
+
+          #voDetailsSection #voDetailsToolbar > .field{
+            display:block !important;
+            width:100% !important;
+            min-width:0 !important;
+            max-width:none !important;
+            flex:none !important;
+            margin:0 !important;
+            grid-column:auto !important;
+          }
+
+          #voDetailsSection #voDetailsToolbar > .field > input,
+          #voDetailsSection #voDetailsToolbar > .field > select{
+            display:block !important;
+            width:100% !important;
+            min-width:0 !important;
+            max-width:none !important;
+            box-sizing:border-box !important;
+            margin:0 !important;
+          }
+
+          /* Save VO | Delete VO */
+          #voDetailsSection #voDetailsActions{
+            display:grid !important;
+            grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;
+            gap:8px !important;
+            width:100% !important;
+          }
+
+          #voDetailsSection #voDetailsActions > button{
+            width:100% !important;
+            min-width:0 !important;
+            margin:0 !important;
+          }
+
+          #voDetailsSection #voDetailsActions #saveStatus{
+            grid-column:1 / -1 !important;
+          }
+        }
+
+        /* Keep the same layout even on very small phones. */
+        @media screen and (max-width:420px){
+          #voDetailsSection #voDetailsToolbar{
+            grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;
+          }
+          #voDetailsSection #voDetailsActions{
+            grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;
+          }
+        }
+
+/* ================================================================
+   Original inline style block 26: final-shg-table-header-freeze-all-screens
+   Preserved exactly in cascade order.
+   ================================================================ */
+/* =========================================================
+           FINAL SHG TABLE FREEZE - DESKTOP + TABLET + MOBILE
+           - Vertical: SHG header row stays frozen while table rows scroll
+           - Horizontal: S.No + SHG Name stay frozen
+           - CSS ONLY: no JavaScript / calculations / PDF logic changed
+           ========================================================= */
+
+        /* Make the SHG table wrapper the scroll area on EVERY screen. */
+        .tablewrap{
+          position:relative !important;
+          width:100% !important;
+          max-width:100% !important;
+          max-height:70vh !important;
+          overflow-x:auto !important;
+          overflow-y:auto !important;
+          -webkit-overflow-scrolling:touch !important;
+          touch-action:pan-x pan-y !important;
+          overscroll-behavior:contain;
+        }
+
+        /* Freeze the COMPLETE SHG header row vertically. */
+        .tablewrap .entry thead th{
+          position:sticky !important;
+          top:0 !important;
+          z-index:20 !important;
+          background:#edf1f5 !important;
+          background-clip:padding-box !important;
+          white-space:normal !important;
+          vertical-align:middle !important;
+          box-shadow:0 2px 4px rgba(0,0,0,.15) !important;
+        }
+
+        /* Frozen S.No column: header + body. */
+        .tablewrap .entry thead th:first-child{
+          left:0 !important;
+          z-index:40 !important;
+          background:#edf1f5 !important;
+        }
+
+        .tablewrap .entry tbody td:first-child{
+          position:sticky !important;
+          left:0 !important;
+          z-index:15 !important;
+          background:#fff !important;
+        }
+
+        /* Frozen SHG Name column: header + body. */
+        .tablewrap .entry thead th:nth-child(2){
+          left:55px !important;
+          z-index:40 !important;
+          background:#edf1f5 !important;
+        }
+
+        .tablewrap .entry tbody td:nth-child(2){
+          position:sticky !important;
+          left:55px !important;
+          z-index:15 !important;
+          background:#fff !important;
+        }
+
+        /* Keep the frozen-column divider visible during horizontal scrolling. */
+        .tablewrap .entry th:nth-child(2),
+        .tablewrap .entry td:nth-child(2){
+          box-shadow:2px 0 3px rgba(0,0,0,.12) !important;
+        }
+
+        /* Desktop + tablet/mobile: allow header text to remain readable. */
+        .tablewrap .entry thead{
+          position:relative;
+          z-index:30;
+        }
+
+/* ================================================================
+   Original inline style block 27: dual-system-login-ui
+   Preserved exactly in cascade order.
+   ================================================================ */
+/* Selected system = BLUE; unselected system = LIGHT GREY. */
+        #loginSystemChoice{display:flex !important;gap:8px !important;margin:0 0 14px !important;}
+        #loginSystemChoice button{
+          flex:1 1 0 !important;min-height:42px !important;
+          border:1px solid #c7d0da !important;background:#e6ebf1 !important;color:#263445 !important;
+          box-shadow:none !important;transform:none !important;filter:none !important;animation:none !important;
+          transition:background .18s ease,color .18s ease,border-color .18s ease,transform .12s ease,box-shadow .18s ease !important;
+        }
+        #loginSystemChoice button.login-system-selected{
+          background:#1769aa !important;border-color:#1769aa !important;color:#fff !important;
+          box-shadow:0 4px 10px rgba(23,105,170,.28) !important;
+        }
+        #loginSystemChoice button.login-system-selected:hover{
+          background:#1769aa !important;border-color:#1769aa !important;color:#fff !important;transform:translateY(-1px) !important;
+        }
+        #loginSystemChoice button:not(.login-system-selected):hover{
+          background:#dce3eb !important;border-color:#aeb8c4 !important;color:#263445 !important;transform:translateY(-1px) !important;
+        }
+        #selectedLoginSystem{color:#17365d !important;}
+        @media(max-width:600px){#loginSystemChoice{gap:7px!important;}#loginSystemChoice button{font-size:13px!important;padding:9px 7px!important;}}
+
+/* ================================================================
+   Original inline style block 28: new-parent-name-fy-side-by-side
+   Preserved exactly in cascade order.
+   ================================================================ */
+/* New VO/MS creation: keep Name and Financial Year side-by-side on every screen size. */
+        #newVoForm .toolbar{
+          display:grid !important;
+          grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;
+          gap:10px !important;
+          align-items:end !important;
+        }
+        #newVoForm .toolbar > .field{
+          width:100% !important;
+          min-width:0 !important;
+          max-width:none !important;
+          flex:none !important;
+          margin:0 !important;
+        }
+        #newVoForm .toolbar > .field > input,
+        #newVoForm .toolbar > .field > select{
+          width:100% !important;
+          min-width:0 !important;
+          max-width:none !important;
+          box-sizing:border-box !important;
+        }
+        /* Keep Create and Cancel on the next row, side-by-side as well. */
+        #newVoForm .toolbar > #createVoBtn,
+        #newVoForm .toolbar > #cancelVoBtn{
+          width:100% !important;
+          min-width:0 !important;
+          margin:0 !important;
+          box-sizing:border-box !important;
+        }
+        #newVoForm .toolbar > #createVoBtn{grid-column:1 !important;grid-row:2 !important;}
+        #newVoForm .toolbar > #cancelVoBtn{grid-column:2 !important;grid-row:2 !important;}
+
+/* ================================================================
+   Original inline style block 29: individual-loan-interest-rate-layout
+   Preserved exactly in cascade order.
+   ================================================================ */
+/* Each login: Child name -> Loan -> Interest Rate -> Add button, one row. */
+        #shgToolbar{display:flex !important;flex-direction:row !important;flex-wrap:nowrap !important;align-items:flex-end !important;gap:10px !important;width:100% !important;overflow-x:auto !important;overflow-y:hidden !important;}
+        #shgToolbar #addChildField{order:1 !important;flex:1 1 auto !important;min-width:220px !important;}
+        #shgToolbar #shgLoanFilterToolbar{order:2 !important;display:flex !important;flex:0 0 auto !important;flex-direction:row !important;flex-wrap:nowrap !important;align-items:flex-end !important;gap:8px !important;margin:0 !important;min-width:0 !important;}
+        #shgToolbar #shgLoanFilterToolbar.hidden{display:flex !important;}
+        #shgToolbar #shgLoanFilterToolbar .loan-filter-field{flex:0 0 180px !important;width:180px !important;min-width:150px !important;margin:0 !important;}
+        #shgToolbar #interestRateField{order:3 !important;flex:0 0 180px !important;width:180px !important;min-width:180px !important;max-width:180px !important;margin:0 !important;}
+        #shgToolbar #addShgBtn{order:4 !important;flex:0 0 auto !important;white-space:nowrap !important;min-width:110px !important;}
+        @media screen and (max-width:900px){
+          #shgToolbar{display:flex !important;flex-direction:row !important;flex-wrap:nowrap !important;align-items:flex-end !important;gap:8px !important;width:100% !important;overflow-x:auto !important;overflow-y:hidden !important;-webkit-overflow-scrolling:touch !important;padding-bottom:4px !important;}
+          #shgToolbar #addChildField{flex:0 0 220px !important;width:220px !important;min-width:220px !important;}
+          #shgToolbar #shgLoanFilterToolbar{flex:0 0 auto !important;display:flex !important;width:auto !important;min-width:0 !important;}
+          #shgToolbar #shgLoanFilterToolbar .loan-filter-field{flex:0 0 150px !important;width:150px !important;min-width:150px !important;}
+          #shgToolbar #interestRateField{flex:0 0 150px !important;width:150px !important;min-width:150px !important;max-width:150px !important;}
+          #shgToolbar #addShgBtn{flex:0 0 auto !important;width:auto !important;min-width:100px !important;}
+        }
+        @media screen and (max-width:600px){
+          #shgToolbar #addChildField{flex-basis:200px !important;width:200px !important;min-width:200px !important;}
+          #shgToolbar #shgLoanFilterToolbar .loan-filter-field{flex-basis:140px !important;width:140px !important;min-width:140px !important;}
+          #shgToolbar #interestRateField{flex-basis:140px !important;width:140px !important;min-width:140px !important;}
+          #shgToolbar #addShgBtn{min-width:90px !important;}
+        }
+
+/* ================================================================
+   Original inline style block 30: final-mobile-tablet-same-row-toolbar
+   Preserved exactly in cascade order.
+   ================================================================ */
+/* VO / MS / SHG: one identical horizontal toolbar on desktop, tablet and mobile.
+           The five controls stay side-by-side; on narrow screens the row scrolls horizontally
+           rather than wrapping/stacking into multiple lines. */
+        #shgToolbar{
+          display:flex !important;
+          flex-direction:row !important;
+          flex-wrap:nowrap !important;
+          align-items:flex-end !important;
+          gap:8px !important;
+          width:100% !important;
+          max-width:100% !important;
+          overflow-x:auto !important;
+          overflow-y:hidden !important;
+          -webkit-overflow-scrolling:touch !important;
+          white-space:nowrap !important;
+          box-sizing:border-box !important;
+          padding:0 0 5px !important;
+        }
+        #shgToolbar > #addChildField{
+          order:1 !important;
+          flex:0 0 220px !important;
+          width:220px !important;
+          min-width:220px !important;
+          max-width:220px !important;
+          margin:0 !important;
+        }
+        #shgToolbar > #shgLoanFilterToolbar{
+          order:2 !important;
+          display:flex !important;
+          flex:0 0 auto !important;
+          flex-direction:row !important;
+          flex-wrap:nowrap !important;
+          align-items:flex-end !important;
+          gap:8px !important;
+          width:auto !important;
+          min-width:max-content !important;
+          margin:0 !important;
+          padding:0 !important;
+        }
+        #shgToolbar > #shgLoanFilterToolbar > .loan-filter-field{
+          flex:0 0 150px !important;
+          width:150px !important;
+          min-width:150px !important;
+          max-width:150px !important;
+          margin:0 !important;
+        }
+        #shgToolbar > #interestRateField{
+          order:3 !important;
+          flex:0 0 150px !important;
+          width:150px !important;
+          min-width:150px !important;
+          max-width:150px !important;
+          margin:0 !important;
+        }
+        #shgToolbar > #addShgBtn{
+          order:4 !important;
+          flex:0 0 auto !important;
+          width:auto !important;
+          min-width:100px !important;
+          white-space:nowrap !important;
+          margin:0 !important;
+        }
+        #shgToolbar #addChildField input,
+        #shgToolbar #shgLoanFilterToolbar select,
+        #shgToolbar #interestRateField input{
+          width:100% !important;
+          min-width:0 !important;
+          max-width:none !important;
+          box-sizing:border-box !important;
+        }
+        @media screen and (max-width:900px){
+          /* Tablet: still one row, never wrap. */
+          #shgToolbar{
+            flex-wrap:nowrap !important;
+            overflow-x:auto !important;
+            overflow-y:hidden !important;
+          }
+          #shgToolbar > #addChildField{
+            flex:0 0 190px !important;
+            width:190px !important;
+            min-width:190px !important;
+            max-width:190px !important;
+          }
+          #shgToolbar > #shgLoanFilterToolbar{
+            flex:0 0 auto !important;
+            min-width:max-content !important;
+          }
+          #shgToolbar > #shgLoanFilterToolbar > .loan-filter-field{
+            flex:0 0 125px !important;
+            width:125px !important;
+            min-width:125px !important;
+            max-width:125px !important;
+          }
+          #shgToolbar > #interestRateField{
+            flex:0 0 125px !important;
+            width:125px !important;
+            min-width:125px !important;
+            max-width:125px !important;
+          }
+          #shgToolbar > #addShgBtn{
+            flex:0 0 auto !important;
+            min-width:95px !important;
+          }
+        }
+        @media screen and (max-width:600px){
+          /* Mobile: compact widths, but all five controls remain side-by-side. */
+          #shgToolbar{
+            gap:6px !important;
+            flex-wrap:nowrap !important;
+            overflow-x:auto !important;
+          }
+          #shgToolbar > #addChildField{
+            flex:0 0 150px !important;
+            width:150px !important;
+            min-width:150px !important;
+            max-width:150px !important;
+          }
+          #shgToolbar > #shgLoanFilterToolbar{
+            gap:6px !important;
+            flex-wrap:nowrap !important;
+            min-width:max-content !important;
+          }
+          #shgToolbar > #shgLoanFilterToolbar > .loan-filter-field{
+            flex:0 0 105px !important;
+            width:105px !important;
+            min-width:105px !important;
+            max-width:105px !important;
+          }
+          #shgToolbar > #interestRateField{
+            flex:0 0 105px !important;
+            width:105px !important;
+            min-width:105px !important;
+            max-width:105px !important;
+          }
+          #shgToolbar > #addShgBtn{
+            flex:0 0 auto !important;
+            min-width:90px !important;
+          }
+        }
+
+/* ================================================================
+   Original inline style block 31: mobile-tablet-max-two-toolbar-elements
+   Preserved exactly in cascade order.
+   ================================================================ */
+/* Mobile + tablet: maximum TWO toolbar controls per row.
+           The Loan/Child filter wrapper becomes transparent to the grid so its
+           Loan and SHG/VO/Member controls occupy their own grid cells. */
+        @media screen and (max-width:900px){
+          #shgToolbar{
+            display:grid !important;
+            grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;
+            grid-auto-rows:auto !important;
+            align-items:end !important;
+            gap:8px !important;
+            width:100% !important;
+            max-width:100% !important;
+            overflow:visible !important;
+            white-space:normal !important;
+            box-sizing:border-box !important;
+            padding:0 !important;
+          }
+          #shgToolbar > #addChildField{
+            grid-column:auto !important;
+            grid-row:auto !important;
+            width:100% !important;
+            min-width:0 !important;
+            max-width:none !important;
+            margin:0 !important;
+          }
+          #shgToolbar > #shgLoanFilterToolbar{
+            display:contents !important;
+            width:auto !important;
+            min-width:0 !important;
+            max-width:none !important;
+            margin:0 !important;
+            padding:0 !important;
+          }
+          #shgToolbar > #shgLoanFilterToolbar.hidden{
+            display:contents !important;
+          }
+          #shgToolbar > #shgLoanFilterToolbar > .loan-filter-field{
+            width:100% !important;
+            min-width:0 !important;
+            max-width:none !important;
+            margin:0 !important;
+          }
+          #shgToolbar > #interestRateField{
+            grid-column:auto !important;
+            grid-row:auto !important;
+            width:100% !important;
+            min-width:0 !important;
+            max-width:none !important;
+            margin:0 !important;
+          }
+          #shgToolbar > #addShgBtn{
+            grid-column:auto !important;
+            grid-row:auto !important;
+            justify-self:start !important;
+            width:auto !important;
+            min-width:110px !important;
+            max-width:none !important;
+            margin:0 !important;
+            white-space:nowrap !important;
+          }
+        }
+
+        @media screen and (max-width:600px){
+          #shgToolbar{
+            grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;
+            gap:7px !important;
+          }
+        }

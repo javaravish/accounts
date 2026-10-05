@@ -1,0 +1,107 @@
+/* ================================================================
+   Original inline style block 32: report-preview-exact-pdf-screen
+   Preserved exactly in cascade order.
+   ================================================================ */
+/* Report Center only: render the already-generated PDF DOM at the same
+           A4-landscape geometry. This does not affect the PDF/print CSS or dashboard UI. */
+        @media screen{
+          .report-preview{
+            overflow:auto !important;
+            -webkit-overflow-scrolling:touch;
+          }
+          .report-preview .page{
+            width:841.89pt !important;
+            min-width:841.89pt !important;
+            max-width:841.89pt !important;
+            height:595.28pt !important;
+            min-height:595.28pt !important;
+            max-height:595.28pt !important;
+            padding:28.3465pt !important;
+            box-sizing:border-box !important;
+            overflow:visible !important;
+          }
+        }
+
+/* ================================================================
+   Original inline style block 33: report-preview-pdf-match-fix
+   Preserved exactly in cascade order.
+   ================================================================ */
+/* Screen-only: make Report Center render the same visible borders as the PDF.
+           These rules do not affect PDF generation/printing. */
+        @media screen{
+          .report-preview .dcb-frame,
+          .report-preview .cumulative-dcb-frame,
+          .report-preview .ledger-frame{
+            box-sizing:border-box !important;
+          }
+          .report-preview .dcb-report-type-full-row,
+          .report-preview .cumulative-dcb-report-type-full-row{
+            border:1px solid #555 !important;
+            border-bottom:0 !important;
+          }
+          .report-preview .dcb-head,
+          .report-preview .cumulative-dcb-head{
+            border:1px solid #555 !important;
+            border-bottom:0 !important;
+          }
+          .report-preview .dcb-head-left,
+          .report-preview .cumulative-dcb-head-left{
+            border-right:1px solid #555 !important;
+          }
+          .report-preview .dcb-table,
+          .report-preview .cumulative-dcb-table,
+          .report-preview .ledger-table{
+            border-collapse:collapse !important;
+            border-spacing:0 !important;
+            border:1px solid #555 !important;
+            table-layout:fixed !important;
+          }
+          .report-preview .dcb-table th,
+          .report-preview .dcb-table td,
+          .report-preview .cumulative-dcb-table th,
+          .report-preview .cumulative-dcb-table td,
+          .report-preview .ledger-table th,
+          .report-preview .ledger-table td{
+            border:1px solid #555 !important;
+            box-sizing:border-box !important;
+          }
+          .report-preview .dcb-table .number-head td,
+          .report-preview .cumulative-dcb-table .number-head td,
+          .report-preview .ledger-table .number-head th{
+            border:1px solid #555 !important;
+          }
+          .report-preview .report-ui-context{
+            display:block !important;
+            width:100% !important;
+            box-sizing:border-box !important;
+            margin:0 0 8px !important;
+            padding:4px 2px !important;
+            color:#17365d !important;
+            font-family:Arial,"Noto Sans",sans-serif !important;
+            font-size:13px !important;
+            line-height:1.35 !important;
+            border:0 !important;
+            background:transparent !important;
+          }
+        }
+
+/* ================================================================
+   Original inline style block 34: report-preview-center-data-cells
+   Preserved exactly in cascade order.
+   ================================================================ */
+/* Report Center only: center every data value in all three report tables.
+           PDF/print tables are intentionally untouched. */
+        .report-preview .dcb-table tbody td,
+        .report-preview .cumulative-dcb-table tbody td,
+        .report-preview .ledger-table tbody td{
+          text-align:center !important;
+          vertical-align:middle !important;
+        }
+        .report-preview .dcb-table tbody td.shg-name,
+        .report-preview .cumulative-dcb-table tbody td.shg-name,
+        .report-preview .ledger-table tbody td.name,
+        .report-preview .ledger-table tbody td.date{
+          text-align:center !important;
+          padding-left:0 !important;
+          padding-right:0 !important;
+        }

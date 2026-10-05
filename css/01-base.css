@@ -1,0 +1,736 @@
+/* ================================================================
+   Original inline style block 01: backup-buttons-inline-fix
+   Preserved exactly in cascade order.
+   ================================================================ */
+@import url('https://fonts.googleapis.com/css2?family=Gidugu&display=swap');
+                *{box-sizing:border-box}body{margin:0;font-family:Arial,"Noto Sans",sans-serif;background:#f4f6f8;color:#202733}
+        header{background:#17365d;color:#fff;padding:16px 22px}header h1{margin:0;font-size:22px}
+        main{max-width:1500px;margin:18px auto;padding:0 14px}.card{background:#fff;border:1px solid #d5dce4;border-radius:9px;padding:18px;margin-bottom:16px}
+        h2{margin:0 0 14px}.toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:end}.field{min-width:220px;flex:1}
+        /* Compact controls: use about half the page on the desktop. */
+        #voDetailsToolbar:not(.show-details){max-width:40%;}
+        #shgToolbar{max-width:100%;}
+        /* Initial-page/new-VO controls match the Existing VO selector width. */
+        #newVoForm .toolbar{align-items:end;}
+        #newVoForm .field{flex:0 0 40%;min-width:0;}
+        /* Create New VO matches the Existing VO selector in width and height. */
+        .create-vo-field{flex:1;}
+        .create-vo-field button{width:100%;min-height:38px;}
+        /* Main-page Add SHG input matches the Existing VO selector width. */
+        #shgToolbar > .field:first-child{flex:0 0 calc((100% - 40px)/5);max-width:calc((100% - 40px)/5);min-width:220px;}
+        /* Save/Delete belong to the selected-VO screen, not the initial page. */
+        .selected-vo-only{display:none!important;}
+        #voDetailsToolbar.show-details ~ .actions .selected-vo-only{display:inline-block!important;}
+        /* On the Home/initial screen, Create New VO sits beside Existing VO. */
+        #voDetailsToolbar:not(.show-details) .initial-create-vo{
+          display:inline-block!important;
+          flex:0 0 calc(50% - 5px);
+          min-width:0;
+        }
+        #voDetailsToolbar.show-details .initial-create-vo{display:none!important;}
+        /* Header navigation. */
+        header{display:flex;align-items:center;gap:12px;}
+        #homeBtn{background:#e6ebf1;color:#17365d;padding:8px 12px;}
+        #homeBtn + h1{margin:0;}
+        #profileBtn{margin-left:auto;background:#e6ebf1;color:#17365d;padding:8px 12px;white-space:nowrap;}
+        #logoutBtn{margin-left:0;background:#c62828;color:#fff;padding:8px 12px;white-space:nowrap;}
+        @media(max-width:900px){#voDetailsToolbar:not(.show-details),#shgToolbar{max-width:100%;}
+          #newVoForm .field,#shgToolbar > .field:first-child{flex-basis:100%;max-width:100%;}
+        }
+        label{display:block;font-size:12px;font-weight:bold;margin-bottom:5px}
+/* Keep VO Name, Village, Mandal and District hidden on the initial page. */
+#voName,#voName + *,
+#village,#village + *,
+#mandal,#mandal + *,
+#district,#district + *{
+}
+.initial-hidden-field{display:none!important}
+#voDetailsToolbar.show-details .initial-hidden-field{display:block!important}
+
+/* Selected-VO screen: Existing VO, VO Name, Village, Mandal and District use the same field width. */
+#voDetailsToolbar.show-details > .field{
+  flex:0 0 calc((100% - 30px) / 4);
+  max-width:calc((100% - 30px) / 4);
+  min-width:0;
+}
+#voDetailsToolbar.show-details > .field:first-child{
+  flex:0 0 calc((100% - 30px) / 4);
+  max-width:calc((100% - 30px) / 4);
+}
+/* New VO Name input uses the same width as the VO Name field. */
+#newVoForm .field{
+  flex:0 0 calc((100% - 30px) / 4);
+  max-width:calc((100% - 30px) / 4);
+  min-width:0;
+}
+@media(max-width:900px){
+  #voDetailsToolbar.show-details > .field,
+  #voDetailsToolbar.show-details > .field:first-child,
+  #newVoForm .field{
+    flex:1 1 100%;
+    max-width:100%;
+  }
+}
+        input,select{width:100%;padding:9px;border:1px solid #aeb8c4;border-radius:6px;font-size:14px;background:#fff}
+        button{padding:10px 13px;border:0;border-radius:6px;font-weight:bold;cursor:pointer}
+        .primary{background:#1769aa;color:#fff}.success{background:#18864b;color:#fff}.secondary{background:#e6ebf1;color:#263445}.danger{background:#c62828;color:#fff}.warning{background:#b87300;color:#fff}
+        .hidden{display:none!important}.notice{padding:10px;background:#fff8dd;border:1px solid #ead37d;border-radius:6px;font-size:13px;margin-bottom:12px}
+
+        /* Login screen shown before the accounting dashboard. */
+        #loginScreen{
+          min-height:100vh;
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          padding:20px;
+          background:#f4f6f8;
+        }
+        #loginCard{
+          width:min(390px,100%);
+          background:#fff;
+          border:1px solid #d5dce4;
+          border-radius:12px;
+          padding:28px;
+          box-shadow:0 12px 35px rgba(0,0,0,.10);
+        }
+        #loginCard h1{margin:0 0 6px;font-size:24px;color:#17365d;text-align:center}
+        #loginCard p{margin:0 0 20px;text-align:center;color:#667085;font-size:13px}
+        #loginCard .login-field{margin-bottom:14px}
+        #loginCard .login-field label{font-size:13px}
+        #loginCard .login-field input{font-size:15px}
+        #loginBtn,#signUpBtn{width:100%;display:block;margin-left:0;margin-right:0}
+        #loginBtn{margin-top:4px}
+        #signUpBtn{margin-top:8px}
+        #loginError{min-height:18px;margin-top:10px;color:#c62828;font-size:13px;text-align:center;font-weight:bold}
+
+        .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.months{display:flex;gap:5px;flex-wrap:wrap;margin:10px 0}.months button{background:#e6ebf1}.months button.active{background:#1769aa;color:#fff}
+        .tablewrap{overflow:auto}.entry{border-collapse:collapse;width:100%;min-width:1450px}
+
+.entry th:nth-child(2),.entry td:nth-child(2){
+  border-left:0!important;
+}
+/* SHG row Save and Delete buttons must have the same size. */
+.entry td:nth-last-child(2) button,
+.entry td:nth-last-child(1) button,
+.entry .shg-delete-btn{
+  width:100% !important;
+  min-width:80px !important;
+  min-height:32px !important;
+  box-sizing:border-box !important;
+  padding:6px 10px !important;
+  font-size:11px !important;
+  line-height:1.2 !important;
+  white-space:nowrap !important;
+  margin:0 !important;
+}
+
+/* Automatically freeze S.No and SHG Name while horizontally scrolling. */
+.tablewrap{position:relative;overflow:auto;max-width:100%}
+.entry th:first-child,.entry td:first-child{
+  position:sticky;
+  left:0;
+  z-index:3;
+  background:#fff;
+}
+.entry th:nth-child(2),.entry td:nth-child(2){
+  position:sticky;
+  left:55px;
+  z-index:3;
+  background:#fff;
+}
+.entry th:first-child,.entry th:nth-child(2){
+  background:#edf1f5;
+  z-index:5;
+}
+.entry td:first-child,.entry td:nth-child(2){
+  box-shadow:1px 0 0 #c3cad2;
+}
+
+/* Keep the divider between the frozen SHG Name column and Delete
+   visible even after horizontal scrolling. */
+.entry th:nth-child(2),.entry td:nth-child(2){
+  position:sticky;
+  left:55px;
+  z-index:6;
+  background:#fff;
+}
+.entry th:nth-child(2){
+  background:#edf1f5;
+}
+.entry td:nth-child(2)::before,.entry th:nth-child(2)::before{
+  content:"";
+  position:absolute;
+  top:-1px;
+  left:-1px;
+  bottom:-1px;
+  width:1px;
+  background:#c3cad2;
+  pointer-events:none;
+  z-index:10;
+}
+.entry td:nth-child(2)::after,.entry th:nth-child(2)::after{
+  content:"";
+  position:absolute;
+  top:-1px;
+  right:-1px;
+  bottom:-1px;
+  width:1px;
+  background:#c3cad2;
+  pointer-events:none;
+  z-index:10;
+}
+
+/* Keep the two SHG row action columns equal width. */
+.entry th:nth-last-child(2),.entry td:nth-last-child(2),
+.entry th:nth-last-child(1),.entry td:nth-last-child(1){
+  width:92px;
+  min-width:92px;
+  max-width:92px;
+  text-align:center !important;
+}
+
+.entry th,.entry td{border:1px solid #c3cad2;padding:5px;font-size:11px;text-align:right}.entry th{text-align:center;background:#edf1f5}.entry th:first-child,.entry td:first-child{width:55px;min-width:55px;max-width:55px;text-align:center}.entry th:nth-child(2),.entry td:nth-child(2){width:150px;min-width:150px}.entry th:nth-child(3),.entry td:nth-child(3){width:72px;min-width:72px;text-align:center}.entry input{min-width:80px;padding:6px;font-size:11px;text-align:right}.entry .name{min-width:150px;text-align:left;font-weight:bold}
+
+/* Mobile/tablet: SHG Name column auto-fits to the longest name.
+   With no entered name it stays at the SHG Name header width.
+   When a name is entered, the whole column grows to the longest text. */
+@media(max-width:900px){
+  .entry th:nth-child(2),
+  .entry td:nth-child(2){
+    width:auto;
+    min-width:0;
+    max-width:none;
+    white-space:nowrap;
+  }
+  .entry td:nth-child(2) .name{
+    display:block;
+    width:100% !important;
+    min-width:0 !important;
+    max-width:none !important;
+    box-sizing:border-box;
+    text-align:left;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:clip;
+  }
+}
+
+/* Mobile/tablet only: keep the SHG Name table column at the header width initially,
+   and expand it to fit the longest entered SHG name without changing other columns. */
+@media(max-width:900px){
+  .entry th:nth-child(2),
+  .entry td:nth-child(2){
+    width:auto;
+    min-width:0;
+    max-width:none;
+  }
+  .entry td:nth-child(2) .name{
+    width:100%;
+    min-width:0;
+    box-sizing:border-box;
+  }
+}
+input:disabled{background:#eee;color:#555;cursor:not-allowed;}
+        .telugu{font-family:"Gidugu",sans-serif}
+        .calc{font-weight:bold}.entry input.calc{width:100%;min-width:80px;padding:6px;font-size:11px;text-align:right}
+        .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.small{font-size:12px;color:#667085}.ok{color:#18864b;font-weight:bold}
+/* Mobile + tablet only: PDF/action buttons match the requested 2x2 + full-width layout. */
+@media screen and (max-width:900px){
+  #dashboard .actions{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:10px;
+    width:100%;
+  }
+
+  #dashboard .actions > button{
+    width:100%;
+    min-width:0;
+    min-height:54px;
+    margin:0;
+  }
+
+  #dashboard .actions #allPdfsBtn{
+    grid-column:1 / -1;
+  }
+}
+
+        .remove-shg{background:#c62828;color:#fff;padding:6px 9px;font-size:11px}
+        @media(max-width:900px){.grid4{grid-template-columns:repeat(2,1fr)}}@media(max-width:600px){.grid4{grid-template-columns:1fr}}
+
+/*
+ * CUMULATIVE DCB - COMMON DATA FONT
+ * ---------------------------------
+ * Every cumulative DCB DATA cell uses exactly the same font family and
+ * the same font size. The size may change only for the COMPLETE data area,
+ * never for one individual cell.
+ */
+.cumulative-dcb-table tbody td,
+.cumulative-dcb-table tbody td .pdf-cell-text,
+.cumulative-dcb-table tbody tr.total td,
+.cumulative-dcb-table tbody tr.total td .pdf-cell-text{
+  font-family:"Gidugu",Arial,sans-serif !important;
+  font-size:13pt !important;
+  font-weight:400 !important;
+  font-style:normal !important;
+  line-height:1 !important;
+  white-space:nowrap !important;
+  font-synthesis:none !important;
+  overflow:visible !important;
+}
+
+
+/* FINAL CUMULATIVE DCB FONT OVERRIDE */
+.cumulative-dcb-page .cumulative-dcb-table tbody td,
+.cumulative-dcb-page .cumulative-dcb-table tbody td .pdf-cell-text,
+.cumulative-dcb-page .cumulative-dcb-table tbody tr.total td,
+.cumulative-dcb-page .cumulative-dcb-table tbody tr.total td .pdf-cell-text{
+  font-family:"Gidugu",Arial,sans-serif !important;
+}
+
+
+/* FINAL MONTHLY DCB COMMON FONT OVERRIDE */
+.dcb-page .dcb-table tbody td,
+.dcb-page .dcb-table tbody td .pdf-cell-text,
+.dcb-page .dcb-table tbody tr.total td,
+.dcb-page .dcb-table tbody tr.total td .pdf-cell-text{
+  font-family:"Gidugu",Arial,sans-serif !important;
+  font-weight:400 !important;
+  font-style:normal !important;
+  white-space:nowrap !important;
+  overflow:visible !important;
+}
+
+
+/* =========================================================
+   HIGH-ENERGY BUTTON MICRO-INTERACTIONS
+   Applies to every current and dynamically-created button.
+   ========================================================= */
+button{
+  position:relative;
+  overflow:hidden;
+  isolation:isolate;
+  transform:translateZ(0);
+  transition:
+    transform .18s cubic-bezier(.2,.9,.3,1.25),
+    box-shadow .22s ease,
+    filter .22s ease,
+    opacity .18s ease;
+  will-change:transform,box-shadow,filter;
+}
+button::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:linear-gradient(110deg,transparent 20%,rgba(255,255,255,.28) 45%,transparent 70%);
+  transform:translateX(-130%);
+  transition:transform .5s ease;
+  pointer-events:none;
+  z-index:0;
+}
+button:hover{
+  transform:translateY(-3px) scale(1.035);
+  box-shadow:0 9px 20px rgba(23,54,93,.22),0 2px 5px rgba(0,0,0,.12);
+  filter:saturate(1.12) brightness(1.04);
+}
+button:hover::before{transform:translateX(130%);}
+button:active{
+  transform:translateY(1px) scale(.94);
+  box-shadow:0 2px 5px rgba(0,0,0,.16);
+  filter:brightness(.97);
+}
+button:focus-visible{
+  outline:3px solid rgba(23,105,170,.35);
+  outline-offset:3px;
+}
+button > *{position:relative;z-index:1;}
+
+/* Report Center */
+.report-center-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.report-filter-toolbar{display:flex;align-items:flex-end;gap:8px;flex-wrap:nowrap}
+.report-filter-toolbar .field{min-width:190px;flex:0 1 260px}
+.report-filter-toolbar #reportLoanField{min-width:190px}
+.report-type-actions{display:flex;align-items:flex-end;gap:8px;flex:1 1 auto;min-width:0;flex-wrap:nowrap}
+.report-type-actions button{flex:1 1 0;min-width:0;white-space:nowrap}
+.report-download-actions{display:flex;align-items:center;justify-content:flex-start;gap:10px;margin-top:10px;flex-wrap:nowrap;white-space:nowrap}
+.report-download-actions .small{display:inline-flex;align-items:center;min-height:38px}
+.report-download-actions button{flex:0 0 auto;white-space:nowrap}
+.report-type-actions button.report-selected{background:#1769aa !important;color:#fff !important;border-color:#1769aa !important;box-shadow:0 0 0 3px rgba(23,105,170,.16),0 2px 5px rgba(0,0,0,.16) !important}
+
+/* Report Center controls size to their text instead of stretching across the card. */
+.report-filter-toolbar{overflow-x:auto;scrollbar-width:thin;}
+.report-filter-toolbar .field{flex:0 0 auto;min-width:0;width:auto;}
+.report-filter-toolbar .field select{width:auto;min-width:100px;max-width:none;}
+.report-filter-toolbar #reportMemberFilter{min-width:120px;}
+.report-filter-toolbar #reportLoanFilter{min-width:150px;}
+.report-type-actions{flex:0 0 auto;width:auto;}
+.report-type-actions button{flex:0 0 auto;width:auto;min-width:0;padding-left:13px;padding-right:13px;}
+.report-download-actions{justify-content:flex-start;}
+.report-download-actions .success{background:#18864b;color:#fff;}
+@media(max-width:1024px){
+  .report-filter-toolbar{display:flex;flex-wrap:nowrap;align-items:flex-end;width:max-content;min-width:100%;overflow-x:auto;}
+  .report-filter-toolbar .field{flex:0 0 auto;width:auto;}
+  .report-filter-toolbar .field select{width:auto;}
+  .report-type-actions{display:flex;flex:0 0 auto;width:auto;flex-wrap:nowrap;}
+  .report-type-actions button{flex:0 0 auto;width:auto;white-space:nowrap;}
+  .report-download-actions{display:flex;flex-wrap:nowrap;width:max-content;min-width:100%;overflow-x:auto;}
+  .report-download-actions .small{flex:0 0 auto;}
+  .report-download-actions button{flex:0 0 auto;width:auto;white-space:nowrap;}
+}
+.report-preview{margin-top:12px;border:1px solid #cbd5e1;border-radius:10px;background:#fff;overflow:auto;padding:10px;max-height:75vh}
+.report-preview .page{
+  position:relative !important;
+  inset:auto !important;
+  width:841.89pt !important;
+  min-width:841.89pt !important;
+  max-width:none !important;
+  height:595.28pt !important;
+  min-height:595.28pt !important;
+  margin:0 auto 18px !important;
+  padding:28.3465pt !important;
+  box-sizing:border-box !important;
+  page-break-after:always !important;
+  break-after:page !important;
+  background:#fff !important;
+  box-shadow:0 1px 5px rgba(0,0,0,.12) !important;
+  overflow:visible !important;
+}
+.report-preview .page:last-child{margin-bottom:0 !important;page-break-after:auto !important;break-after:auto !important}
+.report-preview .dcb-frame{
+  width:var(--dcb-width,785.197pt) !important;
+  min-width:var(--dcb-width,785.197pt) !important;
+  max-width:var(--dcb-width,785.197pt) !important;
+  margin:0 !important;
+}
+.report-preview .cumulative-dcb-frame{
+  width:var(--cumulative-dcb-width,785.197pt) !important;
+  min-width:var(--cumulative-dcb-width,785.197pt) !important;
+  max-width:var(--cumulative-dcb-width,785.197pt) !important;
+  margin:0 !important;
+}
+.report-preview .ledger-frame{
+  width:var(--ledger-width,784.5pt) !important;
+  min-width:var(--ledger-width,784.5pt) !important;
+  max-width:var(--ledger-width,784.5pt) !important;
+  margin:0 !important;
+}
+.report-preview .dcb-report-type-full-row,
+.report-preview .cumulative-dcb-report-type-full-row,
+.report-preview .dcb-head,
+.report-preview .cumulative-dcb-head,
+.report-preview .dcb-table,
+.report-preview .cumulative-dcb-table{
+  max-width:none !important;
+}
+.report-preview .ledger-table{max-width:none !important}
+/* REPORT-ONLY: hide the PDF column-number row (1, 2, 3, ...).
+   The actual PDF/print output keeps this row unchanged. */
+.report-preview .dcb-table tr.number-head,
+.report-preview .cumulative-dcb-table tr.number-head,
+.report-preview .ledger-table tr.number-head{
+  display:none !important;
+}
+
+/* Report controls stay on one horizontal row on tablets and phones.
+   The row scrolls horizontally instead of wrapping the report buttons into 2x2. */
+@media(max-width:1024px){
+  /* Tablet/mobile report controls: maximum TWO items per row.
+     No horizontal overflow; filters stay paired and report buttons form a
+     clean 2-column grid. */
+  .report-filter-toolbar{
+    display:grid;
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+    align-items:end;
+    gap:8px;
+    width:100%;
+    min-width:0;
+    padding:2px 0 6px;
+    box-sizing:border-box;
+  }
+  .report-filter-toolbar .field,
+  .report-filter-toolbar #reportLoanField{
+    min-width:0;
+    width:100%;
+    max-width:none;
+    flex:none;
+  }
+  .report-type-actions{
+    grid-column:1 / -1;
+    display:grid;
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+    align-items:stretch;
+    gap:8px;
+    width:100%;
+    min-width:0;
+    flex:none;
+  }
+  .report-type-actions button{
+    width:100%;
+    min-width:0;
+    max-width:none;
+    white-space:normal;
+    line-height:1.2;
+  }
+  .report-download-actions{
+    display:grid;
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+    align-items:center;
+    gap:8px;
+    width:100%;
+    min-width:0;
+    margin-top:10px;
+    padding:2px 0 6px;
+    box-sizing:border-box;
+  }
+  .report-download-actions .small{
+    min-width:0;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .report-download-actions button{
+    width:100%;
+    min-width:0;
+    white-space:normal;
+    line-height:1.2;
+  }
+  }
+  .report-download-actions .small{
+    flex:0 0 auto;
+    white-space:nowrap;
+  }
+  .report-download-actions button{
+    flex:0 0 auto;
+    white-space:nowrap;
+  }
+}
+
+/* Stronger pulse for important actions. */
+#saveVoBtn,#createVoBtn,#addShgBtn,#saveAllBtn,
+#monthlyPdfBtn,#ledgerPdfBtn,#cumulativeDcbPdfBtn,#backupBtn,#importBtn,#importAllBtn,#resetBtn{
+  animation:buttonFloat 3s ease-in-out infinite;
+}
+#saveVoBtn:hover,#createVoBtn:hover,#addShgBtn:hover,#saveAllBtn:hover,
+#monthlyPdfBtn:hover,#ledgerPdfBtn:hover,#cumulativeDcbPdfBtn:hover,#backupBtn:hover,#importBtn:hover,#importAllBtn:hover,#resetBtn:hover{
+  animation:none;
+}
+@keyframes buttonFloat{
+  0%,100%{filter:brightness(1);}
+  50%{filter:brightness(1.06);}
+}
+
+/* Click ripple */
+.button-ripple{
+  position:absolute;
+  width:18px;
+  height:18px;
+  border-radius:50%;
+  background:rgba(255,255,255,.6);
+  transform:translate(-50%,-50%) scale(0);
+  pointer-events:none;
+  z-index:2;
+  animation:buttonRipple .65s ease-out forwards;
+}
+@keyframes buttonRipple{
+  to{transform:translate(-50%,-50%) scale(16);opacity:0;}
+}
+
+/* Successful action feedback */
+.button-success-flash{
+  animation:buttonSuccess .55s cubic-bezier(.2,.9,.3,1.2) !important;
+}
+@keyframes buttonSuccess{
+  0%{transform:scale(1);}
+  25%{transform:scale(1.12) rotate(-1deg);}
+  50%{transform:scale(.96) rotate(1deg);}
+  75%{transform:scale(1.06);}
+  100%{transform:scale(1);}
+}
+
+/* Month tabs get a stronger selected transition. */
+.months button{
+  transition:transform .2s cubic-bezier(.2,.9,.3,1.25),box-shadow .2s ease,background .2s ease,color .2s ease;
+}
+.months button.active{
+  transform:translateY(-2px) scale(1.05);
+  box-shadow:0 6px 14px rgba(23,105,170,.28);
+}
+
+@media (prefers-reduced-motion:reduce){
+  button,button::before,.button-ripple,.button-success-flash,.months button{
+    animation:none!important;
+    transition:none!important;
+  }
+}
+
+
+/* =========================================================
+   UNIVERSAL A4 LANDSCAPE PDF SAFE AREA
+   Applies to Monthly DCB, Cumulative DCB and Loan Ledger PDFs.
+   ========================================================= */
+@page{
+  size:A4 landscape;
+  margin:0;
+}
+@media print{
+  html,body{
+    width:297mm;
+    min-height:210mm;
+    margin:0!important;
+    padding:0!important;
+  }
+
+  .page,
+  .ledger-page,
+  .dcb-page,
+  .cumulative-dcb-page{
+    width:297mm!important;
+    min-height:210mm!important;
+    height:210mm!important;
+    box-sizing:border-box!important;
+    padding:28.3465pt!important;
+    margin:0!important;
+  }
+
+  .ledger-page > *,
+  .dcb-page > *,
+  .cumulative-dcb-page > *{
+    max-width:100%!important;
+    box-sizing:border-box!important;
+  }
+}
+
+
+/* PDF margin fallback:
+   - Initial: 10 mm on all four sides.
+   - If horizontal content cannot fit: LEFT/RIGHT become 8 mm.
+   - TOP/BOTTOM remain 10 mm.
+   - Only DCB SHG Name may then reduce to 10 pt and finally wrap.
+*/
+
+/* =========================================================
+   PDF DATA CELL FONT / SPACE RULE
+   - All PDF data cells: minimum 13pt.
+   - Long data is never reduced below 13pt.
+   - Column fitting uses the maximum available A4 safe width.
+   ========================================================= */
+.ledger-page .ledger-table tbody td,
+.dcb-page .dcb-table tbody td,
+.cumulative-dcb-page .cumulative-dcb-table tbody td,
+.ledger-page .ledger-table tbody td .pdf-cell-text,
+.dcb-page .dcb-table tbody td .pdf-cell-text,
+.cumulative-dcb-page .cumulative-dcb-table tbody td .pdf-cell-text{
+  font-size:13pt !important;
+  line-height:1 !important;
+  font-synthesis:none !important;
+  white-space:nowrap !important;
+  overflow:visible !important;
+}
+
+
+<style id="backup-buttons-inline-fix">
+  /* Keep Interest Rate + Backup buttons on one horizontal row. */
+  #shgRateInput { min-width: 0; }
+  #shgRateInput + #backupBtn,
+  #backupBtn,
+  #importBtn {
+    flex: 0 0 auto !important;
+    white-space: nowrap !important;
+  }
+  /* The toolbar containing Interest Rate and backup buttons must not wrap. */
+  #shgRateInput {
+    /* input itself remains normal; this rule is intentionally minimal */
+  }
+
+<style id="shg-loan-filter-layout-fix">
+  /* SHG Loan + Member filters sit before Interest Rate on desktop. */
+  #shgToolbar{
+    display:flex !important;
+    flex-direction:row !important;
+    flex-wrap:nowrap !important;
+    align-items:flex-end !important;
+    gap:10px !important;
+    width:100% !important;
+  }
+  #addChildField{
+    flex:1 1 auto !important;
+    min-width:180px !important;
+  }
+  #addShgBtn{
+    flex:0 0 auto !important;
+    white-space:nowrap !important;
+  }
+  #shgLoanFilterToolbar{
+    display:flex !important;
+    flex:0 1 auto !important;
+    flex-direction:row !important;
+    flex-wrap:nowrap !important;
+    align-items:flex-end !important;
+    gap:10px !important;
+    margin:0 !important;
+    min-width:0 !important;
+  }
+  #shgLoanFilterToolbar.hidden{display:none !important;}
+  #shgLoanFilterToolbar .loan-filter-field{
+    flex:0 1 180px !important;
+    width:180px !important;
+    min-width:150px !important;
+  }
+  #interestRateField{
+    flex:0 0 180px !important;
+    width:180px !important;
+    min-width:180px !important;
+  }
+
+  /* Phone/tablet: Loan and Member remain side-by-side; Interest Rate follows. */
+  @media screen and (max-width:900px){
+    #shgToolbar{
+      flex-direction:row !important;
+      flex-wrap:wrap !important;
+      align-items:flex-end !important;
+      gap:9px !important;
+    }
+    #addChildField{
+      flex:1 1 calc(100% - 110px) !important;
+      min-width:0 !important;
+    }
+    #addShgBtn{
+      flex:0 0 100px !important;
+      width:100px !important;
+    }
+    #shgLoanFilterToolbar{
+      flex:1 1 100% !important;
+      width:100% !important;
+      display:flex !important;
+      flex-direction:row !important;
+      flex-wrap:nowrap !important;
+      gap:8px !important;
+      order:3 !important;
+    }
+    #shgLoanFilterToolbar .loan-filter-field{
+      flex:1 1 50% !important;
+      width:50% !important;
+      min-width:0 !important;
+    }
+    #interestRateField{
+      flex:1 1 100% !important;
+      width:100% !important;
+      max-width:none !important;
+      min-width:0 !important;
+      order:4 !important;
+    }
+    #interestRateField input,
+    #shgLoanFilterToolbar select{
+      width:100% !important;
+      box-sizing:border-box !important;
+    }
+  }
+
+  @media screen and (max-width:420px){
+    #addChildField{flex-basis:calc(100% - 96px) !important;}
+    #addShgBtn{flex-basis:88px !important;width:88px !important;}
+    #shgLoanFilterToolbar{gap:6px !important;}
+    #shgLoanFilterToolbar .loan-filter-field{flex-basis:50% !important;}
+    #shgLoanFilterToolbar label{font-size:12px !important;}
+    #shgLoanFilterToolbar select{font-size:13px !important;padding-left:8px !important;padding-right:24px !important;}
+  }

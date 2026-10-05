@@ -1,0 +1,779 @@
+/* ================================================================
+   Original inline style block 41: report-ledger-preview-final-geometry
+   Preserved exactly in cascade order.
+   ================================================================ */
+/* REPORT CENTER ONLY: make Loan Ledger preview use the same geometry as the PDF.
+       PDF/print styles are intentionally untouched. */
+    @media screen{
+      .report-preview .ledger-page{
+        width:100% !important;
+        min-width:0 !important;
+        min-height:0 !important;
+        height:auto !important;
+        padding:20px 28px 28px !important;
+        margin:0 0 18px !important;
+        box-sizing:border-box !important;
+        background:#fff !important;
+        color:#111 !important;
+        font-family:"Gidugu",Arial,sans-serif !important;
+        overflow:visible !important;
+      }
+      .report-preview .ledger-frame{
+        width:100% !important;
+        min-width:0 !important;
+        max-width:none !important;
+        margin:0 !important;
+        border:1px solid #555 !important;
+        box-sizing:border-box !important;
+        overflow:visible !important;
+      }
+      .report-preview .ledger-blank{
+        width:100% !important;
+        height:22pt !important;
+        min-height:22pt !important;
+        border:0 !important;
+        border-bottom:1px solid #555 !important;
+        box-sizing:border-box !important;
+      }
+      .report-preview .ledger-title-row{
+        display:grid !important;
+        grid-template-columns:minmax(0,1fr) 55pt 50pt !important;
+        width:100% !important;
+        height:34pt !important;
+        min-height:34pt !important;
+        margin:0 !important;
+        padding:0 !important;
+        border:0 !important;
+        border-bottom:1px solid #555 !important;
+        box-sizing:border-box !important;
+        position:relative !important;
+        overflow:hidden !important;
+      }
+      .report-preview .ledger-title{
+        display:flex !important;
+        align-items:center !important;
+        justify-content:center !important;
+        width:100% !important;
+        height:100% !important;
+        min-width:0 !important;
+        margin:0 !important;
+        padding:0 4pt !important;
+        border:0 !important;
+        border-right:1px solid #555 !important;
+        box-sizing:border-box !important;
+        text-align:center !important;
+        white-space:nowrap !important;
+        overflow:hidden !important;
+        font-family:"Gidugu",Arial,sans-serif !important;
+        font-size:15.5pt !important;
+        line-height:1 !important;
+        font-weight:100 !important;
+      }
+      .report-preview .ledger-loan-title,
+      .report-preview .ledger-name-title{
+        display:inline-block !important;
+        white-space:nowrap !important;
+        font-family:"Gidugu",Arial,sans-serif !important;
+        font-size:15.5pt !important;
+        line-height:1 !important;
+        font-weight:100 !important;
+      }
+      .report-preview .page-label,
+      .report-preview .page-number{
+        display:flex !important;
+        align-items:center !important;
+        justify-content:center !important;
+        width:100% !important;
+        height:100% !important;
+        margin:0 !important;
+        padding:0 !important;
+        border:0 !important;
+        box-sizing:border-box !important;
+        text-align:center !important;
+        overflow:hidden !important;
+      }
+      .report-preview .page-label{
+        border-right:1px solid #555 !important;
+        font-family:Arial,sans-serif !important;
+        font-size:8pt !important;
+        font-weight:700 !important;
+      }
+      .report-preview .page-number{
+        font-family:"Gidugu",Arial,sans-serif !important;
+        font-size:17pt !important;
+        font-weight:100 !important;
+        line-height:1 !important;
+      }
+      .report-preview .ledger-title-row::after{
+        display:none !important;
+      }
+
+      /* Three metadata rows: exactly six cells across, matching the PDF. */
+      .report-preview .ledger-meta{
+        display:block !important;
+        width:100% !important;
+        margin:0 !important;
+        padding:0 !important;
+        box-sizing:border-box !important;
+        font-family:"Gidugu",Arial,sans-serif !important;
+      }
+      .report-preview .ledger-meta .meta-row{
+        display:grid !important;
+        grid-template-columns:1.05fr 1.18fr 1.05fr 1.18fr 1.05fr .72fr !important;
+        width:100% !important;
+        height:28pt !important;
+        min-height:28pt !important;
+        margin:0 !important;
+        padding:0 !important;
+        grid-column:auto !important;
+        border:0 !important;
+        border-bottom:1px solid #555 !important;
+        box-sizing:border-box !important;
+      }
+      .report-preview .ledger-meta .meta-row:last-child{
+        height:20pt !important;
+        min-height:20pt !important;
+        border-bottom:0 !important;
+      }
+      .report-preview .ledger-meta .meta-row > div{
+        display:flex !important;
+        align-items:center !important;
+        justify-content:center !important;
+        width:100% !important;
+        height:100% !important;
+        min-width:0 !important;
+        margin:0 !important;
+        padding:0 3pt !important;
+        border:0 !important;
+        border-right:1px solid #555 !important;
+        box-sizing:border-box !important;
+        font-family:"Gidugu",Arial,sans-serif !important;
+        font-size:13pt !important;
+        line-height:1 !important;
+        text-align:center !important;
+        white-space:nowrap !important;
+        overflow:hidden !important;
+      }
+      .report-preview .ledger-meta .meta-row > div:last-child{
+        border-right:0 !important;
+      }
+      .report-preview .ledger-meta .meta-key,
+      .report-preview .ledger-meta .meta-value,
+      .report-preview .ledger-meta .meta-empty{
+        font-family:"Gidugu",Arial,sans-serif !important;
+        font-size:13pt !important;
+        line-height:1 !important;
+      }
+      .report-preview .ledger-meta .meta-value.highlight{
+        align-self:stretch !important;
+        min-height:0 !important;
+        width:100% !important;
+      }
+      .report-preview .ledger-meta .meta-row:first-child .meta-value.highlight{
+        background:#ffff00 !important;
+      }
+
+      .report-preview .ledger-table{
+        display:table !important;
+        width:100% !important;
+        min-width:0 !important;
+        max-width:none !important;
+        margin:0 !important;
+        border-collapse:collapse !important;
+        border-spacing:0 !important;
+        table-layout:fixed !important;
+        box-sizing:border-box !important;
+        border:1px solid #555 !important;
+        font-family:"Gidugu",Arial,sans-serif !important;
+      }
+      .report-preview .ledger-table col{
+        width:auto !important;
+      }
+      .report-preview .ledger-table th,
+      .report-preview .ledger-table td{
+        border:1px solid #555 !important;
+        box-sizing:border-box !important;
+        text-align:center !important;
+        vertical-align:middle !important;
+        overflow:hidden !important;
+      }
+      .report-preview .ledger-table thead .group-head{height:28pt !important;}
+      .report-preview .ledger-table thead .sub-head{height:20pt !important;}
+      .report-preview .ledger-table thead .number-head{display:none !important;}
+      .report-preview .ledger-table thead th{
+        font-family:"Gidugu",Arial,sans-serif !important;
+        font-size:12pt !important;
+        font-weight:100 !important;
+        line-height:1 !important;
+        white-space:normal !important;
+      }
+      .report-preview .ledger-table tbody tr{
+        height:23.17pt !important;
+      }
+      .report-preview .ledger-table tbody td{
+        font-family:"Gidugu",Arial,sans-serif !important;
+        font-size:13pt !important;
+        font-weight:400 !important;
+        line-height:1 !important;
+        white-space:nowrap !important;
+        text-align:center !important;
+        vertical-align:middle !important;
+        padding:0 2pt !important;
+      }
+      .report-preview .ledger-table td.name,
+      .report-preview .ledger-table td.date{
+        text-align:center !important;
+        padding-left:0 !important;
+        padding-right:0 !important;
+      }
+    }
+
+/* ================================================================
+   Original inline style block 42: final-creation-toolbar-equal-fields
+   Preserved exactly in cascade order.
+   ================================================================ */
+/* =========================================================
+       FINAL CREATION TOOLBAR LAYOUT
+       Applies to every login type.
+
+       DESKTOP:
+       Add Name | Loan | Interest Rate | Add
+       Selection dropdown on row 2, same width as Loan.
+
+       MOBILE / TABLET:
+       Add Name | Loan | Interest Rate
+       Add      | SHG/VO/Member
+
+       UI ONLY. No JavaScript/database/login changes.
+       ========================================================= */
+
+    /* -----------------------------
+       DESKTOP
+       ----------------------------- */
+    @media screen and (min-width:901px){
+
+      #shgToolbar{
+        display:grid !important;
+        grid-template-columns:150px 150px 150px 150px !important;
+        grid-template-rows:auto auto !important;
+        column-gap:10px !important;
+        row-gap:10px !important;
+        align-items:end !important;
+        width:max-content !important;
+        max-width:100% !important;
+        flex:none !important;
+        flex-wrap:initial !important;
+        white-space:normal !important;
+      }
+
+      /* Add SHG / VO / Member Name */
+      #shgToolbar > #addChildField{
+        grid-column:1 !important;
+        grid-row:1 !important;
+        width:150px !important;
+        min-width:150px !important;
+        max-width:150px !important;
+        flex:none !important;
+        margin:0 !important;
+      }
+
+      #shgToolbar > #addChildField input{
+        width:150px !important;
+        min-width:150px !important;
+        max-width:150px !important;
+        box-sizing:border-box !important;
+      }
+
+      /* Make the loan/selection wrapper transparent to the parent grid. */
+      #shgToolbar > #shgLoanFilterToolbar:not(.hidden){
+        display:contents !important;
+      }
+
+      #shgToolbar > #shgLoanFilterToolbar.hidden{
+        display:none !important;
+      }
+
+      /* Loan */
+      #shgToolbar > #shgLoanFilterToolbar:not(.hidden) > .loan-filter-field:nth-child(1){
+        grid-column:2 !important;
+        grid-row:1 !important;
+        width:150px !important;
+        min-width:150px !important;
+        max-width:150px !important;
+        flex:none !important;
+        margin:0 !important;
+      }
+
+      /* SHG / VO / Member selection - next row */
+      #shgToolbar > #shgLoanFilterToolbar:not(.hidden) > .loan-filter-field:nth-child(2){
+        grid-column:2 !important;
+        grid-row:2 !important;
+        width:150px !important;
+        min-width:150px !important;
+        max-width:150px !important;
+        flex:none !important;
+        margin:0 !important;
+      }
+
+      #shgToolbar > #shgLoanFilterToolbar:not(.hidden) > .loan-filter-field select{
+        display:block !important;
+        width:150px !important;
+        min-width:150px !important;
+        max-width:150px !important;
+        box-sizing:border-box !important;
+      }
+
+      /* Interest Rate */
+      #shgToolbar > #interestRateField{
+        grid-column:3 !important;
+        grid-row:1 !important;
+        width:150px !important;
+        min-width:150px !important;
+        max-width:150px !important;
+        flex:none !important;
+        margin:0 !important;
+      }
+
+      #shgToolbar > #interestRateField input{
+        width:150px !important;
+        min-width:150px !important;
+        max-width:150px !important;
+        box-sizing:border-box !important;
+      }
+
+      /* Add SHG / Add VO / Add Member */
+      #shgToolbar > #addShgBtn{
+        grid-column:4 !important;
+        grid-row:1 !important;
+        width:150px !important;
+        min-width:150px !important;
+        max-width:150px !important;
+        min-height:38px !important;
+        box-sizing:border-box !important;
+        flex:none !important;
+        margin:0 !important;
+        white-space:nowrap !important;
+      }
+    }
+
+
+    /* -----------------------------
+       MOBILE + TABLET
+       ----------------------------- */
+    @media screen and (max-width:900px){
+
+      #shgToolbar{
+        display:grid !important;
+
+        /*
+          Row 1:
+          Add Name | Loan | Interest
+
+          Row 2:
+          Add      | SHG / VO / Member
+        */
+        grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+        grid-template-rows:auto auto !important;
+
+        column-gap:8px !important;
+        row-gap:9px !important;
+
+        width:100% !important;
+        max-width:100% !important;
+        min-width:0 !important;
+
+        align-items:end !important;
+        flex:none !important;
+        flex-wrap:initial !important;
+        white-space:normal !important;
+      }
+
+      /* Add SHG / VO / Member Name */
+      #shgToolbar > #addChildField{
+        grid-column:1 !important;
+        grid-row:1 !important;
+        width:100% !important;
+        min-width:0 !important;
+        max-width:none !important;
+        flex:none !important;
+        margin:0 !important;
+      }
+
+      #shgToolbar > #addChildField input{
+        display:block !important;
+        width:100% !important;
+        min-width:0 !important;
+        max-width:none !important;
+        box-sizing:border-box !important;
+      }
+
+      /* Make loan/selection wrapper transparent to parent grid. */
+      #shgToolbar > #shgLoanFilterToolbar:not(.hidden){
+        display:contents !important;
+      }
+
+      #shgToolbar > #shgLoanFilterToolbar.hidden{
+        display:none !important;
+      }
+
+      /* Loan */
+      #shgToolbar > #shgLoanFilterToolbar:not(.hidden) > .loan-filter-field:nth-child(1){
+        grid-column:2 !important;
+        grid-row:1 !important;
+        width:100% !important;
+        min-width:0 !important;
+        max-width:none !important;
+        flex:none !important;
+        margin:0 !important;
+      }
+
+      /* SHG / VO / Member selection */
+      #shgToolbar > #shgLoanFilterToolbar:not(.hidden) > .loan-filter-field:nth-child(2){
+        grid-column:2 !important;
+        grid-row:2 !important;
+        width:100% !important;
+        min-width:0 !important;
+        max-width:none !important;
+        flex:none !important;
+        margin:0 !important;
+      }
+
+      #shgToolbar > #shgLoanFilterToolbar:not(.hidden) > .loan-filter-field select{
+        display:block !important;
+        width:100% !important;
+        min-width:0 !important;
+        max-width:none !important;
+        box-sizing:border-box !important;
+      }
+
+      /* Interest Rate */
+      #shgToolbar > #interestRateField{
+        grid-column:3 !important;
+        grid-row:1 !important;
+        width:100% !important;
+        min-width:0 !important;
+        max-width:none !important;
+        flex:none !important;
+        margin:0 !important;
+      }
+
+      #shgToolbar > #interestRateField input{
+        display:block !important;
+        width:100% !important;
+        min-width:0 !important;
+        max-width:none !important;
+        box-sizing:border-box !important;
+      }
+
+      /* Add SHG / Add VO / Add Member */
+      #shgToolbar > #addShgBtn{
+        grid-column:1 !important;
+        grid-row:2 !important;
+        width:100% !important;
+        min-width:0 !important;
+        max-width:none !important;
+        min-height:42px !important;
+        box-sizing:border-box !important;
+        flex:none !important;
+        margin:0 !important;
+        white-space:nowrap !important;
+      }
+    }
+
+
+    /* -----------------------------
+       SMALL PHONES
+       Keep the same 3-column / 2-column
+       structure, only reduce gaps.
+       ----------------------------- */
+    @media screen and (max-width:420px){
+      #shgToolbar{
+        column-gap:6px !important;
+        row-gap:7px !important;
+      }
+
+      #shgToolbar > #addChildField input,
+      #shgToolbar > #shgLoanFilterToolbar:not(.hidden) > .loan-filter-field select,
+      #shgToolbar > #interestRateField input,
+      #shgToolbar > #addShgBtn{
+        font-size:13px !important;
+      }
+    }
+
+/* ================================================================
+   Original inline style block 43: pdf-header-line-and-alignment-fix
+   Preserved exactly in cascade order.
+   ================================================================ */
+.pdf-report-type-header,
+    .dcb-report-type-full-row,
+    .cumulative-dcb-report-type-full-row{
+      box-sizing:border-box !important;
+      margin-left:0 !important;
+      margin-right:0 !important;
+      border-bottom:0 !important;
+    }
+    .ledger-title-row{border-top:0 !important;}
+    .ledger-report-type-header{border-bottom:0 !important;}
+    .dcb-head,.cumulative-dcb-head{border-top:1px solid #555 !important;}
+
+/* ================================================================
+   Original inline style block 44: dcb-head-grid-exact-alignment
+   Preserved exactly in cascade order.
+   ================================================================ */
+/* Exact DCB/Cumulative DCB metadata alignment: the split is derived from the
+       final fitted data-table column widths, not from HTML table colspan layout. */
+    .dcb-head-grid,.cumulative-dcb-head-grid{
+      display:grid !important;
+      grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+      width:100% !important;
+      height:24pt !important;
+      min-height:24pt !important;
+      box-sizing:border-box !important;
+      border:1px solid #555 !important;
+      border-bottom:0 !important;
+      margin:0 !important;
+      padding:0 !important;
+      table-layout:auto !important;
+      overflow:hidden !important;
+    }
+    .dcb-head-grid > div,.cumulative-dcb-head-grid > div{
+      min-width:0 !important;
+      width:auto !important;
+      height:24pt !important;
+      box-sizing:border-box !important;
+      display:flex !important;
+      align-items:center !important;
+      justify-content:center !important;
+      text-align:center !important;
+      overflow:hidden !important;
+      white-space:nowrap !important;
+      padding:0 1.5pt !important;
+      border:0 !important;
+      font-family:"Gidugu",Arial,sans-serif !important;
+      font-size:15.5pt !important;
+      font-weight:100 !important;
+      line-height:1 !important;
+    }
+    .dcb-head-grid > div + div,.cumulative-dcb-head-grid > div + div{
+      #border-left:1px solid #555 !important;
+    }
+
+/* ================================================================
+   Original inline style block 45: dcb-cumulative-loan-header-full-row-fix
+   Preserved exactly in cascade order.
+   ================================================================ */
+/* DCB and Cumulative DCB use a standalone full-width title row.
+       Loan Ledger keeps its existing flex title row. */
+    .dcb-report-type-full-row,
+    .cumulative-dcb-report-type-full-row{
+      display:flex !important;
+      align-items:center !important;
+      justify-content:center !important;
+      text-align:center !important;
+      overflow:hidden !important;
+      white-space:nowrap !important;
+    }
+
+/* ================================================================
+   Original inline style block 46: final-selection-dropdown-next-row-fix
+   Preserved exactly in cascade order.
+   ================================================================ */
+/* =========================================================
+       FINAL CREATION TOOLBAR FIX
+       - SHG / VO / Member selection moves to the next row.
+       - Its width is EXACTLY the same as Loan type.
+       - Applies to every login / login-specific label.
+       - Existing functionality is untouched.
+       ========================================================= */
+
+    @media screen and (min-width:901px){
+        #shgToolbar{
+            display:grid !important;
+            grid-template-columns:minmax(220px,1fr) 150px 150px auto !important;
+            grid-template-rows:auto auto !important;
+            column-gap:10px !important;
+            row-gap:10px !important;
+            width:100% !important;
+            max-width:100% !important;
+            min-width:0 !important;
+            align-items:end !important;
+            flex-wrap:initial !important;
+            white-space:normal !important;
+        }
+
+        /* Add SHG / VO / Member Name */
+        #shgToolbar > #addChildField{
+            grid-column:1 !important;
+            grid-row:1 !important;
+            width:100% !important;
+            min-width:0 !important;
+            max-width:none !important;
+            flex:none !important;
+            margin:0 !important;
+        }
+
+        /* Make the Loan + SHG/VO/Member container transparent to the grid.
+           Its two fields become direct grid items of #shgToolbar. */
+        #shgToolbar > #shgLoanFilterToolbar{
+            display:contents !important;
+            width:auto !important;
+            min-width:0 !important;
+            max-width:none !important;
+            margin:0 !important;
+            padding:0 !important;
+        }
+
+        /* Loan type — first row */
+        #shgToolbar > #shgLoanFilterToolbar > .loan-filter-field:nth-child(1){
+            grid-column:2 !important;
+            grid-row:1 !important;
+            width:150px !important;
+            min-width:150px !important;
+            max-width:150px !important;
+            flex:none !important;
+            margin:0 !important;
+        }
+
+        /* SHG / VO / Member selection — second row,
+           EXACTLY the same width as Loan type */
+        #shgToolbar > #shgLoanFilterToolbar > .loan-filter-field:nth-child(2){
+            grid-column:2 !important;
+            grid-row:2 !important;
+            width:150px !important;
+            min-width:150px !important;
+            max-width:150px !important;
+            flex:none !important;
+            margin:0 !important;
+        }
+
+        #shgToolbar > #shgLoanFilterToolbar > .loan-filter-field select{
+            display:block !important;
+            width:150px !important;
+            min-width:150px !important;
+            max-width:150px !important;
+            box-sizing:border-box !important;
+        }
+
+        /* Interest Rate — first row */
+        #shgToolbar > #interestRateField{
+            grid-column:3 !important;
+            grid-row:1 !important;
+            width:150px !important;
+            min-width:150px !important;
+            max-width:150px !important;
+            flex:none !important;
+            margin:0 !important;
+        }
+
+        #shgToolbar > #interestRateField input{
+            width:150px !important;
+            min-width:150px !important;
+            max-width:150px !important;
+            box-sizing:border-box !important;
+        }
+
+        /* Add button — first row */
+        #shgToolbar > #addShgBtn{
+            grid-column:4 !important;
+            grid-row:1 !important;
+            width:auto !important;
+            min-width:100px !important;
+            max-width:none !important;
+            flex:none !important;
+            margin:0 !important;
+            white-space:nowrap !important;
+        }
+    }
+
+    /* ---------------------------------------------------------
+       MOBILE / TABLET
+       Keep the existing mobile creation arrangement intact,
+       but put the SHG / VO / Member selector on its own row and
+       make it the same width as the Loan selector.
+       --------------------------------------------------------- */
+    @media screen and (max-width:900px){
+        #shgToolbar{
+            display:grid !important;
+            grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;
+            column-gap:9px !important;
+            row-gap:9px !important;
+            width:100% !important;
+            max-width:100% !important;
+            min-width:0 !important;
+            align-items:end !important;
+            white-space:normal !important;
+        }
+
+        #shgToolbar > #addChildField{
+            grid-column:1 !important;
+            grid-row:1 !important;
+            width:100% !important;
+            min-width:0 !important;
+            max-width:none !important;
+            margin:0 !important;
+        }
+
+        #shgToolbar > #addShgBtn{
+            grid-column:2 !important;
+            grid-row:1 !important;
+            width:100% !important;
+            min-width:0 !important;
+            max-width:none !important;
+            margin:0 !important;
+        }
+
+        #shgToolbar > #shgLoanFilterToolbar{
+            display:contents !important;
+        }
+
+        /* Loan selector row 2, left side */
+        #shgToolbar > #shgLoanFilterToolbar > .loan-filter-field:nth-child(1){
+            grid-column:1 !important;
+            grid-row:2 !important;
+            width:100% !important;
+            min-width:0 !important;
+            max-width:none !important;
+            margin:0 !important;
+        }
+
+        /* SHG / VO / Member selector row 2, right side */
+        #shgToolbar > #shgLoanFilterToolbar > .loan-filter-field:nth-child(2){
+            grid-column:2 !important;
+            grid-row:2 !important;
+            width:100% !important;
+            min-width:0 !important;
+            max-width:none !important;
+            margin:0 !important;
+        }
+
+        #shgToolbar > #shgLoanFilterToolbar > .loan-filter-field select{
+            width:100% !important;
+            min-width:0 !important;
+            max-width:none !important;
+            box-sizing:border-box !important;
+        }
+
+        /* Interest rate remains below the selection row */
+        #shgToolbar > #interestRateField{
+            grid-column:1 / -1 !important;
+            grid-row:3 !important;
+            width:100% !important;
+            min-width:0 !important;
+            max-width:none !important;
+            margin:0 !important;
+        }
+
+        #shgToolbar > #interestRateField input{
+            width:100% !important;
+            min-width:0 !important;
+            max-width:none !important;
+            box-sizing:border-box !important;
+        }
+    }
+
+    @media screen and (max-width:420px){
+        #shgToolbar{
+            column-gap:6px !important;
+            row-gap:7px !important;
+        }
+    }

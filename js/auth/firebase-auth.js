@@ -1,3 +1,6 @@
+/* Firebase initialization + authentication + registration/access/profile flows.
+   Extracted mechanically from the original file; behavior is unchanged. */
+
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
     import {
       getAuth,
@@ -14,7 +17,12 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/fireba
       getFirestore,
       doc,
       getDoc,
+      getDocs,
+      collection,
+      query,
+      where,
       setDoc,
+      deleteDoc,
       runTransaction
     } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
 
@@ -141,7 +149,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/fireba
 
     let currentUser = null;
     let activeMode = "VO";
-    let accountAccess = {VO:false,MS:false};
+    let accountAccess = {VO:false,MS:false,SHG:false};
     let cloudLoaded = false;
     let saveTimer = null;
 
@@ -232,27 +240,106 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/fireba
 
     async function loadCloudDb(mode){
       if(!currentUser) return null;
+
+      /*
+       * New storage layout: each VO/MS/SHG parent record is stored in its
+       * own Firestore document under users/{uid}/modeData/{mode}/records.
+       * This avoids Firestore's 1 MiB document limit when an account contains
+       * many SHGs and many months.
+       */
+      try{
+        const recordsRef=collection(firestore,"users",currentUser.uid,"modeData",mode,"records");
+        const recordsSnap=await getDocs(recordsRef);
+        if(!recordsSnap.empty){
+          const vos=[];
+          recordsSnap.forEach(s=>{
+            const d=s.data()||{};
+            if(d.data)vos.push(d.data);
+          });
+          vos.sort((a,b)=>String(a.id||"").localeCompare(String(b.id||"")));
+          if(vos.length)return {vos};
+        }
+      }catch(err){
+        console.warn("Chunked cloud load unavailable; trying legacy storage:",err);
+      }
+
+      /* Backward compatibility with the existing single-document layout. */
       const snap = await getDoc(userDocRef());
       if(!snap.exists()) return null;
       const data = snap.data()||{};
-      const field = mode === "MS" ? "msData" : "voData";
+      const field = mode === "MS" ? "msData" : (mode === "SHG" ? "shgData" : "voData");
       if(data[field] && Array.isArray(data[field].vos)) return data[field];
-      // Backward compatibility: existing VO users have the old `vos` field.
       if(mode === "VO" && Array.isArray(data.vos)) return {vos:data.vos};
       return null;
     }
 
+
+    function isFirestoreDocumentTooLarge(err){
+      const code=String(err?.code||"").toLowerCase();
+      const message=String(err?.message||err||"");
+      return code.includes("resource-exhausted") || /1\s*MiB|1048576|maximum.*size|document.*too large|exceeds.*maximum/i.test(message);
+    }
+
+    async function saveCloudDbChunked(db,mode){
+      if(!currentUser) return;
+      const recordsRef=collection(firestore,"users",currentUser.uid,"modeData",mode,"records");
+      const vos=Array.isArray(db?.vos)?db.vos:[];
+      const activeIds=new Set();
+
+      for(let i=0;i<vos.length;i++){
+        const record=vos[i];
+        const id=String(record?.id||`record_${i}`).replace(/\//g,"_");
+        activeIds.add(id);
+        await setDoc(doc(recordsRef,id),{data:record,ownerUid:currentUser.uid,mode,updatedAt:new Date().toISOString()},{merge:true});
+      }
+
+      /* Remove old chunk records when a parent/member was deleted. */
+      const existing=await getDocs(recordsRef);
+      const deletes=[];
+      existing.forEach(s=>{if(!activeIds.has(s.id))deletes.push(deleteDoc(s.ref));});
+      if(deletes.length)await Promise.all(deletes);
+    }
+
+    function describeCloudSaveError(err){
+      const code=String(err?.code||'').replace(/^firebase\./,'');
+      const message=String(err?.message||err||'Unknown Firebase error');
+      if(code.includes('permission-denied')){
+        return `Firebase rejected the cloud save (permission-denied). Your internet is working, but the Firestore security rules are not allowing this account to write this data.\n\nDetails: ${message}`;
+      }
+      if(code.includes('resource-exhausted') || /1 MiB|1048576|maximum.*size|document.*too large/i.test(message)){
+        return `Firebase rejected the cloud save because the Firestore document is too large. The data needs to be split into smaller cloud records instead of one large document.\n\nDetails: ${message}`;
+      }
+      if(code.includes('unauthenticated')){
+        return `The Firebase login session is no longer authenticated. Please sign out, sign in again, and save again.\n\nDetails: ${message}`;
+      }
+      if(code.includes('unavailable') || code.includes('deadline-exceeded') || /network|offline|failed to fetch/i.test(message)){
+        return `Firebase could not reach the cloud service. Your general internet connection can still be working; this can be a Firebase/network request problem. Please wait a moment and try Save All again.\n\nDetails: ${message}`;
+      }
+      return `Cloud synchronization failed even though the data was saved locally.\n\nFirebase error${code ? ` (${code})` : ''}: ${message}`;
+    }
+
     async function saveCloudDb(db,mode){
       if(!currentUser) return;
-      const field = mode === "MS" ? "msData" : "voData";
+      const field = mode === "MS" ? "msData" : (mode === "SHG" ? "shgData" : "voData");
       const payload={
         [field]: {vos:Array.isArray(db.vos)?db.vos:[]},
         updatedAt: new Date().toISOString(),
         ownerUid: currentUser.uid
       };
-      // Keep legacy VO data synchronized for existing deployments.
       if(mode === "VO") payload.vos=Array.isArray(db.vos)?db.vos:[];
-      await setDoc(userDocRef(),payload,{merge:true});
+
+      try{
+        /* Keep the existing layout for small accounts. */
+        await setDoc(userDocRef(),payload,{merge:true});
+        return;
+      }catch(err){
+        /* Large accounts cannot fit in one Firestore document.  Automatically
+         * switch to one-document-per-parent storage instead of reporting a
+         * misleading internet failure. */
+        if(!isFirestoreDocumentTooLarge(err)) throw err;
+        console.warn("Legacy cloud document is too large; switching to chunked storage.",err);
+        await saveCloudDbChunked(db,mode);
+      }
     }
 
     function queueCloudSave(db){
@@ -266,7 +353,8 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/fireba
         }catch(err){
           console.error("Firebase auto-save failed:",err);
           const el=document.getElementById("saveStatus");
-          if(el) el.textContent="Local saved • Cloud save failed";
+          const code=String(err?.code||"").replace(/^firebase\./,"");
+          if(el) el.textContent=`Wait Data Saving...${code?` (${code})`:""}`;
         }
       },700);
     }
@@ -284,27 +372,29 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/fireba
     async function readAccountAccess(user){
       const snap=await getDoc(doc(firestore,"users",user.uid));
       const data=snap.exists()?(snap.data()||{}):{};
-      let access=data.access||{};
-      const pending=String(sessionStorage.getItem("pendingRegistrationSystem")||"").toUpperCase();
-      // New accounts may be created directly for either system.
-      if(access.VO!==true && access.MS!==true){
-        access=(pending==="MS")?{VO:false,MS:true}:{VO:true,MS:false};
-        await setDoc(doc(firestore,"users",user.uid),{access,updatedAt:new Date().toISOString()},{merge:true});
-      }
-      if(pending==="VO" || pending==="MS") sessionStorage.removeItem("pendingRegistrationSystem");
-      return {VO:access.VO===true,MS:access.MS===true};
+      const access=data.access||{};
+      // IMPORTANT: do not auto-grant access to a newly authenticated account.
+      // Request Access creates the Firebase Auth account first, but the requested
+      // VO/MS/SHG flag remains false until the administrator approves it.
+      if(["MS","SHG","VO"].some(k=>access[k]===true)) return {
+        VO:access.VO===true,MS:access.MS===true,SHG:access.SHG===true
+      };
+      return {VO:false,MS:false,SHG:false};
     }
 
     async function registerSystemAccess(mode){
-      if(!currentUser || !["VO","MS"].includes(mode)) throw new Error("Invalid system.");
-      const ref=doc(firestore,"users",currentUser.uid);
-      const snap=await getDoc(ref);
-      const data=snap.exists()?(snap.data()||{}):{};
-      const access={...(data.access||{})};
-      access[mode]=true;
-      await setDoc(ref,{access,updatedAt:new Date().toISOString(),profile:data.profile||{email:currentUser.email||""}},{merge:true});
-      accountAccess=access;
-      return access;
+      if(!currentUser || !["VO","MS","SHG"].includes(mode)) throw new Error("Invalid system.");
+      throw new Error("Additional system access requires administrator approval. Please use Request Access.");
+    }
+
+    function userScopedStorageKey(mode){
+      const bases={
+        VO:"vo_shg_accounting_v18",
+        MS:"ms_shg_accounting_v18",
+        SHG:"shg_member_accounting_v18"
+      };
+      const uid=window.firebaseCloud?.currentUser?.uid||"anonymous";
+      return (bases[mode]||bases.VO)+"__user_"+uid;
     }
 
     async function enterAccountingMode(mode){
@@ -312,13 +402,20 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/fireba
       activeMode=mode;
       cloudLoaded=false;
       const cloud=await loadCloudDb(mode);
-      const localKey=mode === "MS" ? "ms_shg_accounting_v18" : "vo_shg_accounting_v18";
+      // Local browser storage is strictly scoped to the Firebase UID and system.
+      // NEVER use the old shared mode key here: localStorage is shared by every
+      // user who uses the same browser/device and could otherwise expose one
+      // user's VO/MS/SHG data to another user.
+      const localKey = userScopedStorageKey(mode);
       const localRaw=localStorage.getItem(localKey);
       const localDb=localRaw ? (()=>{try{return JSON.parse(localRaw)}catch(e){return {vos:[]}}})() : {vos:[]};
       let initial=cloud||{vos:[]};
+
+      // Cloud data is authoritative. If this UID has no cloud data yet, start
+      // this user's system empty. Do NOT import any legacy/global localStorage
+      // data because that data may belong to a different Firebase user.
       if(!cloud && localDb && Array.isArray(localDb.vos) && localDb.vos.length){
-        const useLocal=confirm("No cloud data was found for this "+mode+" system.\n\nExisting data was found on this device.\n\nPress OK to upload it, or Cancel to start empty.");
-        if(useLocal) initial=localDb;
+        initial=localDb;
       }
       if(!cloud) await saveCloudDb(initial,mode);
       window.dispatchEvent(new CustomEvent("firebase-cloud-ready",{detail:{db:initial,hasCloud:!!cloud,mode}}));
@@ -327,6 +424,19 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/fireba
       const appShell=document.getElementById("appShell");
       if(loginScreen)loginScreen.classList.add("hidden");
       if(appShell)appShell.classList.remove("hidden");
+
+      // Every login starts on the main page with the Report Center CLOSED.
+      // Reports must only appear after the user explicitly clicks Show Reports.
+      const reportSection=document.getElementById("reportCenterSection");
+      if(reportSection)reportSection.classList.add("hidden");
+      const reportPreview=document.getElementById("reportPreview");
+      if(reportPreview){reportPreview.innerHTML="";reportPreview.classList.add("hidden");}
+      const reportDownloads=document.getElementById("reportDownloadActions");
+      if(reportDownloads)reportDownloads.classList.add("hidden");
+      const reportToggle=document.getElementById("showReportsBtn");
+      if(reportToggle)reportToggle.textContent="Show Reports";
+      document.querySelectorAll("#reportCenterSection .report-type-actions button").forEach(btn=>btn.classList.remove("report-selected"));
+
       const modal=document.getElementById("systemSelectModal");
       if(modal)modal.classList.add("hidden");
       return true;
@@ -337,11 +447,11 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/fireba
       const box=document.getElementById("systemSelectActions");
       if(!modal||!box)return;
       box.innerHTML="";
-      ["VO","MS"].forEach(mode=>{
+      ["VO","MS","SHG"].forEach(mode=>{
         if(!access[mode])return;
         const b=document.createElement("button");
         b.type="button"; b.className="primary";
-        b.textContent=mode === "VO" ? "Open VO → SHG" : "Open MS → VO";
+        b.textContent=mode === "VO" ? "Open VO → SHG" : (mode === "MS" ? "Open MS → VO" : "Open SHG → Member");
         b.onclick=()=>enterAccountingMode(mode).catch(err=>{const m=document.getElementById("systemSelectMsg");if(m){m.textContent=err.message||"Unable to open system.";m.className="auth-msg error";}});
         box.appendChild(b);
       });
@@ -366,7 +476,12 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/fireba
       getFirestore: ()=>firestore,
       doc,
       getDoc,
+      getDocs,
+      collection,
+      query,
+      where,
       setDoc,
+      deleteDoc,
       runTransaction,
 
       loadCloudDb,
@@ -378,14 +493,29 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/fireba
 
     onAuthStateChanged(auth, async(user)=>{
       currentUser=user||null;
+
+      // Request Access is a two-step flow: Firebase Auth must remain signed in
+      // long enough for submitAccessRequest() to create the accessRequests
+      // document.  Do NOT sign the user out here.  The previous version did
+      // that immediately, so the following Firestore setDoc() ran after Auth
+      // had already been cleared and returned "Missing or insufficient
+      // permissions".  submitAccessRequest() signs out only AFTER the request
+      // has been successfully written.
+      if(user && sessionStorage.getItem("accessRequestInProgress")==="1"){
+        return;
+      }
+
       if(!user){
+        sessionStorage.removeItem("accessRequestInProgress");
         clearInactivityTimer();
         cloudLoaded=false;
-        accountAccess={VO:false,MS:false};
+        accountAccess={VO:false,MS:false,SHG:false};
         const loginScreen=document.getElementById("loginScreen");
         const appShell=document.getElementById("appShell");
         if(loginScreen)loginScreen.classList.remove("hidden");
         if(appShell)appShell.classList.add("hidden");
+        const loggedInAs=document.getElementById("loggedInAs");
+        if(loggedInAs)loggedInAs.textContent="Logged in As : —";
         const selector=document.getElementById("systemSelectModal");
         if(selector)selector.classList.add("hidden");
         return;
@@ -395,9 +525,21 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/fireba
       const loginScreen=document.getElementById("loginScreen");
       const appShell=document.getElementById("appShell");
       const loginError=document.getElementById("loginError");
+      const loggedInAs=document.getElementById("loggedInAs");
+      if(loggedInAs)loggedInAs.textContent="Logged in As : "+(user.email||"");
 
       try{
         accountAccess=await readAccountAccess(user);
+        try{
+          const profileSnap=await window.firebaseCloud.getDoc(
+            window.firebaseCloud.doc(window.firebaseCloud.getFirestore(),"users",user.uid)
+          );
+          const profileData=profileSnap.exists()?(profileSnap.data()||{}):{};
+          const profile=profileData.profile||{};
+          if(loggedInAs)loggedInAs.textContent="Logged in As : "+String(profile.name||user.displayName||user.email||"");
+        }catch(nameErr){
+          console.warn("Could not load logged-in name:",nameErr);
+        }
 
         // Migrate older accounts: keep username/email indexes and make VO access explicit.
         try{
