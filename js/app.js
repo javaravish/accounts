@@ -390,28 +390,71 @@
         }
         raw.demandInterest=monthlyInterest(raw.opening,currentRate);
 
-        /*
-         * Current Month Principal is valid data by itself.  The value the
-         * user has entered on the current screen is authoritative for this
-         * month.  Immediately propagate that value through every later
-         * saved month so repeated edits/saves always remain consistent.
-         */
-        const demandPrincipalEntered=hasValue(document.getElementById("demandP-"+rowIndex)?.value);
+        const demandPrincipalEntered=
+          hasValue(document.getElementById("demandP-"+rowIndex)?.value);
+
         if(monthIsConsidered(raw)||hasSavingData||demandPrincipalEntered){
+
+          const previousSaved=account.months[key];
+
+          const previousSavedValue=
+            previousSaved && hasValue(previousSaved.demandPrincipal)
+              ? Number(previousSaved.demandPrincipal)||0
+              : null;
+
+          const currentValue=
+            hasValue(raw.demandPrincipal)
+              ? Number(raw.demandPrincipal)||0
+              : 0;
+
+          const previousMonthKey=
+            monthIndex>0 ? MONTHS[monthIndex-1][0] : null;
+
+          const previousMonth=
+            previousMonthKey ? account.months[previousMonthKey] : null;
+
+          const previousMonthValue=
+            previousMonth && hasValue(previousMonth.demandPrincipal)
+              ? Number(previousMonth.demandPrincipal)||0
+              : null;
+
+          raw.demandPrincipalManual=
+            monthIndex===0 ||
+            previousMonthValue===null ||
+            currentValue!==previousMonthValue;
+
           account.months[key]=raw;
 
+          /*
+           * Propagate the current baseline forward until another
+           * manually changed month is encountered.
+           */
+          let baseline=currentValue;
+
           for(let mi=monthIndex+1;mi<MONTHS.length;mi++){
+
             const futureKey=MONTHS[mi][0];
             const future=account.months[futureKey];
+
             if(!future)continue;
-            const previous=account.months[MONTHS[mi-1][0]];
-            if(previous && hasValue(previous.demandPrincipal)){
-              future.demandPrincipal=Number(previous.demandPrincipal)||0;
-              future.demandInterest=monthlyInterest(future.opening,account.interestRate);
-              account.months[futureKey]=future;
-            }
+
+            /*
+             * This month is a manual boundary.
+             * Do not overwrite it or anything after it.
+             */
+            if(future.demandPrincipalManual===true)break;
+
+            future.demandPrincipal=baseline;
+            future.demandPrincipalManual=false;
+
+            future.demandInterest=
+              monthlyInterest(future.opening,account.interestRate);
+
+            account.months[futureKey]=future;
           }
+
         }else if(account.months[key]){
+
           delete account.months[key];
         }
       });
@@ -464,6 +507,7 @@
             loan.interestRate=Number(v.loanInterestRates[type.key]||12);
           }
           loan.name=member.name;
+          ensureDemandPrincipalFlags(loan);
           member.loans[type.key]=loan;
         });
       });
@@ -505,8 +549,59 @@
       populateMemberFilter();
       if(memberSel)memberSel.value=selectedMemberId;
     }
+    function blank(){
+      return{
+        opening:0,
+        prevPrincipal:0,
+        prevInterest:0,
+        demandPrincipal:0,
+        demandPrincipalManual:false,
+        demandPrincipalEditBaseline:undefined,
+        demandInterest:0,
+        principalCollection:0,
+        interestCollection:0,
+        newLoan:0,
+        savingOpening:0,
+        savingCurrent:0,
+        savingDisbursed:0
+      };
+    }
+    /* Track whether Current Month Principal is a manual baseline
+       or an automatically inherited value. */
+    function ensureDemandPrincipalFlags(account){
+      if(!account)return;
+      if(!account.months)account.months={};
 
-    function blank(){return{opening:0,prevPrincipal:0,prevInterest:0,demandPrincipal:0,demandInterest:0,principalCollection:0,interestCollection:0,newLoan:0,savingOpening:0,savingCurrent:0,savingDisbursed:0};}
+      let previousValue=null;
+
+      MONTHS.forEach((m,index)=>{
+        const key=m[0];
+        const d=account.months[key];
+
+        if(!d){
+          return;
+        }
+
+        const value=hasValue(d.demandPrincipal)
+          ? Number(d.demandPrincipal)||0
+          : 0;
+
+        /*
+         * A month is a manual boundary ONLY when its principal
+         * is different from the previous month's principal.
+         *
+         * Same value as previous month = inherited, even if the
+         * user saved/entered that month manually.
+         */
+        if(index===0 || previousValue===null){
+          d.demandPrincipalManual=true;
+        }else{
+          d.demandPrincipalManual=(value!==previousValue);
+        }
+
+        previousValue=value;
+      });
+    }
     function hasValue(x){return x!==undefined&&x!==null&&String(x).trim()!=="";}
     function monthIsConsidered(d){
       if(!d)return false;
@@ -940,6 +1035,87 @@
      else if(nextMonthStart){const prev=safePrevMonth(account,monthIndex);if(prev){const pc=calc(prev);opening=pc.totalLoanBalance;prevP=pc.balancePrincipal;prevI=pc.balanceInterest;}}
      else if(!april){const prev=safePrevMonth(account,monthIndex);if(prev){const pc=calc(prev);opening=pc.totalLoanBalance;prevP=pc.balancePrincipal;prevI=pc.balanceInterest;}}
      const demandI=monthlyInterest(opening,rate);
+     /*
+      * Live Current Month Principal propagation.
+      *
+      * When the user types a principal in the current month,
+      * immediately store the value as the current manual baseline
+      * and prepare all following months to inherit it.
+      */
+     const demandPrincipalInput=document.getElementById("demandP-"+i);
+
+     if(demandPrincipalInput && hasValue(demandPrincipalInput.value)){
+
+       const currentKey=MONTHS[monthIndex][0];
+
+       const currentDemandPrincipal=
+         Number(demandPrincipalInput.value)||0;
+
+       const currentData=account.months[currentKey]||blank();
+
+       /*
+        * Remember the value this month had before the current
+        * manual edit. If it has not been established yet,
+        * use the existing stored value.
+        */
+       if(currentData.demandPrincipalEditBaseline===undefined){
+
+         currentData.demandPrincipalEditBaseline=
+           hasValue(currentData.demandPrincipal)
+             ? Number(currentData.demandPrincipal)||0
+             : null;
+       }
+
+       /*
+        * A month becomes a manual boundary only if the final
+        * entered value is different from its inherited baseline.
+        */
+       const editBaseline=
+         currentData.demandPrincipalEditBaseline;
+
+       const isManualBoundary=
+         editBaseline===null ||
+         currentDemandPrincipal!==editBaseline;
+
+       currentData.demandPrincipal=currentDemandPrincipal;
+       currentData.demandPrincipalManual=isManualBoundary;
+       currentData.demandInterest=demandI;
+
+       account.months[currentKey]=currentData;
+
+       /*
+        * Propagate to every future month until a REAL manual
+        * boundary is encountered.
+        */
+       for(let mi=monthIndex+1;mi<MONTHS.length;mi++){
+
+         const futureKey=MONTHS[mi][0];
+         const existingFuture=account.months[futureKey];
+
+         /*
+          * Stop only if this future month has a genuinely
+          * different manually entered principal.
+          */
+         if(existingFuture &&
+            existingFuture.demandPrincipalManual===true){
+
+           break;
+         }
+
+         const future=existingFuture||blank();
+
+         future.demandPrincipal=currentDemandPrincipal;
+         future.demandPrincipalManual=false;
+
+         future.demandPrincipalEditBaseline=
+           currentDemandPrincipal;
+
+         future.demandInterest=
+           monthlyInterest(future.opening,rate);
+
+         account.months[futureKey]=future;
+       }
+     }
      const interestEl=document.getElementById("demandI-"+i);if(interestEl)interestEl.value=demandI;
      const totalDP=prevP+demandP,totalDI=prevI+demandI;
      const c=calc({...d,opening,prevPrincipal:prevP,prevInterest:prevI,demandPrincipal:demandP,demandInterest:demandI});
@@ -1073,7 +1249,10 @@
          * month creates a new value from that month forward, and repeating
          * Save All never destroys the user's latest change.
          */
+        ensureDemandPrincipalFlags(account);
+
         let carriedDemandPrincipal=0;
+        let hasBaseline=false;
         MONTHS.forEach((m,mi)=>{
           const key=m[0];
           const existing=account.months[key];
@@ -1082,27 +1261,85 @@
           if(mi<startIdx)return;
 
           const creationMonth=(startIdx>0&&mi===startIdx);
+
           if(creationMonth){
+
             d.opening=0;
             d.prevPrincipal=0;
             d.prevInterest=0;
             d.demandPrincipal=0;
             d.principalCollection=0;
             d.interestCollection=0;
+            d.demandPrincipalManual=false;
+
             carriedDemandPrincipal=0;
+            hasBaseline=false;
+
           }else{
-            if(existing && hasValue(existing.demandPrincipal)){
-              // Existing value is the user's latest value for this month.
-              carriedDemandPrincipal=Number(existing.demandPrincipal)||0;
-            }else{
-              // No saved value yet: inherit the immediately previous month.
+
+            const previousMonthKey=
+              mi>0 ? MONTHS[mi-1][0] : null;
+
+            const previousMonth=
+              previousMonthKey ? account.months[previousMonthKey] : null;
+
+            const previousMonthValue=
+              previousMonth && hasValue(previousMonth.demandPrincipal)
+                ? Number(previousMonth.demandPrincipal)||0
+                : null;
+
+            const existingValue=
+              existing && hasValue(existing.demandPrincipal)
+                ? Number(existing.demandPrincipal)||0
+                : null;
+
+            /*
+             * The value is a manual boundary only when it is different
+             * from the previous month's value.
+             */
+            if(existingValue!==null &&
+               (previousMonthValue===null ||
+                existingValue!==previousMonthValue)){
+
+              d.demandPrincipal=existingValue;
+              d.demandPrincipalManual=true;
+
+              carriedDemandPrincipal=existingValue;
+              hasBaseline=true;
+
+            }else if(hasBaseline){
+
+              /*
+               * Same value as previous month = inherited.
+               */
               d.demandPrincipal=carriedDemandPrincipal;
+              d.demandPrincipalManual=false;
+
+            }else if(existingValue!==null){
+
+              /*
+               * First available principal becomes the initial baseline.
+               */
+              d.demandPrincipal=existingValue;
+              d.demandPrincipalManual=true;
+
+              carriedDemandPrincipal=existingValue;
+              hasBaseline=true;
+
+            }else{
+
+              d.demandPrincipal=carriedDemandPrincipal;
+              d.demandPrincipalManual=false;
             }
 
             if(mi>0){
+
               const prev=lastConsideredMonth(account,mi);
+
               if(prev){
+
                 const pc=calc(prev.data);
+
                 d.opening=pc.totalLoanBalance;
                 d.prevPrincipal=pc.balancePrincipal;
                 d.prevInterest=pc.balanceInterest;
@@ -1110,9 +1347,15 @@
             }
           }
 
-          // Keep the carried value in sync with the final value written.
-          carriedDemandPrincipal=Number(d.demandPrincipal)||0;
-          d.demandInterest=monthlyInterest(d.opening,account.interestRate);
+          /*
+           * Keep the carried value synchronized with the value written.
+           */
+          carriedDemandPrincipal=
+            Number(d.demandPrincipal)||0;
+
+          d.demandInterest=
+            monthlyInterest(d.opening,account.interestRate);
+
           account.months[key]=d;
         });
       });
