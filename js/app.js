@@ -556,7 +556,6 @@
         prevInterest:0,
         demandPrincipal:0,
         demandPrincipalManual:false,
-        demandPrincipalEditBaseline:undefined,
         demandInterest:0,
         principalCollection:0,
         interestCollection:0,
