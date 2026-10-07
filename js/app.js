@@ -390,71 +390,43 @@
         }
         raw.demandInterest=monthlyInterest(raw.opening,currentRate);
 
-        const demandPrincipalEntered=
-          hasValue(document.getElementById("demandP-"+rowIndex)?.value);
-
+        /*
+         * Current Month Principal is valid data by itself.  The value the
+         * user has entered on the current screen is authoritative for this
+         * month.  Immediately propagate that value through every later
+         * saved month so repeated edits/saves always remain consistent.
+         */
+        const demandPrincipalEntered=hasValue(document.getElementById("demandP-"+rowIndex)?.value);
         if(monthIsConsidered(raw)||hasSavingData||demandPrincipalEntered){
-
           const previousSaved=account.months[key];
+          const previousSavedValue=previousSaved&&hasValue(previousSaved.demandPrincipal)
+            ? Number(previousSaved.demandPrincipal)||0
+            : null;
+          const currentValue=hasValue(raw.demandPrincipal)?Number(raw.demandPrincipal)||0:0;
 
-          const previousSavedValue=
-            previousSaved && hasValue(previousSaved.demandPrincipal)
-              ? Number(previousSaved.demandPrincipal)||0
-              : null;
-
-          const currentValue=
-            hasValue(raw.demandPrincipal)
-              ? Number(raw.demandPrincipal)||0
-              : 0;
-
-          const previousMonthKey=
-            monthIndex>0 ? MONTHS[monthIndex-1][0] : null;
-
-          const previousMonth=
-            previousMonthKey ? account.months[previousMonthKey] : null;
-
-          const previousMonthValue=
-            previousMonth && hasValue(previousMonth.demandPrincipal)
-              ? Number(previousMonth.demandPrincipal)||0
-              : null;
-
-          raw.demandPrincipalManual=
-            monthIndex===0 ||
-            previousMonthValue===null ||
-            currentValue!==previousMonthValue;
+          // Only a changed value creates a new manual baseline. Saving an
+          // unchanged screen does not turn an inherited month into a boundary.
+          raw.demandPrincipalManual = previousSaved
+            ? (previousSavedValue===null || currentValue!==previousSavedValue
+                ? true
+                : previousSaved.demandPrincipalManual===true)
+            : demandPrincipalEntered;
 
           account.months[key]=raw;
 
-          /*
-           * Propagate the current baseline forward until another
-           * manually changed month is encountered.
-           */
+          // Propagate forward until the next manually changed month.
           let baseline=currentValue;
-
           for(let mi=monthIndex+1;mi<MONTHS.length;mi++){
-
             const futureKey=MONTHS[mi][0];
             const future=account.months[futureKey];
-
             if(!future)continue;
-
-            /*
-             * This month is a manual boundary.
-             * Do not overwrite it or anything after it.
-             */
             if(future.demandPrincipalManual===true)break;
-
             future.demandPrincipal=baseline;
             future.demandPrincipalManual=false;
-
-            future.demandInterest=
-              monthlyInterest(future.opening,account.interestRate);
-
+            future.demandInterest=monthlyInterest(future.opening,account.interestRate);
             account.months[futureKey]=future;
           }
-
         }else if(account.months[key]){
-
           delete account.months[key];
         }
       });
@@ -476,7 +448,7 @@
       }
       return false;
     }
-    window.addEventListener("beforeunload",function(e){if(dirty){e.preventDefault();e.returnValue="Unsaved changes will be lost.";}});
+    window.addEventListener("beforeunload",function(e){if(dirty&&!window.__adminActive){e.preventDefault();e.returnValue="Unsaved changes will be lost.";}});
 
     const SHG_LOAN_TYPES=ACCOUNTING_CONFIG.SHG.loanTypes;
     function isSHGMode(){return modeConfig().parent==="SHG";}
@@ -549,59 +521,29 @@
       populateMemberFilter();
       if(memberSel)memberSel.value=selectedMemberId;
     }
-    function blank(){
-      return{
-        opening:0,
-        prevPrincipal:0,
-        prevInterest:0,
-        demandPrincipal:0,
-        demandPrincipalManual:false,
-        demandInterest:0,
-        principalCollection:0,
-        interestCollection:0,
-        newLoan:0,
-        savingOpening:0,
-        savingCurrent:0,
-        savingDisbursed:0
-      };
-    }
-    /* Track whether Current Month Principal is a manual baseline
-       or an automatically inherited value. */
+
+    function blank(){return{opening:0,prevPrincipal:0,prevInterest:0,demandPrincipal:0,demandInterest:0,principalCollection:0,interestCollection:0,newLoan:0,savingOpening:0,savingCurrent:0,savingDisbursed:0,demandPrincipalManual:false};}
+    function hasValue(x){return x!==undefined&&x!==null&&String(x).trim()!=="";}
+
+    /* Track whether Current Month Principal is a manual baseline or an
+       automatically inherited value. Older records are migrated by comparing
+       each saved value with the previous saved value. */
     function ensureDemandPrincipalFlags(account){
       if(!account)return;
       if(!account.months)account.months={};
-
+      const entries=MONTHS.map(m=>m[0]).filter(key=>account.months[key]);
       let previousValue=null;
-
-      MONTHS.forEach((m,index)=>{
-        const key=m[0];
+      entries.forEach((key,index)=>{
         const d=account.months[key];
-
-        if(!d){
+        if(typeof d.demandPrincipalManual==="boolean"){
+          previousValue=hasValue(d.demandPrincipal)?Number(d.demandPrincipal)||0:previousValue;
           return;
         }
-
-        const value=hasValue(d.demandPrincipal)
-          ? Number(d.demandPrincipal)||0
-          : 0;
-
-        /*
-         * A month is a manual boundary ONLY when its principal
-         * is different from the previous month's principal.
-         *
-         * Same value as previous month = inherited, even if the
-         * user saved/entered that month manually.
-         */
-        if(index===0 || previousValue===null){
-          d.demandPrincipalManual=true;
-        }else{
-          d.demandPrincipalManual=(value!==previousValue);
-        }
-
+        const value=hasValue(d.demandPrincipal)?Number(d.demandPrincipal)||0:0;
+        d.demandPrincipalManual=(index===0 || previousValue===null || value!==previousValue);
         previousValue=value;
       });
     }
-    function hasValue(x){return x!==undefined&&x!==null&&String(x).trim()!=="";}
     function monthIsConsidered(d){
       if(!d)return false;
 
@@ -682,7 +624,44 @@
     }
 
     function goHome(){
-      if(!confirmSwitch("returning to the initial page"))return;
+      const returningFromAdmin=window.__adminActive===true;
+      if(returningFromAdmin){
+        /* Admin is a separate management workspace. Returning Home must go
+         * straight back to the same accounting system that was active before
+         * Admin was opened. Never show the multi-system login selector here. */
+        if(dirty){try{db=readDb();}catch(e){}markClean();}
+        window.__adminActive=false;
+        window.__returningFromAdmin=false;
+
+        const adminSection=document.getElementById("adminSection");
+        if(adminSection)adminSection.classList.add("hidden");
+        selectedVOId=null;
+        monthIndex=0;
+        currentFinancialYear="";
+        MONTHS=buildMonths(currentFinancialYear);
+
+        document.getElementById("voSelectionSection").classList.remove("hidden");
+        document.getElementById("voDetailsSection").classList.add("hidden");
+        const homeNewVoBtn=document.getElementById("homeNewVoBtn");
+        if(homeNewVoBtn)homeNewVoBtn.style.setProperty("display","inline-block","important");
+        document.getElementById("dashboard").classList.add("hidden");
+        // Admin is a temporary workspace. Returning Home restores the normal
+        // Home page, including Data Management, for the same accounting mode.
+        document.getElementById("dataManagementSection").classList.remove("hidden");
+        document.getElementById("newVoForm").classList.add("hidden");
+        document.getElementById("newVoName").value="";
+        document.getElementById("saveStatus").textContent="";
+        markClean();
+        refresh();
+        document.getElementById("voSelect")?.focus();
+        return;
+      }
+
+      if(!confirmSwitch("returning to the initial page")){
+        return;
+      }
+      const adminSection=document.getElementById("adminSection");
+      if(adminSection)adminSection.classList.add("hidden");
       selectedVOId=null;
       monthIndex=0;
       currentFinancialYear="";
@@ -1034,87 +1013,6 @@
      else if(nextMonthStart){const prev=safePrevMonth(account,monthIndex);if(prev){const pc=calc(prev);opening=pc.totalLoanBalance;prevP=pc.balancePrincipal;prevI=pc.balanceInterest;}}
      else if(!april){const prev=safePrevMonth(account,monthIndex);if(prev){const pc=calc(prev);opening=pc.totalLoanBalance;prevP=pc.balancePrincipal;prevI=pc.balanceInterest;}}
      const demandI=monthlyInterest(opening,rate);
-     /*
-      * Live Current Month Principal propagation.
-      *
-      * When the user types a principal in the current month,
-      * immediately store the value as the current manual baseline
-      * and prepare all following months to inherit it.
-      */
-     const demandPrincipalInput=document.getElementById("demandP-"+i);
-
-     if(demandPrincipalInput && hasValue(demandPrincipalInput.value)){
-
-       const currentKey=MONTHS[monthIndex][0];
-
-       const currentDemandPrincipal=
-         Number(demandPrincipalInput.value)||0;
-
-       const currentData=account.months[currentKey]||blank();
-
-       /*
-        * Remember the value this month had before the current
-        * manual edit. If it has not been established yet,
-        * use the existing stored value.
-        */
-       if(currentData.demandPrincipalEditBaseline===undefined){
-
-         currentData.demandPrincipalEditBaseline=
-           hasValue(currentData.demandPrincipal)
-             ? Number(currentData.demandPrincipal)||0
-             : null;
-       }
-
-       /*
-        * A month becomes a manual boundary only if the final
-        * entered value is different from its inherited baseline.
-        */
-       const editBaseline=
-         currentData.demandPrincipalEditBaseline;
-
-       const isManualBoundary=
-         editBaseline===null ||
-         currentDemandPrincipal!==editBaseline;
-
-       currentData.demandPrincipal=currentDemandPrincipal;
-       currentData.demandPrincipalManual=isManualBoundary;
-       currentData.demandInterest=demandI;
-
-       account.months[currentKey]=currentData;
-
-       /*
-        * Propagate to every future month until a REAL manual
-        * boundary is encountered.
-        */
-       for(let mi=monthIndex+1;mi<MONTHS.length;mi++){
-
-         const futureKey=MONTHS[mi][0];
-         const existingFuture=account.months[futureKey];
-
-         /*
-          * Stop only if this future month has a genuinely
-          * different manually entered principal.
-          */
-         if(existingFuture &&
-            existingFuture.demandPrincipalManual===true){
-
-           break;
-         }
-
-         const future=existingFuture||blank();
-
-         future.demandPrincipal=currentDemandPrincipal;
-         future.demandPrincipalManual=false;
-
-         future.demandPrincipalEditBaseline=
-           currentDemandPrincipal;
-
-         future.demandInterest=
-           monthlyInterest(future.opening,rate);
-
-         account.months[futureKey]=future;
-       }
-     }
      const interestEl=document.getElementById("demandI-"+i);if(interestEl)interestEl.value=demandI;
      const totalDP=prevP+demandP,totalDI=prevI+demandI;
      const c=calc({...d,opening,prevPrincipal:prevP,prevInterest:prevI,demandPrincipal:demandP,demandInterest:demandI});
@@ -1249,7 +1147,6 @@
          * Save All never destroys the user's latest change.
          */
         ensureDemandPrincipalFlags(account);
-
         let carriedDemandPrincipal=0;
         let hasBaseline=false;
         MONTHS.forEach((m,mi)=>{
@@ -1260,9 +1157,7 @@
           if(mi<startIdx)return;
 
           const creationMonth=(startIdx>0&&mi===startIdx);
-
           if(creationMonth){
-
             d.opening=0;
             d.prevPrincipal=0;
             d.prevInterest=0;
@@ -1270,75 +1165,32 @@
             d.principalCollection=0;
             d.interestCollection=0;
             d.demandPrincipalManual=false;
-
             carriedDemandPrincipal=0;
             hasBaseline=false;
-
           }else{
-
-            const previousMonthKey=
-              mi>0 ? MONTHS[mi-1][0] : null;
-
-            const previousMonth=
-              previousMonthKey ? account.months[previousMonthKey] : null;
-
-            const previousMonthValue=
-              previousMonth && hasValue(previousMonth.demandPrincipal)
-                ? Number(previousMonth.demandPrincipal)||0
-                : null;
-
-            const existingValue=
-              existing && hasValue(existing.demandPrincipal)
-                ? Number(existing.demandPrincipal)||0
-                : null;
-
-            /*
-             * The value is a manual boundary only when it is different
-             * from the previous month's value.
-             */
-            if(existingValue!==null &&
-               (previousMonthValue===null ||
-                existingValue!==previousMonthValue)){
-
-              d.demandPrincipal=existingValue;
-              d.demandPrincipalManual=true;
-
-              carriedDemandPrincipal=existingValue;
+            if(existing && existing.demandPrincipalManual===true){
+              // Manual month: start a new baseline.
+              carriedDemandPrincipal=Number(existing.demandPrincipal)||0;
               hasBaseline=true;
-
+              d.demandPrincipalManual=true;
             }else if(hasBaseline){
-
-              /*
-               * Same value as previous month = inherited.
-               */
+              // Inherited month: follow the latest manual baseline.
               d.demandPrincipal=carriedDemandPrincipal;
               d.demandPrincipalManual=false;
-
-            }else if(existingValue!==null){
-
-              /*
-               * First available principal becomes the initial baseline.
-               */
-              d.demandPrincipal=existingValue;
-              d.demandPrincipalManual=true;
-
-              carriedDemandPrincipal=existingValue;
+            }else if(existing && hasValue(existing.demandPrincipal)){
+              // Preserve sparse legacy data when no prior baseline exists.
+              carriedDemandPrincipal=Number(existing.demandPrincipal)||0;
               hasBaseline=true;
-
+              d.demandPrincipalManual=true;
             }else{
-
               d.demandPrincipal=carriedDemandPrincipal;
               d.demandPrincipalManual=false;
             }
 
             if(mi>0){
-
               const prev=lastConsideredMonth(account,mi);
-
               if(prev){
-
                 const pc=calc(prev.data);
-
                 d.opening=pc.totalLoanBalance;
                 d.prevPrincipal=pc.balancePrincipal;
                 d.prevInterest=pc.balanceInterest;
@@ -1346,15 +1198,8 @@
             }
           }
 
-          /*
-           * Keep the carried value synchronized with the value written.
-           */
-          carriedDemandPrincipal=
-            Number(d.demandPrincipal)||0;
-
-          d.demandInterest=
-            monthlyInterest(d.opening,account.interestRate);
-
+          carriedDemandPrincipal=Number(d.demandPrincipal)||0;
+          d.demandInterest=monthlyInterest(d.opening,account.interestRate);
           account.months[key]=d;
         });
       });
@@ -5868,6 +5713,8 @@ html,body{
     document.getElementById("showReportsBtn").onclick=toggleReportCenter;
     const reportsNavBtn=document.getElementById("reportsNavBtn");
     if(reportsNavBtn)reportsNavBtn.onclick=()=>{
+      const adminSection=document.getElementById("adminSection");
+      if(adminSection)adminSection.classList.add("hidden");
       const reportSection=document.getElementById("reportCenterSection");
       const toggle=document.getElementById("showReportsBtn");
       if(reportSection && reportSection.classList.contains("hidden") && toggle) toggle.click();
@@ -5944,6 +5791,68 @@ html,body{
       button.classList.add("button-success-flash");
       setTimeout(()=>button.classList.remove("button-success-flash"),600);
     },true);
+
+
+    /* =========================================================
+       ADMIN REPORT BRIDGE
+       ---------------------------------------------------------
+       The Admin page can reuse the existing PDF renderer without changing
+       the normal user's data/session. The selected user database is swapped
+       in only while the existing print function builds the PDF, then every
+       accounting variable is restored immediately.
+       ========================================================= */
+    window.adminPrintUserReport=function(userDb,mode,recordId,reportType){
+      if(!userDb || !Array.isArray(userDb.vos) || !userDb.vos.length){
+        alert("This user has no data for the selected system.");
+        return;
+      }
+      const target=userDb.vos.find(v=>String(v.id)===String(recordId))||userDb.vos[0];
+      if(!target){alert("No data record is available.");return;}
+
+      const old={
+        db,
+        selectedVOId,
+        currentMode,
+        currentFinancialYear,
+        MONTHS:[...MONTHS],
+        reportPreviewActive,
+        reportPreviewMemberId,
+        reportPreviewLoanType,
+        reportPreviewMonth
+      };
+
+      try{
+        db=userDb;
+        selectedVOId=target.id;
+        currentMode=["VO","MS","SHG"].includes(String(mode).toUpperCase())?String(mode).toUpperCase():"VO";
+        currentFinancialYear=String(target.financialYear||"");
+        MONTHS=buildMonths(currentFinancialYear);
+        reportPreviewActive=false;
+        reportPreviewMemberId="ALL";
+        reportPreviewLoanType=defaultLoanTypeKey();
+        reportPreviewMonth="ALL";
+
+        const type=String(reportType||"DCB").toUpperCase();
+        if(type==="DCB") monthlyPDF(false);
+        else if(type==="LL") ledgerPDF(false);
+        else if(type==="CUMULATIVE") cumulativeDcbPDF(false);
+        else if(type==="ALL") allPdfsPDF();
+        else throw new Error("Unknown report type.");
+      }catch(err){
+        console.error("Admin report generation failed:",err);
+        alert(err.message||"Unable to generate the report.");
+      }finally{
+        db=old.db;
+        selectedVOId=old.selectedVOId;
+        currentMode=old.currentMode;
+        currentFinancialYear=old.currentFinancialYear;
+        MONTHS=old.MONTHS;
+        reportPreviewActive=old.reportPreviewActive;
+        reportPreviewMemberId=old.reportPreviewMemberId;
+        reportPreviewLoanType=old.reportPreviewLoanType;
+        reportPreviewMonth=old.reportPreviewMonth;
+      }
+    };
 
     /* Initial dashboard refresh is performed after successful login. */
     })();

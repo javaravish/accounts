@@ -152,10 +152,41 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/fireba
     let accountAccess = {VO:false,MS:false,SHG:false};
     let cloudLoaded = false;
     let saveTimer = null;
+    let presenceTimer = null;
 
     function userDocRef(){
       if(!currentUser) return null;
       return doc(firestore, "users", currentUser.uid);
+    }
+
+    async function updatePresence(isOnline, writeLogin){
+      if(!currentUser) return;
+      const payload={
+        presence:{
+          online:!!isOnline,
+          lastSeenAt:new Date().toISOString()
+        },
+        updatedAt:new Date().toISOString()
+      };
+      if(writeLogin) payload.lastLoginAt=new Date().toISOString();
+      try{
+        await setDoc(userDocRef(),payload,{merge:true});
+      }catch(err){
+        console.warn("Presence update failed:",err);
+      }
+    }
+
+    function startPresenceHeartbeat(writeLogin){
+      if(presenceTimer)clearInterval(presenceTimer);
+      updatePresence(true,writeLogin);
+      presenceTimer=setInterval(()=>{
+        if(currentUser && document.visibilityState!=="hidden") updatePresence(true,false);
+      },30000);
+    }
+
+    function stopPresenceHeartbeat(){
+      if(presenceTimer){clearInterval(presenceTimer);presenceTimer=null;}
+      if(currentUser) updatePresence(false,false);
     }
 
     async function ensureAccountLookupForUser(user, cloudData){
@@ -469,7 +500,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/fireba
       signIn: (email,password)=>signInWithEmailAndPassword(auth,email,password),
       signUp: (email,password)=>createUserWithEmailAndPassword(auth,email,password),
       deleteCurrentUser: ()=>currentUser ? deleteUser(currentUser) : Promise.resolve(),
-      logout: ()=>signOut(auth),
+      logout: async()=>{ await updatePresence(false,false); return signOut(auth); },
       sendPasswordResetEmail: (email)=>sendPasswordResetEmail(auth,email),
 
       // Firestore helpers used by Profile, username lookup and account creation.
@@ -488,8 +519,20 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/fireba
       saveCloudDb,
       queueCloudSave,
       saveNowBeforeLogout,
-      setCloudLoaded(v){cloudLoaded=!!v;}
+      setCloudLoaded(v){cloudLoaded=!!v;},
+      showAccountingSystemSelector:()=>showSystemSelector(accountAccess)
     };
+    window.showAccountingSystemSelector=()=>showSystemSelector(accountAccess);
+
+    document.addEventListener("visibilitychange",()=>{
+      if(!currentUser)return;
+      if(document.visibilityState==="hidden") updatePresence(false,false);
+      else updatePresence(true,false);
+    });
+
+    window.addEventListener("beforeunload",()=>{
+      if(currentUser) updatePresence(false,false);
+    });
 
     onAuthStateChanged(auth, async(user)=>{
       currentUser=user||null;
@@ -506,6 +549,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/fireba
       }
 
       if(!user){
+        stopPresenceHeartbeat();
         sessionStorage.removeItem("accessRequestInProgress");
         clearInactivityTimer();
         cloudLoaded=false;
@@ -516,6 +560,11 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/fireba
         if(appShell)appShell.classList.add("hidden");
         const loggedInAs=document.getElementById("loggedInAs");
         if(loggedInAs)loggedInAs.textContent="Logged in As : —";
+        window.__adminAuthorized=false;
+        const adminNavBtn=document.getElementById("adminNavBtn");
+        if(adminNavBtn)adminNavBtn.classList.add("hidden");
+        const adminSection=document.getElementById("adminSection");
+        if(adminSection)adminSection.classList.add("hidden");
         const selector=document.getElementById("systemSelectModal");
         if(selector)selector.classList.add("hidden");
         return;
@@ -530,6 +579,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/fireba
 
       try{
         accountAccess=await readAccountAccess(user);
+        startPresenceHeartbeat(true);
         try{
           const profileSnap=await window.firebaseCloud.getDoc(
             window.firebaseCloud.doc(window.firebaseCloud.getFirestore(),"users",user.uid)
@@ -537,6 +587,15 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/fireba
           const profileData=profileSnap.exists()?(profileSnap.data()||{}):{};
           const profile=profileData.profile||{};
           if(loggedInAs)loggedInAs.textContent="Logged in As : "+String(profile.name||user.displayName||user.email||"");
+
+          // Admin navigation is decided from the freshly loaded Firestore
+          // profile.  This avoids the race where the Admin module checks
+          // before the authentication/profile flow has finished loading.
+          const adminNavBtn=document.getElementById("adminNavBtn");
+          const isAdminUser=String(profile.role||"").trim().toLowerCase()==="admin" ||
+            String(profile.username||"").trim().toLowerCase()==="chary";
+          window.__adminAuthorized=!!isAdminUser;
+          if(adminNavBtn)adminNavBtn.classList.toggle("hidden",!isAdminUser);
         }catch(nameErr){
           console.warn("Could not load logged-in name:",nameErr);
         }
