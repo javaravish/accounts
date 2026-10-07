@@ -621,3 +621,448 @@
             grid-column:1 / -1 !important;
         }
     }
+
+
+/* ================================================================
+   ADMIN TAB — RESPONSIVE ONLY
+   Desktop / Tablet / Mobile
+   ---------------------------------------------------------------
+   UI-only rules. No Admin HTML/JS/Firebase/application behaviour
+   is changed by this block.
+   ================================================================ */
+
+/* Desktop: use the available width cleanly and prevent accidental
+   overflow from long user/email/action content. */
+#adminSection{
+  width:100%;
+  min-width:0;
+  box-sizing:border-box;
+}
+
+#adminSection .admin-page-heading,
+#adminSection .admin-workspace,
+#adminSection .admin-stats-grid,
+#adminSection .admin-main-card,
+#adminSection .admin-details-card{
+  min-width:0;
+  box-sizing:border-box;
+}
+
+#adminSection .admin-page-heading{
+  gap:14px;
+}
+
+#adminSection .admin-page-heading > div{
+  min-width:0;
+}
+
+#adminSection .admin-page-heading p{
+  overflow-wrap:anywhere;
+}
+
+#adminSection .admin-stat-card{
+  min-width:0;
+  box-sizing:border-box;
+}
+
+#adminSection .admin-stat-card > div:last-child{
+  min-width:0;
+}
+
+#adminSection .admin-stat-card strong,
+#adminSection .admin-stat-card span{
+  overflow-wrap:anywhere;
+}
+
+#adminSection .admin-workspace{
+  width:100%;
+}
+
+#adminSection .admin-main-card{
+  overflow:hidden;
+}
+
+#adminSection .admin-details-card{
+  min-width:0;
+}
+
+#adminSection .admin-tabs{
+  min-width:0;
+}
+
+#adminSection .admin-table-wrap,
+#adminSection .admin-request-list,
+#adminSection .admin-log-list{
+  min-width:0;
+  -webkit-overflow-scrolling:touch;
+}
+
+#adminSection .admin-table-wrap{
+  overflow-x:auto;
+}
+
+#adminSection .admin-users-table{
+  min-width:760px;
+}
+
+#adminSection .admin-users-table th,
+#adminSection .admin-users-table td{
+  overflow-wrap:anywhere;
+}
+
+#adminSection .admin-actions{
+  min-width:0;
+}
+
+#adminSection .admin-actions button{
+  min-width:0;
+  white-space:normal;
+}
+
+#adminSection .admin-request-card,
+#adminSection .admin-log-row{
+  min-width:0;
+  overflow-wrap:anywhere;
+}
+
+#adminSection .admin-request-card .request-grid{
+  min-width:0;
+}
+
+#adminSection .admin-request-card .request-grid > div{
+  min-width:0;
+  overflow-wrap:anywhere;
+}
+
+/* Admin data editor/table must remain usable without forcing the
+   entire page wider than the device. */
+#adminSection .admin-data-table-wrap{
+  max-width:100%;
+  overflow:auto;
+  -webkit-overflow-scrolling:touch;
+}
+
+#adminSection .admin-accounting-table{
+  min-width:1450px;
+}
+
+/* ================================================================
+   TABLET
+   ================================================================ */
+@media screen and (max-width:1050px){
+  #adminSection{
+    padding-bottom:20px;
+  }
+
+  #adminSection .admin-stats-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+  }
+
+  #adminSection .admin-workspace{
+    grid-template-columns:minmax(0,1fr) !important;
+  }
+
+  #adminSection .admin-details-card{
+    min-height:0;
+  }
+
+  #adminSection .admin-page-heading{
+    align-items:flex-start;
+  }
+
+  #adminSection .admin-filter-row{
+    flex-wrap:wrap;
+    min-width:0;
+  }
+
+  #adminSection .admin-filter-row input{
+    min-width:180px;
+  }
+
+  #adminSection .admin-panel-title-row{
+    min-width:0;
+  }
+
+  #adminSection .admin-request-list,
+  #adminSection .admin-log-list{
+    max-height:52vh;
+  }
+
+  #adminSection .admin-table-wrap{
+    width:100%;
+  }
+}
+
+/* ================================================================
+   MOBILE
+   ================================================================ */
+@media screen and (max-width:700px){
+  #adminSection{
+    width:100%;
+    padding-bottom:14px;
+  }
+
+  #adminSection .admin-page-heading{
+    flex-direction:column;
+    align-items:stretch;
+    gap:10px;
+    margin-bottom:12px;
+  }
+
+  #adminSection .admin-page-heading h2{
+    font-size:23px;
+  }
+
+  #adminSection .admin-page-heading p{
+    font-size:12px;
+  }
+
+  #adminSection .admin-page-heading > button{
+    width:100%;
+    min-height:42px;
+  }
+
+  #adminSection .admin-stats-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+    gap:8px !important;
+  }
+
+  #adminSection .admin-stat-card{
+    padding:10px;
+    gap:8px;
+  }
+
+  #adminSection .admin-stat-icon{
+    width:38px;
+    height:38px;
+    min-width:38px;
+    font-size:18px;
+  }
+
+  #adminSection .admin-stat-card span{
+    font-size:11px;
+  }
+
+  #adminSection .admin-stat-card strong{
+    font-size:21px;
+  }
+
+  #adminSection .admin-tabs{
+    overflow-x:auto;
+    overflow-y:hidden;
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:thin;
+    padding:0 5px;
+  }
+
+  #adminSection .admin-tab{
+    flex:0 0 auto;
+    padding:12px 11px;
+    font-size:12px;
+    white-space:nowrap;
+  }
+
+  #adminSection .admin-panel-title-row{
+    flex-direction:column;
+    align-items:stretch;
+    gap:9px;
+    padding:13px 12px 10px;
+  }
+
+  #adminSection .admin-panel-title-row h3{
+    font-size:16px;
+  }
+
+  #adminSection .admin-filter-row{
+    width:100%;
+    display:grid;
+    grid-template-columns:1fr;
+    gap:7px;
+  }
+
+  #adminSection .admin-filter-row input,
+  #adminSection .admin-filter-row select{
+    width:100%;
+    min-width:0;
+    box-sizing:border-box;
+  }
+
+  #adminSection .admin-table-wrap{
+    padding:0 7px;
+  }
+
+  #adminSection .admin-users-table{
+    min-width:720px;
+    font-size:12px;
+  }
+
+  #adminSection .admin-users-table th,
+  #adminSection .admin-users-table td{
+    padding:8px 6px;
+  }
+
+  #adminSection .admin-actions{
+    gap:5px;
+  }
+
+  #adminSection .admin-actions button{
+    min-height:34px;
+  }
+
+  #adminSection .admin-details-card{
+    padding:12px;
+  }
+
+  #adminSection .admin-detail-buttons{
+    grid-template-columns:1fr;
+  }
+
+  #adminSection .admin-request-list,
+  #adminSection .admin-log-list{
+    padding:0 10px 12px;
+    max-height:48vh;
+  }
+
+  #adminSection .admin-request-card{
+    padding:10px;
+  }
+
+  #adminSection .admin-request-card .request-grid{
+    grid-template-columns:1fr;
+    gap:6px;
+  }
+
+  #adminSection .admin-request-card .request-actions{
+    flex-direction:column;
+  }
+
+  #adminSection .admin-request-card .request-actions button{
+    width:100%;
+    min-height:40px;
+  }
+
+  #adminSection .admin-log-row{
+    font-size:11px;
+  }
+
+  #adminSection .admin-log-time{
+    display:block;
+    margin:3px 0 0;
+  }
+
+  #adminSection .admin-data-toolbar,
+  #adminSection .admin-data-pdf-actions,
+  #adminSection .admin-data-add-row{
+    flex-direction:column;
+    align-items:stretch;
+  }
+
+  #adminSection .admin-data-toolbar > *,
+  #adminSection .admin-data-pdf-actions > *,
+  #adminSection .admin-data-add-row > *{
+    width:100%;
+    min-width:0 !important;
+    box-sizing:border-box;
+  }
+}
+
+/* ================================================================
+   SMALL PHONES
+   ================================================================ */
+@media screen and (max-width:420px){
+  #adminSection .admin-stats-grid{
+    gap:6px !important;
+  }
+
+  #adminSection .admin-stat-card{
+    padding:8px;
+    gap:6px;
+  }
+
+  #adminSection .admin-stat-icon{
+    width:32px;
+    height:32px;
+    min-width:32px;
+    font-size:15px;
+  }
+
+  #adminSection .admin-stat-card span{
+    font-size:10px;
+  }
+
+  #adminSection .admin-stat-card strong{
+    font-size:18px;
+  }
+
+  #adminSection .admin-tabs{
+    padding:0 2px;
+  }
+
+  #adminSection .admin-tab{
+    padding:11px 9px;
+    font-size:11px;
+  }
+
+  #adminSection .admin-panel-title-row{
+    padding-left:9px;
+    padding-right:9px;
+  }
+
+  #adminSection .admin-request-list,
+  #adminSection .admin-log-list{
+    padding-left:8px;
+    padding-right:8px;
+    max-height:44vh;
+  }
+
+  #adminSection .admin-users-table{
+    min-width:700px;
+  }
+}
+
+/* ================================================================
+   ADMIN MODALS — responsive only
+   These rules affect only Admin dialogs when opened.
+   ================================================================ */
+@media screen and (max-width:700px){
+  #adminEditUserModal .auth-box,
+  #adminRevokeModal .auth-box,
+  #adminDataModal .auth-box{
+    width:calc(100vw - 16px) !important;
+    max-width:none !important;
+    max-height:94vh !important;
+    box-sizing:border-box;
+    overflow-x:hidden;
+  }
+
+  #adminEditUserModal .admin-edit-grid{
+    grid-template-columns:1fr !important;
+  }
+
+  #adminDataModal .admin-data-head{
+    flex-direction:column;
+  }
+
+  #adminDataModal .admin-data-head > *{
+    max-width:100%;
+  }
+
+  #adminDataModal .admin-data-editor,
+  #adminDataModal textarea{
+    min-height:55vh;
+  }
+}
+
+@media screen and (max-width:420px){
+  #adminEditUserModal .auth-box,
+  #adminRevokeModal .auth-box,
+  #adminDataModal .auth-box{
+    width:calc(100vw - 12px) !important;
+    padding:12px !important;
+  }
+
+  #adminDataModal .admin-data-editor,
+  #adminDataModal textarea{
+    min-height:50vh;
+  }
+}
