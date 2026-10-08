@@ -5926,3 +5926,266 @@ document.addEventListener("keydown", function(e) {
     nextRow = nextRow.nextElementSibling;
   }
 });
+/* ============================================================
+   EXCEL MULTI-ROW PASTE
+   ------------------------------------------------------------
+   APRIL:
+     Opening Loan Balance
+     Previous Due Principal
+     Previous Due Interest
+     Current Month Principal
+     Principal Collection
+     Interest Collection
+     New Loan
+
+   MAY TO MARCH:
+     Current Month Principal
+     Principal Collection
+     Interest Collection
+     New Loan
+
+   IMPORTANT:
+   - Only editable inputs are changed.
+   - Locked/calculated fields are never overwritten.
+   - Existing recalc() is used.
+   - Existing Save / Save All is still required.
+   - No Firebase/report/Admin logic is changed.
+   ============================================================ */
+
+(function () {
+  "use strict";
+
+  const APRIL_FIELDS = [
+    "opening",
+    "prevP",
+    "prevI",
+    "demandP",
+    "collectP",
+    "collectI",
+    "newLoan"
+  ];
+
+  const LATER_FIELDS = [
+    "demandP",
+    "collectP",
+    "collectI",
+    "newLoan"
+  ];
+
+  function getInputId(field, rowIndex) {
+    return field + "-" + rowIndex;
+  }
+
+  function getRowIndexFromInput(input) {
+    const match = String(input?.id || "").match(/-(\d+)$/);
+    return match ? Number(match[1]) : null;
+  }
+
+  function isEditableInput(element) {
+    return (
+      element &&
+      element.tagName === "INPUT" &&
+      !element.disabled &&
+      !element.readOnly
+    );
+  }
+
+  function parseExcelClipboard(text) {
+    return String(text || "")
+      .replace(/\r\n/g, "\n")
+      .replace(/\r/g, "\n")
+      .split("\n")
+      .filter(function (row, index, allRows) {
+        return !(index === allRows.length - 1 && row === "");
+      })
+      .map(function (row) {
+        return row.split("\t");
+      });
+  }
+
+  function getActiveMonthIndex() {
+    const monthButtons = Array.from(
+      document.querySelectorAll("#monthTabs button")
+    );
+
+    const activeButton = document.querySelector(
+      "#monthTabs button.active"
+    );
+
+    if (!activeButton) return 0;
+
+    const index = monthButtons.indexOf(activeButton);
+
+    return index >= 0 ? index : 0;
+  }
+
+  function handleExcelPaste(event) {
+    const target = event.target;
+
+    /* Only work inside the main accounting table */
+    if (!target || !target.closest("#entryBody")) {
+      return;
+    }
+
+    /* Only editable INPUT fields */
+    if (!isEditableInput(target)) {
+      return;
+    }
+
+    const rowIndex = getRowIndexFromInput(target);
+
+    if (rowIndex === null) {
+      return;
+    }
+
+    const clipboardText =
+      event.clipboardData?.getData("text/plain") || "";
+
+    /* Normal single-cell paste remains completely untouched */
+    if (
+      !clipboardText.includes("\t") &&
+      !clipboardText.includes("\n")
+    ) {
+      return;
+    }
+
+    const monthIndex = getActiveMonthIndex();
+
+    /*
+     * April = 7 columns
+     * May to March = 4 columns
+     */
+    const fields =
+      monthIndex === 0
+        ? APRIL_FIELDS
+        : LATER_FIELDS;
+
+    /*
+     * Determine which field the user clicked before pasting.
+     */
+    const startField = String(target.id || "")
+      .replace(/-\d+$/, "");
+
+    const expectedStartField = fields[0];
+
+    /*
+     * Paste must begin at:
+     * April -> Opening Loan Balance
+     * May-March -> Current Month Principal
+     */
+    if (startField !== expectedStartField) {
+      event.preventDefault();
+
+      if (monthIndex === 0) {
+        alert(
+          "For April, paste the 7 Excel columns starting from Opening Loan Balance."
+        );
+      } else {
+        alert(
+          "For May to March, paste the 4 Excel columns starting from Current Month Principal."
+        );
+      }
+
+      return;
+    }
+
+    const rows = parseExcelClipboard(clipboardText);
+
+    if (!rows.length) {
+      return;
+    }
+
+    event.preventDefault();
+
+    let changedCount = 0;
+    let affectedRows = 0;
+
+    rows.forEach(function (cells, rowOffset) {
+      const targetRowIndex = rowIndex + rowOffset;
+
+      const row = document.getElementById(
+        "row-" + targetRowIndex
+      );
+
+      if (!row) {
+        return;
+      }
+
+      let rowChanged = false;
+
+      fields.forEach(function (field, columnIndex) {
+        if (columnIndex >= cells.length) {
+          return;
+        }
+
+        const input = document.getElementById(
+          getInputId(field, targetRowIndex)
+        );
+
+        /*
+         * Never modify disabled/read-only/calculated fields.
+         */
+        if (!isEditableInput(input)) {
+          return;
+        }
+
+        input.value = String(
+          cells[columnIndex] ?? ""
+        ).trim();
+
+        changedCount++;
+        rowChanged = true;
+      });
+
+      /*
+       * Recalculate using the application's existing calculation.
+       */
+      if (
+        rowChanged &&
+        typeof window.recalc === "function"
+      ) {
+        window.recalc(targetRowIndex);
+      }
+
+      if (rowChanged) {
+        affectedRows++;
+      }
+    });
+
+    /*
+     * Tell the existing application that there are unsaved changes.
+     */
+    if (
+      changedCount > 0 &&
+      typeof markDirty === "function"
+    ) {
+      markDirty();
+    }
+
+    /*
+     * Use the existing save status area.
+     */
+    if (changedCount > 0) {
+      const status =
+        document.getElementById("saveStatus");
+
+      if (status) {
+        status.textContent =
+          "Excel paste applied to " +
+          affectedRows +
+          " row(s) — Save to keep changes";
+      }
+    }
+  }
+
+  /*
+   * Delegated listener:
+   * works even when entry rows are dynamically rendered.
+   */
+  document.addEventListener(
+    "paste",
+    handleExcelPaste,
+    true
+  );
+
+})();
