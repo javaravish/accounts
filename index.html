@@ -115,22 +115,6 @@
     <link rel="stylesheet" href="css/04-login-and-app-shell.css">
     <link rel="stylesheet" href="css/05-pdf-and-report-print.css">
     <link rel="stylesheet" href="css/06-final-layout-overrides.css">
-
-<style id="admin-center-styles">
-.admin-nav-button{font-weight:700}
-.admin-section{padding-bottom:30px}
-.admin-page-heading{display:flex;align-items:center;justify-content:space-between;margin:0 0 16px}
-.admin-page-heading h2{margin:0;color:#17365d;font-size:28px}
-.admin-page-heading p{margin:3px 0 0;color:#5a6d8d}
-.admin-stats-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:14px}
-.admin-stat-card{background:#fff;border:1px solid #d9e2ef;border-radius:10px;padding:14px;display:flex;gap:12px;align-items:center;box-shadow:0 2px 8px rgba(23,54,93,.05)}
-.admin-stat-card span{display:block;color:#617494;font-size:13px}.admin-stat-card strong{display:block;color:#102b59;font-size:27px;line-height:1.15;margin-top:3px}.admin-stat-icon{width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:800;background:#eaf3ff;color:#0878e8}.admin-icon-online{background:#e9faef;color:#0aab50}.admin-icon-request{background:#fff5df;color:#a96d00}.admin-icon-data{background:#f2eaff;color:#6c2ad8}
-.admin-workspace{display:grid;grid-template-columns:minmax(0,1fr) 310px;gap:12px}.admin-main-card,.admin-details-card{background:#fff;border:1px solid #d9e2ef;border-radius:10px;box-shadow:0 2px 8px rgba(23,54,93,.05)}
-.admin-tabs{display:flex;border-bottom:1px solid #e0e6ef;padding:0 10px}.admin-tab{border:0;background:transparent;padding:14px 18px;color:#526887;font-weight:700;cursor:pointer;border-bottom:3px solid transparent}.admin-tab-active{color:#0878e8;border-bottom-color:#0878e8}.admin-badge{display:inline-flex;min-width:20px;height:20px;align-items:center;justify-content:center;border-radius:10px;background:#ef3340;color:#fff;font-size:11px;margin-left:5px;padding:0 5px}.admin-panel-title-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:16px 16px 12px}.admin-panel-title-row h3{margin:0;color:#17365d}.admin-filter-row{display:flex;gap:8px;align-items:center}.admin-filter-row input{min-width:240px}.admin-table-wrap{overflow:auto;padding:0 10px}.admin-users-table{width:100%;border-collapse:collapse;font-size:13px}.admin-users-table th{background:#f4f7fb;color:#526887;text-align:left;padding:9px 8px;white-space:nowrap}.admin-users-table td{border-top:1px solid #edf1f6;padding:9px 8px;vertical-align:middle}.admin-users-table tbody tr:hover{background:#fafcff}.admin-role-pill,.admin-status-pill{display:inline-flex;align-items:center;gap:5px;padding:4px 8px;border-radius:12px;font-size:11px;font-weight:700;white-space:nowrap}.admin-role-pill{background:#eaf3ff;color:#0878e8}.admin-role-admin{background:#eee4ff;color:#6c2ad8}.admin-status-online{background:#e7f9ed;color:#0a9d4c}.admin-status-offline{background:#eef1f5;color:#64748b}.admin-status-revoked{background:#ffe9ec;color:#e11d32}.admin-actions{display:flex;flex-wrap:wrap;gap:5px}.admin-actions button{padding:5px 8px;font-size:11px}.admin-details-card{padding:16px;min-height:430px}.admin-details-empty{color:#6a7b94;padding:40px 10px;text-align:center}.admin-detail-avatar{width:54px;height:54px;border-radius:50%;background:#dff0ff;color:#0878e8;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800;float:left;margin-right:12px}.admin-detail-head{min-height:64px}.admin-detail-head h3{margin:3px 0;color:#172f58}.admin-detail-email{color:#6a7b94;font-size:12px}.admin-detail-list{clear:both;margin-top:18px}.admin-detail-row{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid #edf1f6;font-size:12px}.admin-detail-row b{color:#5d6e88}.admin-detail-row span{text-align:right;color:#17365d}.admin-detail-buttons{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}.admin-detail-buttons button{font-size:12px}.admin-request-list,.admin-log-list{padding:0 16px 16px;max-height:620px;overflow:auto}.admin-request-card{border:1px solid #dfe6ef;border-radius:8px;padding:12px;margin-bottom:9px;background:#fff}.admin-request-card .request-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px 16px;font-size:12px}.admin-request-card .request-actions{display:flex;gap:7px;margin-top:10px;flex-wrap:wrap}.admin-log-row{padding:10px 0;border-bottom:1px solid #edf1f6;font-size:12px}.admin-log-row b{color:#17365d}.admin-log-time{color:#71819a;font-size:11px;margin-left:6px}.admin-modal-wide{max-width:680px}.admin-edit-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.admin-access-checks{display:flex;gap:12px;align-items:center;flex-wrap:wrap}.admin-access-checks>label:first-child{width:100%}.admin-access-checks input{margin-right:4px}.admin-data-modal{max-width:1100px;width:min(1100px,95vw)}.admin-data-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.admin-data-head h2{margin:0 0 3px}.admin-data-toolbar,.admin-data-pdf-actions{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.admin-data-toolbar select{min-width:150px} .admin-data-add-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:8px 0 12px}.admin-data-add-row input{min-width:180px;border:1px solid #cfd9e6;border-radius:6px;padding:8px}.admin-row-save,.admin-row-delete{font-size:11px;padding:5px 7px;margin:1px}.admin-data-table-wrap{min-width:0}.admin-data-editor{width:100%;min-height:470px;resize:vertical;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;border:1px solid #cfd9e6;border-radius:8px;padding:10px;background:#fbfdff}.admin-data-modal textarea{width:100%;min-height:470px;resize:vertical;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;border:1px solid #cfd9e6;border-radius:8px;padding:10px;background:#fbfdff;box-sizing:border-box}.admin-data-pdf-actions{border-top:1px solid #e6ebf2;padding-top:10px}.admin-data-pdf-actions button{font-size:12px}.admin-data-table-wrap{border:1px solid #cfd9e6;border-radius:8px;background:#fff;overflow:auto;max-height:560px}.admin-accounting-table{border-collapse:collapse;min-width:1450px;width:100%;font-size:12px}.admin-accounting-table th{position:sticky;top:0;z-index:2;background:#eef4fb;color:#17365d;border:1px solid #d7e0ec;padding:7px 6px;white-space:nowrap}.admin-accounting-table td{border:1px solid #e1e7ef;padding:5px 4px;background:#fff}.admin-accounting-table td input{width:100%;min-width:78px;box-sizing:border-box;border:1px solid #bcc9d8;border-radius:3px;padding:5px 4px;font-size:12px}.admin-accounting-table td:first-child input{min-width:150px}.admin-accounting-table .calc-cell{background:#f7f9fc;color:#334e70;font-weight:600}.admin-data-empty{padding:28px;text-align:center;color:#667892}.admin-data-record-meta{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 12px}.admin-data-record-meta span{background:#f2f6fb;border:1px solid #d9e3ef;border-radius:6px;padding:5px 8px;color:#526987;font-size:11px}
-@media(max-width:1050px){.admin-stats-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.admin-workspace{grid-template-columns:1fr}.admin-details-card{min-height:0}.admin-filter-row{flex-wrap:wrap}.admin-filter-row input{min-width:180px}}
-@media(max-width:700px){.admin-stats-grid{grid-template-columns:1fr}.admin-tabs{overflow:auto}.admin-tab{white-space:nowrap;padding:12px}.admin-panel-title-row{align-items:flex-start;flex-direction:column}.admin-filter-row{width:100%}.admin-filter-row input,.admin-filter-row select{width:100%;min-width:0}.admin-edit-grid{grid-template-columns:1fr}}
-</style>
-
 </head>
 <body>
 <section id="loginScreen" aria-label="Login">
@@ -297,7 +281,7 @@
             <button type="button" class="primary" id="registerSHGAccessBtn">Register for SHG</button>
         </div>
 
-        <!-- Admin access requests moved to the dedicated Admin tab. -->
+
 
         <h3>Change Password</h3>
         <div class="field password-wrap">
@@ -332,75 +316,6 @@
     </div>
 </div>
 
-
-<div id="adminEditUserModal" class="auth-modal hidden">
-    <div class="auth-box admin-modal-wide">
-        <h2>Edit User</h2>
-        <div class="admin-edit-grid">
-            <div class="field"><label>Name</label><input id="adminEditName" type="text"></div>
-            <div class="field"><label>Mobile</label><input id="adminEditMobile" type="tel"></div>
-            <div class="field"><label>Role</label><select id="adminEditRole"><option value="user">User</option><option value="admin">Admin</option></select></div>
-            <div class="field admin-access-checks">
-                <label>System Access</label>
-                <label><input type="checkbox" id="adminEditAccessVO"> VO</label>
-                <label><input type="checkbox" id="adminEditAccessMS"> MS</label>
-                <label><input type="checkbox" id="adminEditAccessSHG"> SHG</label>
-            </div>
-        </div>
-        <div class="auth-actions">
-            <button type="button" class="primary" id="adminSaveUserBtn">Save Changes</button>
-            <button type="button" class="secondary" data-close-modal="adminEditUserModal">Cancel</button>
-        </div>
-        <div id="adminEditMsg" class="auth-msg"></div>
-    </div>
-</div>
-
-<div id="adminRevokeModal" class="auth-modal hidden">
-    <div class="auth-box">
-        <h2>Revoke User Access</h2>
-        <p class="small" id="adminRevokeHelp">Choose what should be revoked.</p>
-        <div class="field"><label>Access</label><select id="adminRevokeMode"><option value="ALL">All Systems</option><option value="VO">VO</option><option value="MS">MS</option><option value="SHG">SHG</option></select></div>
-        <div class="field"><label>Reason *</label><textarea id="adminRevokeReason" rows="3" placeholder="Enter reason for revoking access..."></textarea></div>
-        <div class="auth-actions">
-            <button type="button" class="danger" id="adminConfirmRevokeBtn">Revoke Access</button>
-            <button type="button" class="secondary" data-close-modal="adminRevokeModal">Cancel</button>
-        </div>
-        <div id="adminRevokeMsg" class="auth-msg"></div>
-    </div>
-</div>
-
-<div id="adminDataModal" class="auth-modal hidden">
-    <div class="auth-box admin-data-modal">
-        <div class="admin-data-head">
-            <div><h2 id="adminDataTitle">User Data</h2><div id="adminDataSubtitle" class="small"></div></div>
-            <button type="button" class="secondary" data-close-modal="adminDataModal">Close</button>
-        </div>
-        <div class="admin-data-toolbar">
-            <select id="adminDataMode"><option value="VO">VO</option><option value="MS">MS</option><option value="SHG">SHG</option></select>
-            <select id="adminDataRecord"></select>
-            <select id="adminDataLoan"></select>
-            <select id="adminDataMonth"></select>
-            <button type="button" class="secondary" id="adminDataReloadBtn">Reload</button>
-            <button type="button" class="primary" id="adminDataSaveBtn">Save Changes</button>
-            <button type="button" class="danger" id="adminDataDeleteBtn">Delete Record</button>
-        </div>
-        <div class="admin-data-add-row">
-            <input id="adminDataNewName" type="text" placeholder="Enter SHG / member name">
-            <input id="adminDataNewRate" type="number" min="0" max="100" step="0.01" value="12" placeholder="Interest %">
-            <button type="button" class="success" id="adminDataAddBtn">+ Add</button>
-            <span class="small">Admin has the same add, edit, save and remove controls as the normal Data Entry screen.</span>
-        </div>
-        <div class="admin-data-pdf-actions">
-            <button type="button" class="secondary" data-admin-pdf="DCB">Monthly DCB PDF</button>
-            <button type="button" class="secondary" data-admin-pdf="LL">Loan Ledger PDF</button>
-            <button type="button" class="secondary" data-admin-pdf="CUMULATIVE">Cumulative DCB PDF</button>
-            <button type="button" class="success" data-admin-pdf="ALL">All Reports PDF</button>
-        </div>
-        <div id="adminDataEditor" class="admin-data-table-wrap" aria-label="Selected user accounting data"></div>
-        <div id="adminDataMsg" class="auth-msg"></div>
-    </div>
-</div>
-
 <div id="appShell" class="hidden">
     <header id="appGlobalHeader" class="app-global-header" aria-label="Application header">
         <div class="app-global-banner">
@@ -421,7 +336,7 @@
             <button type="button" id="homeBtn" title="Go to initial page">Home</button>
             <button type="button" id="profileBtn" title="Profile">Profile</button>
             <button type="button" id="reportsNavBtn" title="Open Reports">Reports</button>
-            <button type="button" id="adminNavBtn" class="hidden admin-nav-button" title="Admin" aria-label="Admin">Admin</button>
+            <button type="button" id="adminNavBtn" class="hidden" title="Open Admin">Admin</button>
             <button type="button" id="logoutBtn" title="Logout">Logout</button>
             <div class="app-global-login-status" id="loggedInAs">Logged in As : —</div>
         </nav>
@@ -526,95 +441,6 @@
                 <button type="button" class="secondary" id="backupBtn">Download Backup</button>
                 <button type="button" class="secondary" id="importBtn">Restore Backup</button>
                 <button type="button" class="primary" id="importAllBtn">Merge Backup</button>
-            </div>
-        </section>
-
-
-        <!-- =========================================================
-             ADMIN CENTER
-             Visible only to users whose users/{uid}.profile.role === "admin".
-             ========================================================= -->
-        <section id="adminSection" class="hidden admin-section">
-            <div class="admin-page-heading">
-                <div>
-                    <h2>Admin</h2>
-                    <p>Manage users, access requests and application data.</p>
-                </div>
-                <button type="button" class="secondary" id="adminRefreshBtn">Refresh</button>
-            </div>
-
-            <div class="admin-stats-grid">
-                <div class="admin-stat-card">
-                    <div class="admin-stat-icon admin-icon-users">👥</div>
-                    <div><span>Total Users</span><strong id="adminTotalUsers">0</strong></div>
-                </div>
-                <div class="admin-stat-card">
-                    <div class="admin-stat-icon admin-icon-online">●</div>
-                    <div><span>Online Now</span><strong id="adminOnlineUsers">0</strong></div>
-                </div>
-                <div class="admin-stat-card">
-                    <div class="admin-stat-icon admin-icon-request">◷</div>
-                    <div><span>Access Requests</span><strong id="adminPendingRequests">0</strong></div>
-                </div>
-                <div class="admin-stat-card">
-                    <div class="admin-stat-icon admin-icon-data">▤</div>
-                    <div><span>Total Data Records</span><strong id="adminTotalRecords">0</strong></div>
-                </div>
-            </div>
-
-            <div class="admin-workspace">
-                <div class="admin-main-card">
-                    <div class="admin-tabs" role="tablist" aria-label="Admin sections">
-                        <button type="button" class="admin-tab admin-tab-active" data-admin-tab="users">👥 User Management</button>
-                        <button type="button" class="admin-tab" data-admin-tab="requests">▣ Access Requests <span id="adminRequestBadge" class="admin-badge hidden">0</span></button>
-                        <button type="button" class="admin-tab" data-admin-tab="logs">☷ System Logs</button>
-                    </div>
-
-                    <div id="adminUsersPanel" class="admin-tab-panel">
-                        <div class="admin-panel-title-row">
-                            <h3>All Users <span id="adminUserCountLabel">(0)</span></h3>
-                            <div class="admin-filter-row">
-                                <input id="adminUserSearch" type="search" placeholder="Search users..." aria-label="Search users">
-                                <select id="adminStatusFilter" aria-label="Filter by status">
-                                    <option value="ALL">All Status</option>
-                                    <option value="ONLINE">Online</option>
-                                    <option value="OFFLINE">Offline</option>
-                                    <option value="REVOKED">Revoked</option>
-                                </select>
-                                <select id="adminRoleFilter" aria-label="Filter by role">
-                                    <option value="ALL">All Roles</option>
-                                    <option value="admin">Admin</option>
-                                    <option value="user">User</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="admin-table-wrap">
-                            <table class="admin-users-table">
-                                <thead>
-                                    <tr><th>#</th><th>Name</th><th>Email</th><th>Role</th><th>Status</th><th>Last Login</th><th>Actions</th></tr>
-                                </thead>
-                                <tbody id="adminUsersBody"></tbody>
-                            </table>
-                        </div>
-                        <div id="adminUsersMsg" class="auth-msg"></div>
-                    </div>
-
-                    <div id="adminRequestsPanel" class="admin-tab-panel hidden">
-                        <div class="admin-panel-title-row"><h3>Access Requests</h3><span class="small">Approve or reject new VO / MS / SHG access.</span></div>
-                        <div id="adminAccessRequests" class="admin-request-list"></div>
-                        <div id="adminAccessMsg" class="auth-msg"></div>
-                    </div>
-
-                    <div id="adminLogsPanel" class="admin-tab-panel hidden">
-                        <div class="admin-panel-title-row"><h3>System Logs</h3><span class="small">Administrative actions are recorded here.</span></div>
-                        <div id="adminLogsList" class="admin-log-list"></div>
-                        <div id="adminLogsMsg" class="auth-msg"></div>
-                    </div>
-                </div>
-
-                <aside id="adminUserDetails" class="admin-details-card">
-                    <div class="admin-details-empty">Select a user to view details.</div>
-                </aside>
             </div>
         </section>
 
@@ -737,6 +563,28 @@
                         </button>
                     </div>
                 </section>
+
+        <section id="adminAccessPanel" class="card hidden" aria-label="Admin dashboard">
+            <div class="admin-section-header">
+                <div>
+                    <h2 style="margin:0;color:#17365d;">Admin</h2>
+                    <p style="margin:4px 0 0;color:#64748b;font-size:12px;">User audit, access requests and administration</p>
+                </div>
+                <button type="button" class="secondary" id="adminCloseBtn">Close Admin</button>
+            </div>
+
+            <h3 style="margin:16px 0 10px;color:#17365d;">Admin User Audit</h3>
+            <div id="adminUserStats" style="display:grid;grid-template-columns:repeat(4,minmax(150px,1fr));gap:8px;margin:0 0 12px;"></div>
+            <div class="auth-actions" style="margin-bottom:10px;">
+                <button type="button" class="primary" id="adminRefreshUsersBtn">Refresh User Audit</button>
+            </div>
+            <div id="adminUsersMsg" class="auth-msg"></div>
+            <div id="adminPotentialOrphans" class="profile-summary admin-audit-list" style="max-height:360px;overflow:auto;margin-bottom:14px;"></div>
+
+            <h3 style="margin:14px 0 10px;color:#17365d;">Access Requests</h3>
+            <div id="adminAccessRequests" class="profile-summary admin-audit-list" style="max-height:360px;overflow:auto;"></div>
+            <div id="adminAccessMsg" class="auth-msg"></div>
+        </section>
             </div>
         </section>
     </main>
@@ -752,8 +600,6 @@
     <script type="module" src="js/auth/firebase-auth.js"></script>
 
     <script src="js/app.js"></script>
-    <script type="module" src="js/admin/admin-functions-client.js"></script>
-    <script src="js/admin/admin.js"></script>
 
     <script src="js/auth/login-fallback.js"></script>
 
