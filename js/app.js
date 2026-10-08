@@ -5926,10 +5926,13 @@ document.addEventListener("keydown", function(e) {
     nextRow = nextRow.nextElementSibling;
   }
 });
+
 /* ============================================================
-   EXCEL MULTI-ROW PASTE
+   EXCEL PASTE SUPPORT
    ------------------------------------------------------------
-   APRIL:
+   SINGLE COLUMN + MULTI COLUMN
+
+   APRIL (multi-column):
      Opening Loan Balance
      Previous Due Principal
      Previous Due Interest
@@ -5938,17 +5941,21 @@ document.addEventListener("keydown", function(e) {
      Interest Collection
      New Loan
 
-   MAY TO MARCH:
+   MAY TO MARCH (multi-column):
      Current Month Principal
      Principal Collection
      Interest Collection
      New Loan
 
+   SINGLE-COLUMN PASTE:
+     Any editable supported column can receive a copied Excel
+     column. It does NOT require starting at Opening Loan Balance.
+
    IMPORTANT:
    - Only editable inputs are changed.
    - Locked/calculated fields are never overwritten.
    - Existing recalc() is used.
-   - Existing Save / Save All is still required.
+   - Existing Save / Save All remains required.
    - No Firebase/report/Admin logic is changed.
    ============================================================ */
 
@@ -5972,108 +5979,224 @@ document.addEventListener("keydown", function(e) {
     "newLoan"
   ];
 
-  function getInputId(field, rowIndex) {
+  function excelPasteInputId(field, rowIndex) {
     return field + "-" + rowIndex;
   }
 
-  function getRowIndexFromInput(input) {
+  function excelPasteRowIndex(input) {
     const match = String(input?.id || "").match(/-(\d+)$/);
     return match ? Number(match[1]) : null;
   }
 
-  function isEditableInput(element) {
-    return (
-      element &&
-      element.tagName === "INPUT" &&
-      !element.disabled &&
-      !element.readOnly
+  function excelPasteEditable(input) {
+    return !!(
+      input &&
+      input.tagName === "INPUT" &&
+      !input.disabled &&
+      !input.readOnly
     );
   }
 
-  function parseExcelClipboard(text) {
+  function excelPasteActiveMonthIndex() {
+    const buttons = Array.from(
+      document.querySelectorAll("#monthTabs button")
+    );
+
+    const active = document.querySelector(
+      "#monthTabs button.active"
+    );
+
+    if (!active) return 0;
+
+    const index = buttons.indexOf(active);
+    return index >= 0 ? index : 0;
+  }
+
+  function excelPasteParse(text) {
     return String(text || "")
       .replace(/\r\n/g, "\n")
       .replace(/\r/g, "\n")
       .split("\n")
-      .filter(function (row, index, allRows) {
-        return !(index === allRows.length - 1 && row === "");
+      .filter(function (row, index, rows) {
+        return !(index === rows.length - 1 && row === "");
       })
       .map(function (row) {
         return row.split("\t");
       });
   }
 
-  function getActiveMonthIndex() {
-    const monthButtons = Array.from(
-      document.querySelectorAll("#monthTabs button")
-    );
-
-    const activeButton = document.querySelector(
-      "#monthTabs button.active"
-    );
-
-    if (!activeButton) return 0;
-
-    const index = monthButtons.indexOf(activeButton);
-
-    return index >= 0 ? index : 0;
-  }
-
   function handleExcelPaste(event) {
     const target = event.target;
 
-    /* Only work inside the main accounting table */
-    if (!target || !target.closest("#entryBody")) {
+    /* Only work inside the main accounting table. */
+    if (!target || !target.closest || !target.closest("#entryBody")) {
       return;
     }
 
-    /* Only editable INPUT fields */
-    if (!isEditableInput(target)) {
-      return;
-    }
-
-    const rowIndex = getRowIndexFromInput(target);
-
-    if (rowIndex === null) {
+    /* Only editable INPUT fields. */
+    if (!excelPasteEditable(target)) {
       return;
     }
 
     const clipboardText =
       event.clipboardData?.getData("text/plain") || "";
 
-    /* Normal single-cell paste remains completely untouched */
+    if (!clipboardText) {
+      return;
+    }
+
+    /*
+     * Leave normal one-cell paste completely untouched.
+     * This handler is only for Excel multi-row / multi-cell data.
+     */
     if (
-      !clipboardText.includes("\t") &&
-      !clipboardText.includes("\n")
+      !clipboardText.includes("\n") &&
+      !clipboardText.includes("\t")
     ) {
       return;
     }
 
-    const monthIndex = getActiveMonthIndex();
+    const startRow = excelPasteRowIndex(target);
 
-    /*
-     * April = 7 columns
-     * May to March = 4 columns
-     */
-    const fields =
+    if (startRow === null) {
+      return;
+    }
+
+    const monthIndex = excelPasteActiveMonthIndex();
+
+    const allowedFields =
       monthIndex === 0
         ? APRIL_FIELDS
         : LATER_FIELDS;
 
     /*
-     * Determine which field the user clicked before pasting.
+     * Single-column paste is intentionally supported for these four
+     * user-editable monthly fields in EVERY month (April through March).
+     * Do not depend on the active-month field list for this check.
+     * The multi-column rules below still use APRIL_FIELDS/LATER_FIELDS.
      */
+    const SINGLE_COLUMN_FIELDS = [
+      "demandP",
+      "collectP",
+      "collectI",
+      "newLoan"
+    ];
+
     const startField = String(target.id || "")
       .replace(/-\d+$/, "");
 
-    const expectedStartField = fields[0];
+    const rows = excelPasteParse(clipboardText);
+
+    if (!rows.length) {
+      return;
+    }
 
     /*
-     * Paste must begin at:
-     * April -> Opening Loan Balance
-     * May-March -> Current Month Principal
+     * ========================================================
+     * CASE 1: SINGLE-COLUMN PASTE
+     * ========================================================
+     *
+     * Example:
+     *
+     * 1000
+     * 1500
+     * 2000
+     * 2500
+     *
+     * This may be pasted into ANY editable supported field.
+     * It does NOT require Opening Loan Balance as the target.
+     *
+     * This check MUST happen BEFORE the multi-column starting-
+     * field validation. That is the bug in the previous code.
      */
-    if (startField !== expectedStartField) {
+
+    const isSingleColumn = rows.every(function (cells) {
+      return cells.length === 1;
+    });
+
+    if (isSingleColumn) {
+      /*
+       * If the target is not one of the supported editable
+       * accounting fields, leave the browser's normal paste
+       * behavior alone.
+       */
+      /*
+       * April also permits the three April-only source columns for
+       * single-column paste. May-March permits only the four monthly
+       * editable fields requested above.
+       */
+      const singleColumnAllowed =
+        SINGLE_COLUMN_FIELDS.includes(startField) ||
+        (monthIndex === 0 &&
+          ["opening", "prevP", "prevI"].includes(startField));
+
+      if (!singleColumnAllowed) {
+        return;
+      }
+
+      event.preventDefault();
+
+      let changedRows = 0;
+
+      rows.forEach(function (cells, rowOffset) {
+        const rowIndex = startRow + rowOffset;
+
+        const input = document.getElementById(
+          excelPasteInputId(startField, rowIndex)
+        );
+
+        /* Never overwrite locked/calculated fields. */
+        if (!excelPasteEditable(input)) {
+          return;
+        }
+
+        input.value = String(cells[0] ?? "").trim();
+
+        if (typeof window.recalc === "function") {
+          window.recalc(rowIndex);
+        }
+
+        changedRows++;
+      });
+
+      if (
+        changedRows > 0 &&
+        typeof markDirty === "function"
+      ) {
+        markDirty();
+      }
+
+      if (changedRows > 0) {
+        const status = document.getElementById("saveStatus");
+
+        if (status) {
+          status.textContent =
+            "Excel column pasted to " +
+            changedRows +
+            " row(s) — Save to keep changes";
+        }
+      }
+
+      return;
+    }
+
+    /*
+     * ========================================================
+     * CASE 2: MULTI-COLUMN PASTE
+     * ========================================================
+     *
+     * Keep the existing behavior:
+     *
+     * April:
+     *   paste starting from Opening Loan Balance
+     *
+     * May-March:
+     *   paste starting from Current Month Principal
+     */
+
+    const expectedFields = allowedFields;
+
+    if (startField !== expectedFields[0]) {
       event.preventDefault();
 
       if (monthIndex === 0) {
@@ -6089,22 +6212,16 @@ document.addEventListener("keydown", function(e) {
       return;
     }
 
-    const rows = parseExcelClipboard(clipboardText);
-
-    if (!rows.length) {
-      return;
-    }
-
     event.preventDefault();
 
     let changedCount = 0;
     let affectedRows = 0;
 
     rows.forEach(function (cells, rowOffset) {
-      const targetRowIndex = rowIndex + rowOffset;
+      const rowIndex = startRow + rowOffset;
 
       const row = document.getElementById(
-        "row-" + targetRowIndex
+        "row-" + rowIndex
       );
 
       if (!row) {
@@ -6113,19 +6230,17 @@ document.addEventListener("keydown", function(e) {
 
       let rowChanged = false;
 
-      fields.forEach(function (field, columnIndex) {
+      expectedFields.forEach(function (field, columnIndex) {
         if (columnIndex >= cells.length) {
           return;
         }
 
         const input = document.getElementById(
-          getInputId(field, targetRowIndex)
+          excelPasteInputId(field, rowIndex)
         );
 
-        /*
-         * Never modify disabled/read-only/calculated fields.
-         */
-        if (!isEditableInput(input)) {
+        /* Never overwrite disabled/read-only/calculated fields. */
+        if (!excelPasteEditable(input)) {
           return;
         }
 
@@ -6137,14 +6252,11 @@ document.addEventListener("keydown", function(e) {
         rowChanged = true;
       });
 
-      /*
-       * Recalculate using the application's existing calculation.
-       */
       if (
         rowChanged &&
         typeof window.recalc === "function"
       ) {
-        window.recalc(targetRowIndex);
+        window.recalc(rowIndex);
       }
 
       if (rowChanged) {
@@ -6152,9 +6264,6 @@ document.addEventListener("keydown", function(e) {
       }
     });
 
-    /*
-     * Tell the existing application that there are unsaved changes.
-     */
     if (
       changedCount > 0 &&
       typeof markDirty === "function"
@@ -6162,12 +6271,8 @@ document.addEventListener("keydown", function(e) {
       markDirty();
     }
 
-    /*
-     * Use the existing save status area.
-     */
     if (changedCount > 0) {
-      const status =
-        document.getElementById("saveStatus");
+      const status = document.getElementById("saveStatus");
 
       if (status) {
         status.textContent =
@@ -6179,8 +6284,9 @@ document.addEventListener("keydown", function(e) {
   }
 
   /*
-   * Delegated listener:
-   * works even when entry rows are dynamically rendered.
+   * ONE delegated paste listener only.
+   * This replaces the three duplicate Excel paste listeners
+   * that were causing the single-column paste popup.
    */
   document.addEventListener(
     "paste",
