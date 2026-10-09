@@ -297,8 +297,27 @@
       return{vos:[]};
     }
     function writeDb(){
-      localStorage.setItem(modeKey(),JSON.stringify(db));
-      if(window.firebaseCloud) window.firebaseCloud.queueCloudSave(db);
+      let localSaved=true, localError=null;
+      try{
+        localStorage.setItem(modeKey(),JSON.stringify(db));
+      }catch(err){
+        localSaved=false;
+        localError=err;
+        console.error("Local save failed:",err);
+      }
+      // Pass the local result to cloud sync so the UI never claims that both
+      // destinations succeeded unless each one was actually confirmed.
+      window.__appLocalSaveState={ok:localSaved,error:localError};
+      if(window.firebaseCloud && window.firebaseCloud.queueCloudSave){
+        window.firebaseCloud.queueCloudSave(db,localSaved,localError);
+      }else{
+        const status=document.getElementById("saveStatus");
+        if(status){
+          status.textContent=localSaved?"Saved locally only. Cloud sync is unavailable.":"Save failed locally; cloud sync is unavailable.";
+          status.title=localError?String(localError.message||localError):"Firebase cloud service is not available.";
+        }
+      }
+      return localSaved;
     }
 
     // Save current screen values and then wait for the Firebase write to
@@ -438,7 +457,7 @@
           delete account.months[key];
         }
       });
-      writeDb();refreshVOSelect();markClean();document.getElementById("saveStatus").textContent="Saved";return true;
+      writeDb();refreshVOSelect();markClean();return true;
     }
 
     function confirmSwitch(action){
@@ -1104,7 +1123,7 @@
          return;
        }
      }
-     markClean();document.getElementById("saveStatus").textContent="Saved "+name+" – "+MONTHS[monthIndex][0];
+     markClean();
     };
 
 
@@ -1225,7 +1244,10 @@
       }
       refreshVOSelect();
       markClean();
-      document.getElementById("saveStatus").textContent="All data saved and synchronized";
+      const saveStatus=document.getElementById("saveStatus");
+      if(saveStatus) saveStatus.textContent=(window.__appLocalSaveState&&window.__appLocalSaveState.ok===false)
+        ?"Saved to cloud only. Local save failed."
+        :"Saved locally and to cloud.";
       alert(`All ${modeConfig().childPlural} 's and it's months have been saved and synchronized.`);
     }
 

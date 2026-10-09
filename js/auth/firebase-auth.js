@@ -318,11 +318,154 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/fireba
       return id;
     }
 
+    /*
+     * Compact only the Firebase copy of a record. The live app database is
+     * never modified, so the existing UI, calculations, local recovery, and
+     * PDF code continue to receive the full record shape.
+     *
+     * Financial month fields omitted here are reconstructed by the existing
+     * app calculation flow (missing numeric inputs already read as zero).
+     */
+    const DERIVED_MONTH_FIELDS = new Set([
+      "demandInterest",       // Current Month Interest
+      "balancePrincipal",     // Previous + Current Principal
+      "balanceInterest",      // Previous + Current Interest
+      "totalCollection",
+      "totalLoanBalance",     // Closing Loan Balance
+      "currentMonthInterest",
+      "previousCurrentPrincipal",
+      "previousAndCurrentPrincipal",
+      "previousCurrentInterest",
+      "previousAndCurrentInterest",
+      "closingLoanBalance"
+    ]);
+    const ZERO_PRUNABLE_MONTH_FIELDS = new Set([
+      "opening", "prevPrincipal", "prevInterest", "demandPrincipal",
+      "demandInterest", "principalCollection", "interestCollection",
+      "newLoan", "savingOpening", "savingCurrent", "savingDisbursed",
+      "balancePrincipal", "balanceInterest", "totalCollection",
+      "totalLoanBalance", "currentMonthInterest",
+      "previousCurrentPrincipal", "previousAndCurrentPrincipal",
+      "previousCurrentInterest", "previousAndCurrentInterest",
+      "closingLoanBalance"
+    ]);
+
+    function isAprilMonthKey(key){
+      return /^Apr(?:il)?(?:-|$)/i.test(String(key||""));
+    }
+
+    function isEmptyFinancialMonth(month){
+      if(!month || typeof month!=="object" || Array.isArray(month)) return false;
+      const sourceFields=[
+        "opening","prevPrincipal","prevInterest","demandPrincipal",
+        "principalCollection","interestCollection","newLoan",
+        "savingOpening","savingCurrent","savingDisbursed"
+      ];
+      const hasFinancialInput=sourceFields.some(key=>{
+        const value=month[key];
+        // A string "0" collection is intentional input in this app and makes
+        // the month reportable, so preserve it.
+        if((key==="principalCollection" || key==="interestCollection") &&
+           typeof value==="string" && value.trim()!=="") return true;
+        return value!==undefined && value!==null && value!=="" &&
+          !(typeof value==="number" && value===0) &&
+          !(typeof value==="string" && Number(value)===0);
+      });
+      return !hasFinancialInput && month.demandPrincipalManual!==true;
+    }
+
+    function compactMonthData(month, monthKey){
+      if(!month || typeof month!=="object" || Array.isArray(month)) return month;
+      const out={};
+      Object.keys(month).forEach(key=>{
+        if(DERIVED_MONTH_FIELDS.has(key)) return;
+        // From May onward these values are carried/calculated from previous
+        // months, not independent source inputs.
+        if(!isAprilMonthKey(monthKey) &&
+           ["opening","prevPrincipal","prevInterest"].includes(key)) return;
+        const value=month[key];
+        if(ZERO_PRUNABLE_MONTH_FIELDS.has(key) &&
+           (value===0 || value===null || value===undefined ||
+            (typeof value==="string" && value.trim()===""))){
+          // A manually established zero principal is a meaningful month
+          // baseline in the existing report/forward-propagation logic.
+          if((key==="principalCollection" || key==="interestCollection") && value===0){
+            // Explicit numeric zero is also a valid entered collection in
+            // older/imported records; preserve it to keep report eligibility.
+            out[key]=value;
+          }else if(key==="demandPrincipal" && month.demandPrincipalManual===true && value===0){
+            out[key]=value;
+          }
+          return;
+        }
+        // Keep explicit string "0" collections: they mean entered zero, not
+        // a blank cell, and are used to decide whether a month is reportable.
+        if((key==="principalCollection" || key==="interestCollection") &&
+           typeof value==="string" && value.trim()==="0"){
+          out[key]=value;
+          return;
+        }
+        out[key]=value;
+      });
+      return out;
+    }
+
+    function compactCloudRecord(record){
+      const copy=cloudSafeRecord(record);
+      function visit(value){
+        if(!value || typeof value!=="object") return value;
+        if(Array.isArray(value)) return value.map(visit);
+        const out={};
+        Object.keys(value).forEach(key=>{
+          const child=value[key];
+          if(key==="months" && child && typeof child==="object" && !Array.isArray(child)){
+            const months={};
+            Object.keys(child).forEach(monthKey=>{
+              const compacted=compactMonthData(child[monthKey],monthKey);
+              if(!isEmptyFinancialMonth(compacted)) months[monthKey]=visit(compacted);
+            });
+            out[key]=months;
+            return;
+          }
+          // A member's display name is stored once on the master member/SHG.
+          // ensureLoanData() repopulates each loan.name from member.name.
+          if(key==="loans" && child && typeof child==="object" && !Array.isArray(child)){
+            const loans={};
+            Object.keys(child).forEach(loanKey=>{
+              const loan=visit(child[loanKey]);
+              if(loan && typeof loan==="object") delete loan.name;
+              loans[loanKey]=loan;
+            });
+            out[key]=loans;
+            return;
+          }
+          out[key]=visit(child);
+        });
+        return out;
+      }
+      return visit(copy);
+    }
+
+    function restoreCloudRecord(record){
+      if(!record || !Array.isArray(record.shgs)) return record;
+      record.shgs.forEach(member=>{
+        if(!member || typeof member!=="object") return;
+        if(member.loans && typeof member.loans==="object"){
+          Object.values(member.loans).forEach(loan=>{
+            if(loan && typeof loan==="object" && !loan.name && member.name){
+              loan.name=member.name;
+            }
+          });
+        }
+      });
+      return record;
+    }
+
     function recordMapForDb(db){
       const map=new Map();
       const vos=Array.isArray(db?.vos)?db.vos:[];
       vos.forEach((record,index)=>{
-        const safeRecord=cloudSafeRecord(record);
+        const safeRecord=compactCloudRecord(record);
         let id=recordDocumentId(safeRecord,index);
         if(map.has(id)) id=`${id}_${index}`;
         map.set(id,{record:safeRecord,json:JSON.stringify(safeRecord)});
@@ -359,7 +502,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/fireba
               if(d.partIndex>=0) group.parts[d.partIndex]=d.dataChunk;
               chunkGroups.set(d.originalId,group);
             }else if(d.data){
-              vos.push(d.data);
+              vos.push(restoreCloudRecord(d.data));
             }
           });
           // Reassemble oversized records from sibling documents. The manifest
@@ -370,7 +513,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/fireba
             if(parts.length!==group.manifest.totalParts || parts.some(part=>typeof part!=="string")) {
               throw new Error("An oversized cloud record is incomplete: "+id);
             }
-            const record=JSON.parse(parts.join(""));
+            const record=restoreCloudRecord(JSON.parse(parts.join("")));
             vos.push(record);
           });
           vos.sort((a,b)=>String(a.id||"").localeCompare(String(b.id||"")));
@@ -398,6 +541,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/fireba
       if(data[field] && Array.isArray(data[field].vos)) legacy=data[field];
       else if(mode === "VO" && Array.isArray(data.vos)) legacy={vos:data.vos};
       if(legacy){
+        legacy.vos.forEach(restoreCloudRecord);
         // Do not treat a legacy document as record-level storage. The first
         // successful save migrates the complete dataset before diffing saves.
         syncedRecordsByMode.set(mode,new Map());
@@ -544,7 +688,9 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/fireba
     }
 
     function saveCloudDb(db,mode){
-      if(!currentUser) return Promise.resolve(false);
+      // Never report a successful save when Firebase Auth is not ready.
+      // A false return was previously treated as "Saved" by the debounced UI.
+      if(!currentUser) return Promise.reject(new Error("No active Firebase user. Sign in again before saving to Firebase."));
       const saveMode=mode||activeMode;
       // A direct/manual save supersedes the debounce timer for the same mode.
       if(pendingCloudSave && pendingCloudSave.mode===saveMode){
@@ -561,36 +707,51 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/fireba
       const uid=currentUser.uid;
       const run=async()=>{
         if(!currentUser || currentUser.uid!==uid) throw new Error("Your login session changed before the cloud save completed.");
-        return await saveCloudDbChunked(snapshot,saveMode);
+        const result = await saveCloudDbChunked(snapshot,saveMode);
+        if(result !== true) throw new Error("Firebase did not confirm the save. The data may still exist only in this browser; please sign in again and retry.");
+        return true;
       };
       const task=saveQueue.then(run,run);
       saveQueue=task.catch(()=>{});
       return task;
     }
 
-    function queueCloudSave(db){
-      if(!currentUser || !cloudLoaded) return;
-      pendingCloudSave={db:cleanFirestoreValue(db),mode:activeMode};
+    function queueCloudSave(db,localSaved=true,localError=null){
+      if(!currentUser || !cloudLoaded){
+        const status=document.getElementById("saveStatus");
+        if(status){
+          status.textContent=localSaved?"Saved locally only. Cloud save unavailable (not signed in or cloud not loaded).":"Save failed locally; cloud save unavailable.";
+          status.title=localError?String(localError.message||localError):"No active Firebase session or cloud data is not loaded.";
+        }
+        return;
+      }
+      pendingCloudSave={db:cleanFirestoreValue(db),mode:activeMode,localSaved:localSaved!==false,localError};
       clearTimeout(saveTimer);
       const queued=pendingCloudSave;
       saveTimer=setTimeout(async()=>{
         if(pendingCloudSave!==queued) return;
         pendingCloudSave=null;
         const el=document.getElementById("saveStatus");
-        if(el) el.textContent="Saving…";
+        if(el) el.textContent="Saving locally and to cloud…";
         try{
           await saveCloudDb(queued.db,queued.mode);
           const status=document.getElementById("saveStatus");
-          if(status) status.textContent="Saved";
+          if(status){
+            status.textContent=queued.localSaved
+              ?"Saved locally and to cloud."
+              :"Saved to cloud only. Local save failed.";
+            status.title=!queued.localSaved && queued.localError
+              ?`Local storage error: ${String(queued.localError.message||queued.localError)}`:"";
+          }
         }catch(err){
           console.error("Firebase auto-save failed:",err);
           const status=document.getElementById("saveStatus");
           if(status){
-            const code=String(err?.code||"").replace(/^firebase\\./,"");
-            status.textContent=(code==="unavailable"||code==="deadline-exceeded"||!navigator.onLine)
-              ?"Offline—changes stored locally"
-              :`Save failed${code?` (${code})`:""}`;
-            status.title=describeCloudSaveError(err);
+            status.textContent=queued.localSaved
+              ?"Saved locally only. Cloud save failed."
+              :"Save failed locally and in cloud.";
+            const localDetails=queued.localSaved?"":"\n\nLocal storage error: "+String(queued.localError?.message||queued.localError||"Unknown local storage error");
+            status.title=describeCloudSaveError(err)+localDetails;
           }
         }
       },700);
@@ -606,15 +767,20 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/fireba
       if(el) el.textContent="Saving…";
       try{
         await saveCloudDb(db,activeMode);
-        if(el) el.textContent="Saved";
-        return true;
+        const localState=window.__appLocalSaveState;
+        if(el) el.textContent=(localState&&localState.ok===false)
+          ?"Saved to cloud only. Local save failed."
+          :"Saved locally and to cloud.";
+        return !(localState&&localState.ok===false);
       }catch(err){
         if(el){
-          const code=String(err?.code||"").replace(/^firebase\\./,"");
-          el.textContent=(code==="unavailable"||code==="deadline-exceeded"||!navigator.onLine)
-            ?"Offline—changes stored locally"
-            :`Save failed${code?` (${code})`:""}`;
-          el.title=describeCloudSaveError(err);
+          const localState=window.__appLocalSaveState;
+          el.textContent=(localState&&localState.ok===false)
+            ?"Save failed locally and in cloud."
+            :"Saved locally only. Cloud save failed.";
+          const localDetails=(localState&&localState.ok===false)
+            ?"\n\nLocal storage error: "+String(localState.error?.message||localState.error||"Unknown local storage error"):"";
+          el.title=describeCloudSaveError(err)+localDetails;
         }
         throw err;
       }
@@ -668,7 +834,10 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/fireba
       if(!cloud && localDb && Array.isArray(localDb.vos) && localDb.vos.length){
         initial=localDb;
       }
-      if(!cloud) await saveCloudDb(initial,mode);
+      if(!cloud){
+        const initialSave = await saveCloudDb(initial,mode);
+        if(initialSave !== true) throw new Error("Firebase did not confirm initial cloud storage. Please check your connection and Firestore permissions, then sign in again.");
+      }
       window.dispatchEvent(new CustomEvent("firebase-cloud-ready",{detail:{db:initial,hasCloud:!!cloud,mode}}));
       cloudLoaded=true;
       const loginScreen=document.getElementById("loginScreen");
