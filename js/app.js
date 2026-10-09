@@ -3309,14 +3309,40 @@ html,body{
   white-space:nowrap;
 }
 .dcb-head-left,.dcb-head-right{
-  text-align:center;
-  vertical-align:middle;
+      text-align: center;
+      vertical-align: middle;
+      font-size: 16pt !important;
+      line-height: 2;
+      display: flex;
+      justify-content: center;
+      position: relative;
+      border-right: 1px solid #555;
+      border-bottom: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      min-width: 0;
+      overflow: hidden;
+      white-space: nowrap;
+      line-height: 1;
 }
 .dcb-head-right.monthly-dcb-title{
-  font-size:17pt !important;
-  line-height: 1;
-  display: flex;
-  justify-content: center;
+      font-size: 16pt !important;
+      line-height: 2;
+      display: flex;
+      justify-content: center;
+      position: relative;
+      border-right: 1px solid #555;
+      border-bottom: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      min-width: 0;
+      overflow: hidden;
+      white-space: nowrap;
+      line-height: 1;
 }
 .dcb-head .pdf-report-type-row th{
   height:24pt;
@@ -3443,11 +3469,40 @@ html,body{
   white-space:nowrap;
 }
 .cumulative-dcb-head-left,.cumulative-dcb-head-right{
-  text-align:center;
-  vertical-align:middle;
+       text-align: center;
+       vertical-align: middle;
+       font-size: 16pt !important;
+       line-height: 2;
+       display: flex;
+       justify-content: center;
+       position: relative;
+       border-right: 1px solid #555;
+       border-bottom: 0;
+       display: flex;
+       align-items: center;
+       justify-content: center;
+       text-align: center;
+       min-width: 0;
+       overflow: hidden;
+       white-space: nowrap;
+       line-height: 1;
 }
 .cumulative-dcb-head-right.cumulative-dcb-title{
-  font-size:17pt !important;
+      font-size: 17pt !important;
+      line-height: 2;
+      display: flex;
+      justify-content: center;
+      position: relative;
+      border-right: 1px solid #555;
+      border-bottom: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      min-width: 0;
+      overflow: hidden;
+      white-space: nowrap;
+      line-height: 1;
 }
 .cumulative-dcb-head .pdf-report-type-row th{
   height:24pt;
@@ -3717,10 +3772,24 @@ html,body{
 .pdf-report-type-header,
 .dcb-report-type-full-row,
 .cumulative-dcb-report-type-full-row{
-  box-sizing:border-box !important;
-  margin-left:0 !important;
-  margin-right:0 !important;
-  border-bottom:0 !important;
+    width: var(--dcb-width, 785.197pt);
+    height: 24pt;
+    min-height: 24pt;
+    box-sizing: border-box;
+    border: 1px solid #555;
+    border-bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-family: "Gidugu", Arial, sans-serif;
+    font-size: 20pt;
+    font-weight: 100;
+    line-height: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    margin: 0;
+    padding: 0 1.5pt;
 }
 .ledger-title-row{border-top:0 !important;}
 .ledger-report-type-header{border-bottom:0 !important;}
