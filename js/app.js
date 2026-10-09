@@ -83,11 +83,19 @@
         districtRequired:true,
         firstLocationField:"mandal",
         loanTypes:[
-          {key:"cif",label:"1. VO CIF"},
-          {key:"sgsy",label:"2. SGSY"},
+          {key:"gc",label:"1. General CIF"},
+          {key:"egc",label:"2. E Grade CIF"},
           {key:"pmfme",label:"3. PMFME"},
-          {key:"nutrition",label:"4. Nutrition"},
-          {key:"education",label:"5. Education"}
+          {key:"nutrigarden",label:"4. Nutrigarden"},
+          {key:"muc",label:"5. Mother Unit CIF"},
+          {key:"rc",label:"6. Ramlamb CIF"},
+          {key:"ccc",label:"7. Chaff Cutter CIF"},
+          {key:"pop",label:"8. POP"},
+          {key:"nrlm",label:"9. NRLM"},
+          {key:"rmk",label:"10. RMK"},
+          {key:"sgsy",label:"11. SGSY"},
+          {key:"education",label:"12. Education"},
+          {key:"oc",label:"13. Other CIF"}
         ],
         backupFilename:"ms-vo-backup.json",
         pdf:{
@@ -1459,11 +1467,19 @@
         streeNidhi:"స్త్రీ నిధి అప్పు",
         voCif:"VO CIF అప్పు",
         internalLoan:"అంతర్గత అప్పు",
-        cif:"VO CIF అప్పు",
-        sgsy:"SGSY అప్పు",
-        pmfme:"PMFME అప్పు",
-        nutrition:"Nutrition అప్పు",
-        education:"Education అప్పు"
+        gc:"General CIF",
+        egc:"E Grade CIF",
+        pmfme:"PMFME CIF",
+        nutrigarden:"Nutrigarden CIF",
+        muc:"Mother Unit CIF",
+        rc:"Ramlamb CIF",
+        ccc:"Chaff Cutter CIF",
+        pop:"POP CIF",
+        nrlm:"NRLM CIF",
+        rmk:"RMK CIF",
+        sgsy:"SGSY CIF",
+        education:"Education CIF",
+        oc:"Other CIF"
       };
       if(teluguMap[loanKey])return teluguMap[loanKey];
       const label=loanLabel(key);
@@ -3059,6 +3075,10 @@ html,body{
   font-size:13pt;
   font-weight:100;
 }
+.ledger-interest-rate-value,
+.ledger-loan-type-value{
+  font-size:17pt !important;
+}
 .meta-value.highlight{
   min-height:0;
   width:auto;
@@ -3292,6 +3312,12 @@ html,body{
   text-align:center;
   vertical-align:middle;
 }
+.dcb-head-right.monthly-dcb-title{
+  font-size:17pt !important;
+  line-height: 1;
+  display: flex;
+  justify-content: center;
+}
 .dcb-head .pdf-report-type-row th{
   height:24pt;
   border-bottom:1px solid #555;
@@ -3419,6 +3445,9 @@ html,body{
 .cumulative-dcb-head-left,.cumulative-dcb-head-right{
   text-align:center;
   vertical-align:middle;
+}
+.cumulative-dcb-head-right.cumulative-dcb-title{
+  font-size:17pt !important;
 }
 .cumulative-dcb-head .pdf-report-type-row th{
   height:24pt;
@@ -3781,7 +3810,19 @@ html,body{
         const types=loanFilter==="ALL" ? loanTypesForMode() : loanTypesForMode().filter(type=>type.key===loanFilter);
         types.forEach(type=>{
           const account=member.loans[type.key];
-          if(account)out.push({member,account,loanKey:type.key});
+          if(!account)return;
+
+          const aprilKey=MONTHS.find(m=>
+            String(m[0]).toLowerCase().startsWith("apr")
+          )?.[0];
+
+          const aprilOpening=Number(
+            account.months?.[aprilKey]?.opening ?? 0
+          );
+
+          if(aprilOpening===0)return;
+
+          out.push({member,account,loanKey:type.key});
         });
       });
       return out;
@@ -3920,7 +3961,7 @@ html,body{
                   <div class="dcb-head-left telugu">
                     ${pdfHeaderLocationText(v)}
                   </div>
-                  <div class="dcb-head-right">
+                  <div class="dcb-head-right monthly-dcb-title">
                     DCB-${m[0].toUpperCase()}
                   </div>
                 </div>
@@ -4190,9 +4231,9 @@ html,body{
                 <div class="cumulative-dcb-head-left telugu">
                   ${pdfHeaderLocationText(v)}
                 </div>
-                <div class="cumulative-dcb-head-right">
-                  Cumulative DCB ${esc(pdfFinancialYear(v))}
-                </div>
+               <div class="cumulative-dcb-head-right cumulative-dcb-title">
+                 Cumulative DCB ${esc(pdfFinancialYear(v))}
+               </div>
               </div>
 
               <table class="cumulative-dcb-table">
@@ -4372,7 +4413,7 @@ html,body{
                   <div class="meta-key telugu">అప్పు మొత్తం రూ. :</div>
                   <div class="meta-empty"></div>
                   <div class="meta-key telugu">వడ్డీ రేటు :</div>
-                  <div class="meta-value highlight">${fmt(s.interestRate===undefined?12:s.interestRate)}%</div>
+                  <div class="meta-value highlight ledger-interest-rate-value">${fmt(s.interestRate===undefined?12:s.interestRate)}%</div>
                 </div>
 
                 <div class="meta-row">
@@ -4381,7 +4422,7 @@ html,body{
                   <div class="meta-key telugu">వాయిదా మొత్తం రూ. :</div>
                   <div class="meta-empty"></div>
                   <div class="meta-key telugu">అప్పు రకం :</div>
-                  <div class="meta-value highlight">${esc(loanTypeDisplayLabel(entry?.loanKey||defaultLoanTypeKey()))}</div>
+                  <div class="meta-value highlight ledger-loan-type-value">${esc(loanTypeDisplayLabel(entry?.loanKey||defaultLoanTypeKey()))}</div>
                 </div>
               </div>
 

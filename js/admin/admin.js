@@ -102,7 +102,7 @@ function adminMonths(fy){
 function loanTypes(m){
   return m==="SHG"
     ? [{key:"bankLinkage",label:"Bank Linkage"},{key:"streeNidhi",label:"Sree Nidhi"},{key:"voCif",label:"VO CIF"},{key:"internalLoan",label:"Internal"}]
-    : [{key:"cif",label:"VO CIF"},{key:"sgsy",label:"SGSY"},{key:"pmfme",label:"PMFME"},{key:"nutrition",label:"Nutrition"},{key:"education",label:"Education"}];
+    : [{key:"gc",label:"General CIF"},{key:"egc",label:"E Grade CIF"},{key:"pmfme",label:"PMFME CIF"},{key:"nutrigarden",label:"Nutrigarden CIF"},{key:"muc",label:"Mother Unit CIF"},{key:"rc",label:"Ramlamb CIF"},{key:"ccc",label:"Chaff Cutter CIF"},{key:"pop",label:"POP CIF"},{key:"nrlm",label:"NRLM CIF"},{key:"rmk",label:"RMK CIF"},{key:"sgsy",label:"SGSY CIF"},{key:"education",label:"Education CIF"},{key:"oc",label:"Other CIF"}];
 }
 function adminAccount(member,m,key){
   if(!member)return {};
