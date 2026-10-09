@@ -97,14 +97,19 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/fireba
         }
         isLoggingOutAutomatically=true;
         try{
-          // Save all current accounting data before ending the session.
-          await saveAppDataBeforeAuthLogout();
+          // Keep the session active if cloud saving could not be confirmed.
+          const saved=await saveAppDataBeforeAuthLogout();
+          if(saved===false){
+            console.warn("Automatic logout paused because cloud saving was not confirmed.");
+            startInactivityTimer();
+            return;
+          }
           await signOut(auth);
         }catch(err){
           console.error("Automatic inactivity logout failed:",err);
         }finally{
           isLoggingOutAutomatically=false;
-          clearInactivityTimer();
+          if(!currentUser) clearInactivityTimer();
         }
       }, AUTO_LOGOUT_MS);
     }
@@ -125,11 +130,16 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/fireba
       if(elapsed >= AUTO_LOGOUT_MS){
         isLoggingOutAutomatically=true;
         try{
-          // Save all current accounting data before ending the session.
-          await saveAppDataBeforeAuthLogout();
+          // Keep the session active if cloud saving could not be confirmed.
+          const saved=await saveAppDataBeforeAuthLogout();
+          if(saved===false){
+            console.warn("Automatic logout paused because cloud saving was not confirmed.");
+            startInactivityTimer();
+            return;
+          }
           await signOut(auth);
         }catch(err){ console.error(err); }
-        finally{ isLoggingOutAutomatically=false; clearInactivityTimer(); }
+        finally{ isLoggingOutAutomatically=false; if(!currentUser) clearInactivityTimer(); }
       }else{
         startInactivityTimer();
       }
@@ -152,6 +162,10 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/fireba
     let accountAccess = {VO:false,MS:false,SHG:false};
     let cloudLoaded = false;
     let saveTimer = null;
+    let pendingCloudSave = null;
+    let saveQueue = Promise.resolve();
+    const syncedRecordsByMode = new Map();
+    const chunkedStorageReadyModes = new Set();
     let presenceTimer = null;
 
     function userDocRef(){
@@ -269,26 +283,103 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/fireba
       }
     }
 
+    function cleanFirestoreValue(value, inArray=false){
+      // Firestore rejects undefined values (often reported as invalid-argument).
+      // Normalize the in-memory record without changing the app's live data.
+      if(value === undefined || typeof value === "function" || typeof value === "symbol") return inArray ? null : undefined;
+      if(value === null || typeof value === "string" || typeof value === "boolean") return value;
+      if(typeof value === "number") return Number.isFinite(value) ? value : null;
+      if(value instanceof Date) return value.toISOString();
+      if(Array.isArray(value)) return value.map(item=>cleanFirestoreValue(item,true));
+      if(typeof value === "object"){
+        const out={};
+        Object.keys(value).forEach(key=>{
+          const cleaned=cleanFirestoreValue(value[key],false);
+          if(cleaned!==undefined) out[key]=cleaned;
+        });
+        return out;
+      }
+      return null;
+    }
+
+    function cloudSafeRecord(record){
+      const cleaned=cleanFirestoreValue(record);
+      if(!cleaned || typeof cleaned!=="object" || Array.isArray(cleaned)){
+        throw new Error("A record could not be prepared for Firebase saving.");
+      }
+      return cleaned;
+    }
+
+    function recordDocumentId(record,index){
+      let id=String(record?.id ?? `record_${index}`).replace(/\//g,"_");
+      if(!id || id==="." || id===".." || /^__.*__$/.test(id)) id=`record_${index}`;
+      // Keep Firestore document IDs bounded and free of path separators.
+      if(id.length>900) id=id.slice(0,850)+"_"+String(index);
+      return id;
+    }
+
+    function recordMapForDb(db){
+      const map=new Map();
+      const vos=Array.isArray(db?.vos)?db.vos:[];
+      vos.forEach((record,index)=>{
+        const safeRecord=cloudSafeRecord(record);
+        let id=recordDocumentId(safeRecord,index);
+        if(map.has(id)) id=`${id}_${index}`;
+        map.set(id,{record:safeRecord,json:JSON.stringify(safeRecord)});
+      });
+      return map;
+    }
+
+    function setSyncedSnapshot(mode, recordMap){
+      syncedRecordsByMode.set(mode,new Map(Array.from(recordMap,([id,item])=>[id,item.json])));
+    }
+
     async function loadCloudDb(mode){
       if(!currentUser) return null;
 
       /*
-       * New storage layout: each VO/MS/SHG parent record is stored in its
-       * own Firestore document under users/{uid}/modeData/{mode}/records.
-       * This avoids Firestore's 1 MiB document limit when an account contains
-       * many SHGs and many months.
+       * Prefer the per-record layout. If it exists, retain a baseline so later
+       * saves can write only changed records and remove deleted records.
        */
       try{
         const recordsRef=collection(firestore,"users",currentUser.uid,"modeData",mode,"records");
         const recordsSnap=await getDocs(recordsRef);
         if(!recordsSnap.empty){
           const vos=[];
+          const chunkGroups=new Map();
           recordsSnap.forEach(s=>{
             const d=s.data()||{};
-            if(d.data)vos.push(d.data);
+            if(d._chunkedRecord===true && Number.isInteger(d.totalParts)){
+              const group=chunkGroups.get(s.id)||{manifest:null,parts:new Array(d.totalParts)};
+              group.manifest=d;
+              if(group.parts.length!==d.totalParts) group.parts.length=d.totalParts;
+              chunkGroups.set(s.id,group);
+            }else if(typeof d.dataChunk==="string" && d._chunkPart===true){
+              const group=chunkGroups.get(d.originalId)||{manifest:null,parts:new Array(d.totalParts||0)};
+              if(d.partIndex>=0) group.parts[d.partIndex]=d.dataChunk;
+              chunkGroups.set(d.originalId,group);
+            }else if(d.data){
+              vos.push(d.data);
+            }
+          });
+          // Reassemble oversized records from sibling documents. The manifest
+          // is stored at the original record ID, preserving app-level IDs.
+          chunkGroups.forEach((group,id)=>{
+            if(!group.manifest || !Number.isInteger(group.manifest.totalParts)) return;
+            const parts=group.parts;
+            if(parts.length!==group.manifest.totalParts || parts.some(part=>typeof part!=="string")) {
+              throw new Error("An oversized cloud record is incomplete: "+id);
+            }
+            const record=JSON.parse(parts.join(""));
+            vos.push(record);
           });
           vos.sort((a,b)=>String(a.id||"").localeCompare(String(b.id||"")));
-          if(vos.length)return {vos};
+          if(vos.length){
+            const loaded={vos};
+            setSyncedSnapshot(mode,recordMapForDb(loaded));
+            chunkedStorageReadyModes.add(mode);
+            return loaded;
+          }
         }
       }catch(err){
         console.warn("Chunked cloud load unavailable; trying legacy storage:",err);
@@ -296,11 +387,25 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/fireba
 
       /* Backward compatibility with the existing single-document layout. */
       const snap = await getDoc(userDocRef());
-      if(!snap.exists()) return null;
+      if(!snap.exists()){
+        syncedRecordsByMode.set(mode,new Map());
+        chunkedStorageReadyModes.delete(mode);
+        return null;
+      }
       const data = snap.data()||{};
       const field = mode === "MS" ? "msData" : (mode === "SHG" ? "shgData" : "voData");
-      if(data[field] && Array.isArray(data[field].vos)) return data[field];
-      if(mode === "VO" && Array.isArray(data.vos)) return {vos:data.vos};
+      let legacy=null;
+      if(data[field] && Array.isArray(data[field].vos)) legacy=data[field];
+      else if(mode === "VO" && Array.isArray(data.vos)) legacy={vos:data.vos};
+      if(legacy){
+        // Do not treat a legacy document as record-level storage. The first
+        // successful save migrates the complete dataset before diffing saves.
+        syncedRecordsByMode.set(mode,new Map());
+        chunkedStorageReadyModes.delete(mode);
+        return legacy;
+      }
+      syncedRecordsByMode.set(mode,new Map());
+      chunkedStorageReadyModes.delete(mode);
       return null;
     }
 
@@ -308,96 +413,211 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/fireba
     function isFirestoreDocumentTooLarge(err){
       const code=String(err?.code||"").toLowerCase();
       const message=String(err?.message||err||"");
-      return code.includes("resource-exhausted") || /1\s*MiB|1048576|maximum.*size|document.*too large|exceeds.*maximum/i.test(message);
+      return code.includes("resource-exhausted") || /1\\s*MiB|1048576|maximum.*size|document.*too large|exceeds.*maximum/i.test(message);
+    }
+
+    async function runWithConcurrency(items,limit,worker){
+      let next=0;
+      const count=Math.min(Math.max(1,limit),items.length);
+      await Promise.all(Array.from({length:count},async()=>{
+        while(next<items.length){
+          const index=next++;
+          await worker(items[index],index);
+        }
+      }));
+    }
+
+    // Firestore has a 1 MiB document limit. Keep each text piece well below
+    // that limit to allow for metadata and UTF-8 expansion.
+    const FIRESTORE_RECORD_CHUNK_CHARS = 180000;
+
+    function splitRecordJson(json){
+      const parts=[];
+      for(let i=0;i<json.length;i+=FIRESTORE_RECORD_CHUNK_CHARS){
+        parts.push(json.slice(i,i+FIRESTORE_RECORD_CHUNK_CHARS));
+      }
+      return parts;
+    }
+
+    function expectedRecordDocumentIds(id,json){
+      if(json.length<=FIRESTORE_RECORD_CHUNK_CHARS) return [id];
+      const parts=splitRecordJson(json);
+      return [id,...parts.map((_,index)=>`${id}__part_${index}`)];
+    }
+
+    async function writeRecordSafely(recordsRef,item,uid,mode){
+      const ref=doc(recordsRef,item.id);
+      const updatedAt=new Date().toISOString();
+      if(item.json.length<=FIRESTORE_RECORD_CHUNK_CHARS){
+        await setDoc(ref,{data:item.record,ownerUid:uid,mode,updatedAt},{merge:false});
+        const oldJson=(syncedRecordsByMode.get(mode)||new Map()).get(item.id)||"";
+        const oldParts=oldJson.length>FIRESTORE_RECORD_CHUNK_CHARS
+          ? Math.ceil(oldJson.length/FIRESTORE_RECORD_CHUNK_CHARS) : 0;
+        const stale=[];
+        for(let i=0;i<oldParts;i++) stale.push(doc(recordsRef,`${item.id}__part_${i}`));
+        if(stale.length) await runWithConcurrency(stale,6,partRef=>deleteDoc(partRef));
+        return;
+      }
+
+      const parts=splitRecordJson(item.json);
+      // Write parts first, then the manifest. Readers only accept a chunked
+      // record when its manifest and every part are present.
+      await runWithConcurrency(parts,6,async(part,index)=>{
+        await setDoc(doc(recordsRef,`${item.id}__part_${index}`),{
+          _chunkPart:true,originalId:item.id,partIndex:index,totalParts:parts.length,
+          dataChunk:part,ownerUid:uid,mode,updatedAt
+        },{merge:false});
+      });
+      await setDoc(ref,{
+        _chunkedRecord:true,totalParts:parts.length,ownerUid:uid,mode,updatedAt
+      },{merge:false});
+
+      // If this record used to have more chunks, remove the now-obsolete tail.
+      const previousParts=Number((syncedRecordsByMode.get(mode)||new Map()).get(item.id)?.length||0)>FIRESTORE_RECORD_CHUNK_CHARS
+        ? Math.ceil((syncedRecordsByMode.get(mode)||new Map()).get(item.id).length/FIRESTORE_RECORD_CHUNK_CHARS) : 0;
+      const stale=[];
+      for(let i=parts.length;i<previousParts;i++) stale.push(doc(recordsRef,`${item.id}__part_${i}`));
+      if(stale.length) await runWithConcurrency(stale,6,ref=>deleteDoc(ref));
     }
 
     async function saveCloudDbChunked(db,mode){
-      if(!currentUser) return;
-      const recordsRef=collection(firestore,"users",currentUser.uid,"modeData",mode,"records");
-      const vos=Array.isArray(db?.vos)?db.vos:[];
-      const activeIds=new Set();
+      if(!currentUser) return false;
+      const uid=currentUser.uid;
+      const recordsRef=collection(firestore,"users",uid,"modeData",mode,"records");
+      const currentRecords=recordMapForDb(db);
+      const baseline=syncedRecordsByMode.get(mode)||new Map();
+      const needsMigration=!chunkedStorageReadyModes.has(mode);
+      const changed=[];
 
-      for(let i=0;i<vos.length;i++){
-        const record=vos[i];
-        const id=String(record?.id||`record_${i}`).replace(/\//g,"_");
-        activeIds.add(id);
-        await setDoc(doc(recordsRef,id),{data:record,ownerUid:currentUser.uid,mode,updatedAt:new Date().toISOString()},{merge:true});
+      currentRecords.forEach((item,id)=>{
+        if(needsMigration || baseline.get(id)!==item.json) changed.push({id,...item});
+      });
+
+      // Write independent records concurrently with a modest limit. Keep the
+      // baseline unchanged until every write succeeds, so failed writes retry.
+      await runWithConcurrency(changed,4,item=>writeRecordSafely(recordsRef,item,uid,mode));
+
+      const deleted=[];
+      if(needsMigration){
+        // One-time migration: remove stale documents only after all records,
+        // including every oversized-record part, have been written.
+        const expectedIds=new Set();
+        currentRecords.forEach((item,id)=>expectedRecordDocumentIds(id,item.json).forEach(docId=>expectedIds.add(docId)));
+        const existing=await getDocs(recordsRef);
+        existing.forEach(s=>{if(!expectedIds.has(s.id))deleted.push(s.ref);});
+      }else{
+        baseline.forEach((oldJson,id)=>{
+          if(!currentRecords.has(id)){
+            expectedRecordDocumentIds(id,oldJson).forEach(docId=>deleted.push(doc(recordsRef,docId)));
+          }
+        });
+      }
+      if(deleted.length){
+        await runWithConcurrency(deleted,6,ref=>deleteDoc(ref));
       }
 
-      /* Remove old chunk records when a parent/member was deleted. */
-      const existing=await getDocs(recordsRef);
-      const deletes=[];
-      existing.forEach(s=>{if(!activeIds.has(s.id))deletes.push(deleteDoc(s.ref));});
-      if(deletes.length)await Promise.all(deletes);
+      if(currentUser?.uid!==uid) return false;
+      setSyncedSnapshot(mode,currentRecords);
+      chunkedStorageReadyModes.add(mode);
+      return true;
     }
 
     function describeCloudSaveError(err){
-      const code=String(err?.code||'').replace(/^firebase\./,'');
+      const code=String(err?.code||'').replace(/^firebase\\./,'');
       const message=String(err?.message||err||'Unknown Firebase error');
       if(code.includes('permission-denied')){
-        return `Firebase rejected the cloud save (permission-denied). Your internet is working, but the Firestore security rules are not allowing this account to write this data.\n\nDetails: ${message}`;
+        return `Firebase rejected the cloud save (permission-denied). Your internet is working, but the Firestore security rules are not allowing this account to write this data.\\n\\nDetails: ${message}`;
+      }
+      if(code.includes('invalid-argument')){
+        return `Firebase rejected one or more data values (invalid-argument). Undefined values are cleaned before upload; check the browser console for the exact field or document details.\\n\\nDetails: ${message}`;
       }
       if(code.includes('resource-exhausted') || /1 MiB|1048576|maximum.*size|document.*too large/i.test(message)){
-        return `Firebase rejected the cloud save because the Firestore document is too large. The data needs to be split into smaller cloud records instead of one large document.\n\nDetails: ${message}`;
+        return `Firebase rejected the cloud save because a single record is too large.\\n\\nDetails: ${message}`;
       }
       if(code.includes('unauthenticated')){
-        return `The Firebase login session is no longer authenticated. Please sign out, sign in again, and save again.\n\nDetails: ${message}`;
+        return `The Firebase login session is no longer authenticated. Please sign out, sign in again, and save again.\\n\\nDetails: ${message}`;
       }
       if(code.includes('unavailable') || code.includes('deadline-exceeded') || /network|offline|failed to fetch/i.test(message)){
-        return `Firebase could not reach the cloud service. Your general internet connection can still be working; this can be a Firebase/network request problem. Please wait a moment and try Save All again.\n\nDetails: ${message}`;
+        return `Firebase could not reach the cloud service. Your general internet connection can still be working; this can be a Firebase/network request problem. Please wait a moment and try Save All again.\\n\\nDetails: ${message}`;
       }
-      return `Cloud synchronization failed even though the data was saved locally.\n\nFirebase error${code ? ` (${code})` : ''}: ${message}`;
+      return `Cloud synchronization failed even though the data was saved locally.\\n\\nFirebase error${code ? ` (${code})` : ''}: ${message}`;
     }
 
-    async function saveCloudDb(db,mode){
-      if(!currentUser) return;
-      const field = mode === "MS" ? "msData" : (mode === "SHG" ? "shgData" : "voData");
-      const payload={
-        [field]: {vos:Array.isArray(db.vos)?db.vos:[]},
-        updatedAt: new Date().toISOString(),
-        ownerUid: currentUser.uid
-      };
-      if(mode === "VO") payload.vos=Array.isArray(db.vos)?db.vos:[];
-
-      try{
-        /* Keep the existing layout for small accounts. */
-        await setDoc(userDocRef(),payload,{merge:true});
-        return;
-      }catch(err){
-        /* Large accounts cannot fit in one Firestore document.  Automatically
-         * switch to one-document-per-parent storage instead of reporting a
-         * misleading internet failure. */
-        if(!isFirestoreDocumentTooLarge(err)) throw err;
-        console.warn("Legacy cloud document is too large; switching to chunked storage.",err);
-        await saveCloudDbChunked(db,mode);
+    function saveCloudDb(db,mode){
+      if(!currentUser) return Promise.resolve(false);
+      const saveMode=mode||activeMode;
+      // A direct/manual save supersedes the debounce timer for the same mode.
+      if(pendingCloudSave && pendingCloudSave.mode===saveMode){
+        clearTimeout(saveTimer);
+        pendingCloudSave=null;
       }
+      // Snapshot immediately so later edits cannot mutate a queued operation.
+      let snapshot;
+      try{
+        snapshot=cleanFirestoreValue(db);
+      }catch(err){
+        return Promise.reject(err);
+      }
+      const uid=currentUser.uid;
+      const run=async()=>{
+        if(!currentUser || currentUser.uid!==uid) throw new Error("Your login session changed before the cloud save completed.");
+        return await saveCloudDbChunked(snapshot,saveMode);
+      };
+      const task=saveQueue.then(run,run);
+      saveQueue=task.catch(()=>{});
+      return task;
     }
 
     function queueCloudSave(db){
       if(!currentUser || !cloudLoaded) return;
+      pendingCloudSave={db:cleanFirestoreValue(db),mode:activeMode};
       clearTimeout(saveTimer);
+      const queued=pendingCloudSave;
       saveTimer=setTimeout(async()=>{
+        if(pendingCloudSave!==queued) return;
+        pendingCloudSave=null;
+        const el=document.getElementById("saveStatus");
+        if(el) el.textContent="Saving…";
         try{
-          await saveCloudDb(db,activeMode);
-          const el=document.getElementById("saveStatus");
-          if(el) el.textContent="Data Saved";
+          await saveCloudDb(queued.db,queued.mode);
+          const status=document.getElementById("saveStatus");
+          if(status) status.textContent="Saved";
         }catch(err){
           console.error("Firebase auto-save failed:",err);
-          const el=document.getElementById("saveStatus");
-          const code=String(err?.code||"").replace(/^firebase\./,"");
-          if(el) el.textContent=`Wait Data Saving...${code?` (${code})`:""}`;
+          const status=document.getElementById("saveStatus");
+          if(status){
+            const code=String(err?.code||"").replace(/^firebase\\./,"");
+            status.textContent=(code==="unavailable"||code==="deadline-exceeded"||!navigator.onLine)
+              ?"Offline—changes stored locally"
+              :`Save failed${code?` (${code})`:""}`;
+            status.title=describeCloudSaveError(err);
+          }
         }
       },700);
     }
 
-    // Flush the pending auto-save immediately before logout.
+    // Flush the latest screen/database snapshot before logout. saveCloudDb uses
+    // the per-record baseline, so this becomes a no-op if already synchronized.
     async function saveNowBeforeLogout(db){
       clearTimeout(saveTimer);
+      pendingCloudSave=null;
       if(!currentUser || !cloudLoaded) return false;
-      await saveCloudDb(db,activeMode);
       const el=document.getElementById("saveStatus");
-      if(el) el.textContent="Data Saved before logout";
-      return true;
+      if(el) el.textContent="Saving…";
+      try{
+        await saveCloudDb(db,activeMode);
+        if(el) el.textContent="Saved";
+        return true;
+      }catch(err){
+        if(el){
+          const code=String(err?.code||"").replace(/^firebase\\./,"");
+          el.textContent=(code==="unavailable"||code==="deadline-exceeded"||!navigator.onLine)
+            ?"Offline—changes stored locally"
+            :`Save failed${code?` (${code})`:""}`;
+          el.title=describeCloudSaveError(err);
+        }
+        throw err;
+      }
     }
 
     async function readAccountAccess(user){
@@ -519,6 +739,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/fireba
       saveCloudDb,
       queueCloudSave,
       saveNowBeforeLogout,
+      describeCloudSaveError,
       setCloudLoaded(v){cloudLoaded=!!v;},
       showAccountingSystemSelector:()=>showSystemSelector(accountAccess)
     };

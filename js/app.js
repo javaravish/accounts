@@ -1096,11 +1096,11 @@
      writeDb();
      if(window.firebaseCloud && window.firebaseCloud.saveCloudDb && window.firebaseCloud.currentUser){
        try{
-         await window.firebaseCloud.saveCloudDb(db,activeMode);
+         await window.firebaseCloud.saveCloudDb(db,window.firebaseCloud.activeMode);
        }catch(err){
          console.error("Row cloud sync failed:",err);
          document.getElementById("saveStatus").textContent="Wait Data Saving...";
-         alert(describeCloudSaveError(err));
+         alert(window.firebaseCloud?.describeCloudSaveError ? window.firebaseCloud.describeCloudSaveError(err) : (err?.message || String(err)));
          return;
        }
      }
@@ -1215,18 +1215,18 @@
       if(window.firebaseCloud && window.firebaseCloud.saveCloudDb && window.firebaseCloud.currentUser){
         try{
           document.getElementById("saveStatus").textContent="Saving to cloud…";
-          await window.firebaseCloud.saveCloudDb(db,activeMode);
+          await window.firebaseCloud.saveCloudDb(db,window.firebaseCloud.activeMode);
         }catch(err){
           console.error("Save All cloud sync failed:",err);
           document.getElementById("saveStatus").textContent="Wait Data Saving...";
-          alert(describeCloudSaveError(err));
+          alert(window.firebaseCloud?.describeCloudSaveError ? window.firebaseCloud.describeCloudSaveError(err) : (err?.message || String(err)));
           return;
         }
       }
       refreshVOSelect();
       markClean();
       document.getElementById("saveStatus").textContent="All data saved and synchronized";
-      alert(`All ${modeConfig().childPlural}, all months, and all Current Month Principal values have been saved and synchronized.`);
+      alert(`All ${modeConfig().childPlural} 's and it's months have been saved and synchronized.`);
     }
 
     function rekeyMonthsForFinancialYear(v, oldFinancialYear, newFinancialYear){
@@ -5736,12 +5736,14 @@ html,body{
       const btn=document.getElementById("logoutBtn");
       if(btn) btn.disabled=true;
       try{
-        // IMPORTANT: save all current data before ending the Firebase session.
-        await window.saveAppDataBeforeLogout();
+        // Do not end the Firebase session if the latest local data could not
+        // be confirmed saved to the cloud.
+        const cloudSaved=await window.saveAppDataBeforeLogout();
+        if(cloudSaved===false) throw new Error("Your changes are saved locally, but Firebase could not confirm the cloud save. Please retry before logging out.");
         await window.firebaseCloud.logout();
       }catch(err){
         console.error(err);
-        alert("Logout failed. Please try again.");
+        alert(err?.message || "Logout failed. Please try again.");
       }finally{
         if(btn) btn.disabled=false;
       }
@@ -5802,7 +5804,7 @@ html,body{
       try{await saveAll();}
       catch(err){
         console.error("Save All Children failed:",err);
-        const msg=describeCloudSaveError(err);
+        const msg=window.firebaseCloud?.describeCloudSaveError ? window.firebaseCloud.describeCloudSaveError(err) : (err?.message || String(err));
         const status=document.getElementById("saveStatus");
         if(status)status.textContent="Save failed: "+msg;
         alert("Could not save all child records.\n\n"+msg);
