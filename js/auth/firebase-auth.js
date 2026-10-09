@@ -351,11 +351,14 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/fireba
     ]);
 
     function isAprilMonthKey(key){
-      return /^Apr(?:il)?(?:-|$)/i.test(String(key||""));
+      return /^Apr(?:il)?(?:-|\s|$)/i.test(String(key||""));
     }
 
     function isEmptyFinancialMonth(month){
       if(!month || typeof month!=="object" || Array.isArray(month)) return false;
+      // Explicit zero collections are represented by flags when compacted.
+      // They remain reportable even though the numeric zero itself is omitted.
+      if(month._enteredPrincipalCollectionZero===true || month._enteredInterestCollectionZero===true) return false;
       const sourceFields=[
         "opening","prevPrincipal","prevInterest","demandPrincipal",
         "principalCollection","interestCollection","newLoan",
@@ -363,51 +366,80 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/fireba
       ];
       const hasFinancialInput=sourceFields.some(key=>{
         const value=month[key];
-        // A string "0" collection is intentional input in this app and makes
-        // the month reportable, so preserve it.
-        if((key==="principalCollection" || key==="interestCollection") &&
-           typeof value==="string" && value.trim()!=="") return true;
-        return value!==undefined && value!==null && value!=="" &&
-          !(typeof value==="number" && value===0) &&
-          !(typeof value==="string" && Number(value)===0);
+        if(value===undefined || value===null || value==="") return false;
+        if(typeof value==="number") return value!==0;
+        if(typeof value==="string") return value.trim()!=="" && Number(value)!==0;
+        return true;
       });
-      return !hasFinancialInput && month.demandPrincipalManual!==true;
+      // Keep manually established principal baselines and any explicit
+      // non-financial data. A zero opening balance alone is not enough to
+      // delete a month that contains collections, a new loan, or savings.
+      const hasOtherMeaningfulData=Object.keys(month).some(key=>{
+        if(sourceFields.includes(key) || key==="demandPrincipalManual" ||
+           key==="_enteredPrincipalCollectionZero" || key==="_enteredInterestCollectionZero") return false;
+        const value=month[key];
+        return value!==undefined && value!==null && value!=="" && value!==false &&
+          !(typeof value==="number" && value===0) &&
+          !(typeof value==="string" && value.trim()!=="" && Number(value)===0);
+      });
+      return !hasFinancialInput && !hasOtherMeaningfulData && month.demandPrincipalManual!==true;
     }
 
     function compactMonthData(month, monthKey){
       if(!month || typeof month!=="object" || Array.isArray(month)) return month;
       const out={};
       Object.keys(month).forEach(key=>{
-        if(DERIVED_MONTH_FIELDS.has(key)) return;
-        // From May onward these values are carried/calculated from previous
-        // months, not independent source inputs.
-        if(!isAprilMonthKey(monthKey) &&
-           ["opening","prevPrincipal","prevInterest"].includes(key)) return;
         const value=month[key];
-        if(ZERO_PRUNABLE_MONTH_FIELDS.has(key) &&
-           (value===0 || value===null || value===undefined ||
-            (typeof value==="string" && value.trim()===""))){
-          // A manually established zero principal is a meaningful month
-          // baseline in the existing report/forward-propagation logic.
-          if((key==="principalCollection" || key==="interestCollection") && value===0){
-            // Explicit numeric zero is also a valid entered collection in
-            // older/imported records; preserve it to keep report eligibility.
-            out[key]=value;
-          }else if(key==="demandPrincipal" && month.demandPrincipalManual===true && value===0){
-            out[key]=value;
-          }
+        // These values are calculated by the app and are reconstructed when
+        // loaded. April omits calculated fields; May-March also omit carried
+        // opening and previous-due values.
+        if(DERIVED_MONTH_FIELDS.has(key)) return;
+        if(!isAprilMonthKey(monthKey) && ["opening","prevPrincipal","prevInterest"].includes(key)) return;
+
+        // Zero collection values are omitted from the stored financial data,
+        // but flags preserve the distinction between an explicitly entered
+        // zero collection and an untouched blank cell for report eligibility.
+        if(key==="principalCollection" && (value===0 || (typeof value==="string" && value.trim()!=="" && Number(value)===0))){
+          out._enteredPrincipalCollectionZero=true;
           return;
         }
-        // Keep explicit string "0" collections: they mean entered zero, not
-        // a blank cell, and are used to decide whether a month is reportable.
-        if((key==="principalCollection" || key==="interestCollection") &&
-           typeof value==="string" && value.trim()==="0"){
-          out[key]=value;
+        if(key==="interestCollection" && (value===0 || (typeof value==="string" && value.trim()!=="" && Number(value)===0))){
+          out._enteredInterestCollectionZero=true;
           return;
         }
+        // Omit all zero-valued month fields, including numeric strings, while
+        // retaining booleans such as demandPrincipalManual=false.
+        if(value===0 || (typeof value==="string" && value.trim()!=="" && Number(value)===0)) return;
+        if(value===null || value===undefined) return;
+        // Do not persist empty strings; missing numeric values are treated as
+        // zero by the UI/calculation layer.
+        if(typeof value==="string" && value.trim()==="") return;
         out[key]=value;
       });
       return out;
+    }
+
+    // Only store a loan when its April opening loan balance is non-zero.
+    // Both positive and negative balances are meaningful. Missing/blank values
+    // are treated as zero, as requested. This runs only on the Firebase copy.
+    function openingBalanceNumber(value){
+      if(value===null || value===undefined || value==="" || (typeof value==="string" && !value.trim())) return 0;
+      const n=typeof value==="number" ? value : Number(value);
+      return Number.isFinite(n) ? n : 0;
+    }
+
+    function getLoanOpeningBalance(loan){
+      if(!loan || typeof loan!=="object" || Array.isArray(loan)) return 0;
+      const months=loan.months && typeof loan.months==="object" && !Array.isArray(loan.months) ? loan.months : null;
+      if(months){
+        const aprilKey=Object.keys(months).find(isAprilMonthKey);
+        if(aprilKey){
+          const april=months[aprilKey];
+          if(april && typeof april==="object") return openingBalanceNumber(april.opening);
+        }
+      }
+      // Support legacy loan shapes where opening is stored directly on loan.
+      return openingBalanceNumber(loan.opening);
     }
 
     function compactCloudRecord(record){
@@ -432,10 +464,16 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/fireba
           if(key==="loans" && child && typeof child==="object" && !Array.isArray(child)){
             const loans={};
             Object.keys(child).forEach(loanKey=>{
-              const loan=visit(child[loanKey]);
+              const sourceLoan=child[loanKey];
+              // Do not write the loan OR any of its month maps unless April's
+              // opening balance is positive or negative. Zero/missing = omit.
+              if(getLoanOpeningBalance(sourceLoan)===0) return;
+              const loan=visit(sourceLoan);
               if(loan && typeof loan==="object") delete loan.name;
               loans[loanKey]=loan;
             });
+            // Keep an empty loans map only when the parent schema needs it; no
+            // loan records or monthly subtrees are written for zero openings.
             out[key]=loans;
             return;
           }
@@ -447,16 +485,28 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/fireba
     }
 
     function restoreCloudRecord(record){
-      if(!record || !Array.isArray(record.shgs)) return record;
-      record.shgs.forEach(member=>{
-        if(!member || typeof member!=="object") return;
-        if(member.loans && typeof member.loans==="object"){
-          Object.values(member.loans).forEach(loan=>{
-            if(loan && typeof loan==="object" && !loan.name && member.name){
-              loan.name=member.name;
-            }
+      if(!record || typeof record!=="object") return record;
+      // Rehydrate explicit zero collections so UI/reporting behavior is the
+      // same as before compaction. The marker remains to keep cloud storage
+      // compact on the next save.
+      function restoreMonths(value){
+        if(!value || typeof value!=="object") return;
+        if(Array.isArray(value)){value.forEach(restoreMonths);return;}
+        if(value.months && typeof value.months==="object" && !Array.isArray(value.months)){
+          Object.values(value.months).forEach(month=>{
+            if(!month || typeof month!=="object") return;
+            if(month._enteredPrincipalCollectionZero===true) month.principalCollection=0;
+            if(month._enteredInterestCollectionZero===true) month.interestCollection=0;
           });
         }
+        Object.values(value).forEach(restoreMonths);
+      }
+      restoreMonths(record);
+      if(Array.isArray(record.shgs)) record.shgs.forEach(member=>{
+        if(!member || typeof member!=="object") return;
+        if(member.loans && typeof member.loans==="object") Object.values(member.loans).forEach(loan=>{
+          if(loan && typeof loan==="object" && !loan.name && member.name) loan.name=member.name;
+        });
       });
       return record;
     }
