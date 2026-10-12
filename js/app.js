@@ -229,8 +229,6 @@
       set("saveAllBtn",c.parent==="SHG"?`Save All ${c.childPlural}`:`Save All ${c.childPlural}`);
       const loanFilterToolbar=document.getElementById("shgLoanFilterToolbar");
       if(loanFilterToolbar)loanFilterToolbar.classList.remove("hidden");
-      const rateField=document.getElementById("interestRateField");
-      if(rateField)rateField.classList.remove("hidden");
       const loanTypeLabel=document.querySelector("#loanTypeFilter");
       if(loanTypeLabel){
         loanTypeLabel.innerHTML=loanTypesForMode().map(type=>`<option value="${type.key}">${type.label}</option>`).join("");
@@ -383,13 +381,9 @@
       currentFinancialYear=financialYear;
       MONTHS=buildMonths(currentFinancialYear);
 
-      const rateInput=document.getElementById("shgRateInput");
-      const currentRate=rateInput?Number(rateInput.value):getCurrentLoanInterestRate(v);
-      if(!Number.isFinite(currentRate)||currentRate<0||currentRate>100){alert("Enter a valid interest rate between 0 and 100%.");if(rateInput)rateInput.focus();return false;}
+      // Interest rate is edited on each loan row. Do not read or write a
+      // shared top-level rate here; each selected loan's entry value is final.
       ensureIndividualLoanInterestRates(v);
-      const currentLoanKey=selectedLoanType||defaultLoanTypeKey();
-      v.loanInterestRates[currentLoanKey]=currentRate;
-      v.interestRate=currentRate;
       const screenEntries=filteredRowEntries(v);
       screenEntries.forEach((entry,rowIndex)=>{
         const s=entry.member;
@@ -398,7 +392,10 @@
         if(monthIndex<startIdx)return;
         const n=document.getElementById("name-"+rowIndex);if(n&&n.value.trim())s.name=n.value.trim();
         account.name=s.name;
-        account.interestRate=currentRate;
+        const rowRateEl=document.getElementById("interestRate-"+rowIndex);
+        const rowRate=rowRateEl?Number(rowRateEl.value):Number(account.interestRate??currentRate);
+        if(!Number.isFinite(rowRate)||rowRate<0||rowRate>100){alert("Enter a valid interest rate between 0 and 100%.");if(rowRateEl)rowRateEl.focus();return false;}
+        account.interestRate=rowRate;
         const key=MONTHS[monthIndex][0];
         const raw=getRowData(rowIndex);
         const april=(monthIndex===0);
@@ -415,7 +412,7 @@
           const pc=prev?calc(prev.data):null;
           if(pc){raw.opening=pc.totalLoanBalance;raw.prevPrincipal=pc.balancePrincipal;raw.prevInterest=pc.balanceInterest;}
         }
-        raw.demandInterest=monthlyInterest(raw.opening,currentRate);
+        raw.demandInterest=monthlyInterest(raw.opening,rowRate);
 
         /*
          * Current Month Principal is valid data by itself.  The value the
@@ -495,15 +492,17 @@
             else loan.months={};
           }
           if(!Number.isInteger(loan.startMonthIndex))loan.startMonthIndex=Number.isInteger(member.startMonthIndex)?member.startMonthIndex:0;
+          // A row's loan-specific rate is authoritative. The parent-level
+          // loanInterestRates map is only a default for legacy/new loans;
+          // otherwise one row's edit would overwrite every loan on reload.
           const configuredRate=Number(v.loanInterestRates[type.key]);
           const legacyRate=Number(loan.interestRate);
-          if(Number.isFinite(configuredRate)&&configuredRate>=0&&configuredRate<=100){
-            loan.interestRate=configuredRate;
-          }else if(Number.isFinite(legacyRate)&&legacyRate>=0&&legacyRate<=100){
-            v.loanInterestRates[type.key]=legacyRate;
+          if(Number.isFinite(legacyRate)&&legacyRate>=0&&legacyRate<=100){
             loan.interestRate=legacyRate;
+          }else if(Number.isFinite(configuredRate)&&configuredRate>=0&&configuredRate<=100){
+            loan.interestRate=configuredRate;
           }else{
-            loan.interestRate=Number(v.loanInterestRates[type.key]||12);
+            loan.interestRate=12;
           }
           loan.name=member.name;
           ensureDemandPrincipalFlags(loan);
@@ -764,40 +763,25 @@
     }
 
     function updateInterestRateLive(){
-      const v=vo(),el=document.getElementById("shgRateInput");if(!v||!el)return;
-      const rate=Number(el.value);
-      if(!Number.isFinite(rate)||rate<0||rate>100)return;
-      ensureIndividualLoanInterestRates(v);
-      const key=selectedLoanType||defaultLoanTypeKey();
-      v.loanInterestRates[key]=rate;
-      ensureLoanData(v);
-      v.shgs.forEach(s=>{
-        s.loans[key].interestRate=rate;
-      });
-      /* Keep the legacy parent/member rate as a fallback only. */
-      v.interestRate=rate;
-      renderRows();markDirty();
+      // Backward compatibility only; the authoritative rate is on each loan row.
+      return;
     }
 
     function addSHG(){
       const v=vo();if(!v){alert(`Please create or select a ${modeConfig().parent} first.`);return;}
       const input=document.getElementById("shgNameInput");
-      const rateInput=document.getElementById("shgRateInput");
       const name=input.value.trim();
-      const rate=Number(rateInput.value);
       if(!name){alert(`Type ${modeConfig().child} name first.`);input.focus();return;}
-      if(!Number.isFinite(rate)||rate<0||rate>100){alert("Enter a valid interest rate between 0 and 100%.");rateInput.focus();return;}
       if(v.shgs.some(s=>String(s.name||"").trim().toLowerCase()===name.toLowerCase())){alert(`That ${modeConfig().child} already exists in this ${modeConfig().parent}.`);input.select();return;}
       ensureIndividualLoanInterestRates(v);
-      const selectedKey=selectedLoanType||defaultLoanTypeKey();
-      v.loanInterestRates[selectedKey]=rate;
-      const member={id:"SHG-"+Date.now()+"-"+Math.random().toString(36).slice(2),name:name,interestRate:rate,startMonthIndex:monthIndex,months:{},loans:{}};
+      const member={id:"SHG-"+Date.now()+"-"+Math.random().toString(36).slice(2),name:name,startMonthIndex:monthIndex,months:{},loans:{}};
       v.shgs.push(member);
       loanTypesForMode().forEach(type=>{
-        const typeRate=Number(v.loanInterestRates[type.key]??12);
+        const configured=Number(v.loanInterestRates[type.key]);
+        const typeRate=Number.isFinite(configured)&&configured>=0&&configured<=100?configured:12;
         member.loans[type.key]={name:name,interestRate:typeRate,startMonthIndex:monthIndex,months:{}};
       });
-      input.value="";v.interestRate=rate;refreshLoanInterestRateInput();markDirty();populateMemberFilter();renderRows();
+      input.value="";markDirty();populateMemberFilter();renderRows();
       document.getElementById("saveStatus").textContent=`${modeConfig().child} added — save to keep changes`;
       input.focus();
     }
@@ -905,11 +889,14 @@
      entries.forEach((entry,rowIndex)=>{
       const s=entry.member;
       const account=activeAccount(entry);
+      // The row/account rate is authoritative once it exists. The top
+      // Interest Rate (%) control is only a default for accounts that have
+      // never had their own rate; do not overwrite an edited loan rate while
+      // switching months or re-rendering the entry grid.
+      const accountHasRate=account.interestRate!==undefined && account.interestRate!==null && String(account.interestRate).trim()!=="" && Number.isFinite(Number(account.interestRate)) && Number(account.interestRate)>=0 && Number(account.interestRate)<=100;
       const configuredRate=Number(v.loanInterestRates?.[entry.key]);
-      if(Number.isFinite(configuredRate)&&configuredRate>=0&&configuredRate<=100){
-        account.interestRate=configuredRate;
-      }else if(account.interestRate===undefined||account.interestRate===null||account.interestRate===""){
-        account.interestRate=12;
+      if(!accountHasRate){
+        account.interestRate=(Number.isFinite(configuredRate)&&configuredRate>=0&&configuredRate<=100)?configuredRate:12;
       }
       const startIdx=Number.isInteger(account.startMonthIndex)?account.startMonthIndex:(Number.isInteger(s.startMonthIndex)?s.startMonthIndex:0);
       if(monthIndex<startIdx)return;
@@ -1000,12 +987,13 @@
       '<td><input type="number" id="collectI-'+rowIndex+'" value="'+d.interestCollection+'"'+locked(lockCollect)+' oninput="window.recalc('+rowIndex+')"></td>'+
       '<td><input type="number" id="newLoan-'+rowIndex+'" value="'+d.newLoan+'" oninput="window.recalc('+rowIndex+')"></td>'+
       '<td><input type="number" class="calc" id="totalL-'+rowIndex+'" value="'+Number(c.totalLoanBalance||0)+'" disabled></td>'+
+      '<td><input type="number" class="interest-rate-display" id="interestRate-'+rowIndex+'" min="0" max="100" step="0.01" value="'+(Number.isFinite(Number(account.interestRate))?Number(account.interestRate):getCurrentLoanInterestRate(v))+'" oninput="window.recalc('+rowIndex+')" aria-label="Interest Rate (%)"></td>'+
       '<td><button type="button" class="success" onclick="window.saveRow('+rowIndex+')">Save</button></td>'+
       '<td><button type="button" class="danger shg-delete-btn" onclick="window.deleteSHG('+entry.index+')">Delete</button></td>';
       body.appendChild(tr);
      });
      fitShgNameColumn();
-     const colspan=isSHGMode()?19:15;
+     const colspan=isSHGMode()?20:16;
      if(!entries.length)body.innerHTML='<tr><td colspan="'+colspan+'" style="text-align:center;padding:22px">No '+(isSHGMode()?"members":"records")+' for the selected filter.</td></tr>';
     }
 
@@ -1014,10 +1002,21 @@
      const entry=selectedEntryByRow(i);if(!entry)return;
      const account=activeAccount(entry);
      const d=getRowData(i);
-     const rateEl=document.getElementById("shgRateInput");
-     const liveRate=rateEl?Number(rateEl.value):Number(v.interestRate!==undefined?v.interestRate:(account.interestRate||0));
-     const rate=Number.isFinite(liveRate)&&liveRate>=0?liveRate:0;
-     if(Number.isFinite(liveRate)&&liveRate>=0&&liveRate<=100){v.interestRate=liveRate;v.shgs.forEach(s=>s.interestRate=liveRate);}
+     const rateEl=document.getElementById("interestRate-"+i);
+     const liveRate=rateEl?Number(rateEl.value):Number(account.interestRate!==undefined?account.interestRate:getCurrentLoanInterestRate(v));
+     const rate=Number.isFinite(liveRate)&&liveRate>=0&&liveRate<=100?liveRate:0;
+     if(Number.isFinite(liveRate)&&liveRate>=0&&liveRate<=100){
+       // Keep an edited row's rate on this loan only. It applies to every
+       // month of this loan, not just the month currently displayed.
+       account.interestRate=liveRate;
+       if(account.months && typeof account.months==="object"){
+         MONTHS.forEach((m,mi)=>{
+           const monthData=account.months[m[0]];
+           if(!monthData)return;
+           monthData.demandInterest=monthlyInterest(monthData.opening,liveRate);
+         });
+       }
+     }
      if(isSHGMode()){
        const so=document.getElementById("savingOpening-"+i),sc=document.getElementById("savingCurrent-"+i),sd=document.getElementById("savingDisbursed-"+i),sx=document.getElementById("savingClosing-"+i);
        if(so&&sc&&sd&&sx){
@@ -1117,9 +1116,12 @@
      const startIdx=Number.isInteger(account.startMonthIndex)?account.startMonthIndex:(Number.isInteger(s.startMonthIndex)?s.startMonthIndex:0);
      const april=(monthIndex===0);
      if(!name){alert(`${modeConfig().child} name cannot be blank.`);return;}
-     const rateEl=document.getElementById("shgRateInput"),rate=rateEl?Number(rateEl.value):Number(v.interestRate!==undefined?v.interestRate:(account.interestRate||0));
+     const rateEl=document.getElementById("interestRate-"+i),rate=rateEl?Number(rateEl.value):Number(account.interestRate!==undefined?account.interestRate:getCurrentLoanInterestRate(v));
      if(!Number.isFinite(rate)||rate<0||rate>100){alert("Enter a valid interest rate between 0 and 100%.");if(rateEl)rateEl.focus();return;}
-     v.interestRate=rate;v.shgs.forEach(x=>x.interestRate=rate);s.name=name;account.name=name;account.interestRate=rate;
+     account.interestRate=rate;
+     // Persist the row-specific rate on this loan record. Do not overwrite
+     // the shared default rate for every loan of this type.
+     s.name=name;account.name=name;
      if(monthIndex<startIdx){alert(`This ${modeConfig().child} was created in ${MONTHS[startIdx][1]}. Previous months do not require data.`);return;}
      const raw=getRowData(i),creationMonth=(!april&&monthIndex===startIdx&&startIdx>0),nextMonthStart=(!april&&monthIndex===startIdx+1&&startIdx>0);
      if(isSHGMode() && monthIndex>0){
@@ -1158,16 +1160,8 @@
       if(!(await saveCurrentScreen()))return;
 
       ensureIndividualLoanInterestRates(v);
-      const rateInput=document.getElementById("shgRateInput");
-      const selectedKey=selectedLoanType||defaultLoanTypeKey();
-      const rate=rateInput?Number(rateInput.value):Number(v.loanInterestRates[selectedKey]||12);
-      if(!Number.isFinite(rate)||rate<0||rate>100){
-        alert("Enter a valid interest rate between 0 and 100%.");
-        if(rateInput)rateInput.focus();
-        return;
-      }
-      v.loanInterestRates[selectedKey]=rate;
-      v.interestRate=rate;
+      // Rates are saved per loan from the entry grid; Save All must not
+      // overwrite them with a shared top-level/default rate.
 
       /*
        * Persist/refresh every already-entered month for every SHG.
@@ -1181,7 +1175,7 @@
         const s=entry.member;
         const account=entry.loan;
         account.name=s.name;
-        const accountRate=Number(v.loanInterestRates[entry.type.key] ?? account.interestRate ?? 12);
+        const accountRate=Number(account.interestRate ?? v.loanInterestRates[entry.type.key] ?? 12);
         account.interestRate=accountRate;
         if(!account.months)account.months={};
 
@@ -4465,9 +4459,14 @@ html,body{
           const d=account.months[m[0]];
           if(!monthIsConsidered(d))return;
 
+          // Loan Ledger derives interest using this loan's own rate. The
+          // report-preparation pass refreshes all stored months first; compute
+          // it again here to avoid stale cached demandInterest in older data.
+          const reportDemandInterest=monthlyInterest(d.opening,Number(account.interestRate??12));
+          d.demandInterest=reportDemandInterest;
           const c=calc(d);
-          const p=d.prevPrincipal+d.demandPrincipal;
-          const ii=d.prevInterest+d.demandInterest;
+          const p=(Number(d.prevPrincipal)||0)+(Number(d.demandPrincipal)||0);
+          const ii=(Number(d.prevInterest)||0)+reportDemandInterest;
 
           allRows.push(`
             <tr>
@@ -4516,7 +4515,7 @@ html,body{
                   <div class="meta-key telugu">అప్పు మొత్తం రూ. :</div>
                   <div class="meta-empty"></div>
                   <div class="meta-key telugu">వడ్డీ రేటు :</div>
-                  <div class="meta-value highlight ledger-interest-rate-value">${fmt(s.interestRate===undefined?12:s.interestRate)}%</div>
+                  <div class="meta-value highlight ledger-interest-rate-value">${fmt(account.interestRate===undefined?(s.interestRate===undefined?12:s.interestRate):account.interestRate)}%</div>
                 </div>
 
                 <div class="meta-row">
@@ -4729,8 +4728,14 @@ html,body{
         const nameEl=document.getElementById("name-"+rowIndex);
         if(nameEl&&nameEl.value.trim())entry.member.name=nameEl.value.trim();
         account.name=entry.member.name;
-        const rateEl=document.getElementById("shgRateInput");
-        const rate=rateEl?Number(rateEl.value):Number(account.interestRate||v.interestRate||0);
+        const rateEl=document.getElementById("interestRate-"+rowIndex);
+        // Report calculations must use the rate saved on this specific loan.
+        // A visible row rate can capture an unsaved edit, but the top-level
+        // Interest Rate (%) control is only a default and must never replace
+        // a loan's own rate during report generation.
+        const rate=rateEl && rateEl.value!==""
+          ? Number(rateEl.value)
+          : Number(account.interestRate ?? v.interestRate ?? 12);
         if(Number.isFinite(rate)&&rate>=0&&rate<=100)account.interestRate=rate;
         const key=MONTHS[monthIndex][0];
         const old=account.months[key]||{};
@@ -4747,7 +4752,7 @@ html,body{
           const account=member.loans&&member.loans[type.key];
           if(!account||!account.months)return;
           const startIdx=Number.isInteger(account.startMonthIndex)?account.startMonthIndex:(Number.isInteger(member.startMonthIndex)?member.startMonthIndex:0);
-          const rate=Number(v.loanInterestRates?.[type.key]??account.interestRate??v.interestRate??0)||0;
+          const rate=Number(account.interestRate??v.loanInterestRates?.[type.key]??12)||0;
           let carriedDemandPrincipal=0;
           let hasBaseline=false;
           for(let mi=0;mi<MONTHS.length;mi++){

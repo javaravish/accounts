@@ -147,10 +147,11 @@
       #shgToolbar{
         display:grid !important;
 
-        /* ALL FOUR DESKTOP CONTROLS HAVE THE SAME LENGTH */
+        /* Four controls in one row on desktop only:
+           Name | Loan | VO/SHG/Member selector | Add button */
         grid-template-columns:150px 150px 150px 150px !important;
 
-        grid-template-rows:auto auto !important;
+        grid-template-rows:auto !important;
 
         column-gap:10px !important;
         row-gap:10px !important;
@@ -230,17 +231,14 @@
 
 
       /* -------------------------------------------------------
-         COLUMN 1 / ROW 2
+         COLUMN 3 / ROW 1
          SHG / VO / Member selection
-
-         This is deliberately BELOW Add Name.
-         It is NOT below Loan.
          ------------------------------------------------------- */
       #shgToolbar > #shgLoanFilterToolbar:not(.hidden)
         > .loan-filter-field:nth-child(2){
 
-        grid-column:1 !important;
-        grid-row:2 !important;
+        grid-column:3 !important;
+        grid-row:1 !important;
 
         width:150px !important;
         min-width:150px !important;
@@ -265,13 +263,10 @@
       }
 
 
-      /* -------------------------------------------------------
-         COLUMN 3 / ROW 1
-         Interest Rate
-         ------------------------------------------------------- */
+      /* The former top-level interest-rate control is not part of
+         the four-control creation toolbar. Keep it out of this row. */
       #shgToolbar > #interestRateField{
-        grid-column:3 !important;
-        grid-row:1 !important;
+        display:none !important;
 
         width:150px !important;
         min-width:150px !important;
@@ -1064,5 +1059,220 @@
   #adminDataModal .admin-data-editor,
   #adminDataModal textarea{
     min-height:50vh;
+  }
+}
+
+/* =========================================================
+   FINAL REQUEST: child creation/filter controls layout only.
+   Desktop: name, loan, add button, selector/filter in one row.
+   Mobile: two columns (two controls per row).
+   ========================================================= */
+@media screen and (min-width:901px){
+  #shgToolbar{
+    display:grid !important;
+    grid-template-columns:minmax(150px, 1fr) minmax(150px, 1fr) auto minmax(150px, 1fr) !important;
+    gap:10px !important;
+    align-items:end !important;
+    width:100% !important;
+  }
+  #shgToolbar > #addChildField,
+  #shgToolbar > #shgLoanFilterToolbar:not(.hidden),
+  #shgToolbar > #addShgBtn{
+    min-width:0 !important;
+    max-width:none !important;
+    width:100% !important;
+    margin:0 !important;
+  }
+  #shgToolbar > #shgLoanFilterToolbar:not(.hidden){
+    display:contents !important;
+  }
+  #shgToolbar > #addChildField input,
+  #shgToolbar .loan-filter-field select{
+    box-sizing:border-box !important;
+    width:100% !important;
+    min-width:0 !important;
+    max-width:none !important;
+  }
+  #shgToolbar > #addShgBtn{grid-column:3; grid-row:1;}
+  #shgToolbar > #addChildField{grid-column:1; grid-row:1;}
+  #shgToolbar > #shgLoanFilterToolbar:not(.hidden) > .loan-filter-field:first-child{grid-column:2; grid-row:1;}
+  #shgToolbar > #shgLoanFilterToolbar:not(.hidden) > .loan-filter-field:nth-child(2){grid-column:4; grid-row:1;}
+}
+@media screen and (max-width:900px){
+  #shgToolbar{
+    display:grid !important;
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;
+    gap:10px !important;
+    align-items:end !important;
+    width:100% !important;
+  }
+  #shgToolbar > #addChildField,
+  #shgToolbar > #shgLoanFilterToolbar:not(.hidden),
+  #shgToolbar > #addShgBtn{
+    min-width:0 !important;
+    max-width:none !important;
+    width:100% !important;
+    margin:0 !important;
+  }
+  #shgToolbar > #shgLoanFilterToolbar:not(.hidden){display:contents !important;}
+  #shgToolbar > #addChildField input,
+  #shgToolbar .loan-filter-field select{box-sizing:border-box !important;width:100% !important;min-width:0 !important;max-width:none !important;}
+  #shgToolbar > #addChildField{grid-column:1;grid-row:1;}
+  #shgToolbar > #shgLoanFilterToolbar:not(.hidden) > .loan-filter-field:first-child{grid-column:2;grid-row:1;}
+  #shgToolbar > #addShgBtn{grid-column:1;grid-row:2;}
+  #shgToolbar > #shgLoanFilterToolbar:not(.hidden) > .loan-filter-field:nth-child(2){grid-column:2;grid-row:2;}
+}
+
+/* FINAL TARGETED FIX: compact Add VO/SHG/Member toolbar layout.
+   Desktop: name, loan, add button on row 1; selector below name.
+   Mobile: two controls per row. Keep this UI-only. */
+@media screen and (min-width: 901px) {
+  #shgToolbar {
+    display: grid !important;
+    grid-template-columns: 150px 150px 150px !important;
+    grid-template-rows: auto auto !important;
+    column-gap: 10px !important;
+    row-gap: 8px !important;
+    width: max-content !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    align-items: end !important;
+  }
+  #shgToolbar > #addChildField {
+    grid-column: 1 !important; grid-row: 1 !important;
+    width: 150px !important; min-width: 150px !important; max-width: 150px !important;
+    margin: 0 !important;
+  }
+  #shgToolbar > #addChildField input {
+    width: 150px !important; min-width: 150px !important; max-width: 150px !important;
+    box-sizing: border-box !important;
+  }
+  #shgToolbar > #shgLoanFilterToolbar:not(.hidden) { display: contents !important; }
+  #shgToolbar > #shgLoanFilterToolbar.hidden { display: none !important; }
+  #shgToolbar > #shgLoanFilterToolbar:not(.hidden) > .loan-filter-field:nth-child(1) {
+    grid-column: 2 !important; grid-row: 1 !important;
+    width: 150px !important; min-width: 150px !important; max-width: 150px !important;
+    margin: 0 !important;
+  }
+  #shgToolbar > #shgLoanFilterToolbar:not(.hidden) > .loan-filter-field:nth-child(2) {
+    grid-column: 1 !important; grid-row: 2 !important;
+    width: 150px !important; min-width: 150px !important; max-width: 150px !important;
+    margin: 0 !important;
+  }
+  #shgToolbar > #shgLoanFilterToolbar:not(.hidden) > .loan-filter-field select {
+    width: 150px !important; min-width: 150px !important; max-width: 150px !important;
+    box-sizing: border-box !important;
+  }
+  #shgToolbar > #addShgBtn {
+    grid-column: 3 !important; grid-row: 1 !important;
+    width: 150px !important; min-width: 150px !important; max-width: 150px !important;
+    min-height: 38px !important; margin: 0 !important; box-sizing: border-box !important;
+    white-space: nowrap !important;
+  }
+  #shgToolbar > #interestRateField { display: none !important; }
+}
+@media screen and (max-width: 900px) {
+  #shgToolbar {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+    grid-template-rows: auto auto !important;
+    column-gap: 9px !important; row-gap: 8px !important;
+    width: 100% !important; max-width: 100% !important; min-width: 0 !important;
+    align-items: end !important;
+  }
+  #shgToolbar > #addChildField {
+    grid-column: 1 !important; grid-row: 1 !important;
+    width: 100% !important; min-width: 0 !important; max-width: none !important; margin: 0 !important;
+  }
+  #shgToolbar > #addChildField input {
+    width: 100% !important; min-width: 0 !important; max-width: none !important; box-sizing: border-box !important;
+  }
+  #shgToolbar > #shgLoanFilterToolbar:not(.hidden) { display: contents !important; }
+  #shgToolbar > #shgLoanFilterToolbar.hidden { display: none !important; }
+  #shgToolbar > #shgLoanFilterToolbar:not(.hidden) > .loan-filter-field:nth-child(1) {
+    grid-column: 2 !important; grid-row: 1 !important;
+    width: 100% !important; min-width: 0 !important; max-width: none !important; margin: 0 !important;
+  }
+  #shgToolbar > #shgLoanFilterToolbar:not(.hidden) > .loan-filter-field:nth-child(2) {
+    grid-column: 2 !important; grid-row: 2 !important;
+    width: 100% !important; min-width: 0 !important; max-width: none !important; margin: 0 !important;
+  }
+  #shgToolbar > #shgLoanFilterToolbar:not(.hidden) > .loan-filter-field select {
+    width: 100% !important; min-width: 0 !important; max-width: none !important; box-sizing: border-box !important;
+  }
+  #shgToolbar > #addShgBtn {
+    grid-column: 1 !important; grid-row: 2 !important;
+    width: 100% !important; min-width: 0 !important; max-width: none !important;
+    min-height: 42px !important; margin: 0 !important; box-sizing: border-box !important;
+  }
+  #shgToolbar > #interestRateField { display: none !important; }
+}
+
+/* FINAL OVERRIDE: desktop-only single-line creation/filter controls.
+   Mobile/tablet layout above is intentionally unchanged. */
+@media screen and (min-width: 901px) {
+  #shgToolbar {
+    display: grid !important;
+    grid-template-rows: auto !important;
+    column-gap: 10px !important;
+    row-gap: 0 !important;
+    align-items: end !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  #shgToolbar > #addChildField {
+    grid-column: 1 !important;
+    grid-row: 1 !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    margin: 0 !important;
+  }
+  #shgToolbar > #addChildField input {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    box-sizing: border-box !important;
+  }
+  #shgToolbar > #shgLoanFilterToolbar:not(.hidden) {
+    display: contents !important;
+  }
+  #shgToolbar > #shgLoanFilterToolbar.hidden {
+    display: none !important;
+  }
+  #shgToolbar > #shgLoanFilterToolbar:not(.hidden) > .loan-filter-field:nth-child(1) {
+    grid-column: 2 !important;
+    grid-row: 1 !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    margin: 0 !important;
+  }
+  #shgToolbar > #shgLoanFilterToolbar:not(.hidden) > .loan-filter-field:nth-child(2) {
+    grid-column: 4 !important;
+    grid-row: 1 !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    margin: 0 !important;
+  }
+  #shgToolbar .loan-filter-field select {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    box-sizing: border-box !important;
+  }
+  #shgToolbar > #addShgBtn {
+    grid-column: 3 !important;
+    grid-row: 1 !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    margin: 0 !important;
+    box-sizing: border-box !important;
+    white-space: nowrap !important;
+  }
+  #shgToolbar > #interestRateField {
+    display: none !important;
   }
 }

@@ -1414,3 +1414,29 @@
             gap:7px !important;
           }
         }
+
+
+/* Compact equal-width controls for the accounting toolbar (desktop only).
+   Keep the existing mobile/tablet layout and all behavior unchanged. */
+@media screen and (min-width:901px){
+  #shgToolbar > #addChildField,
+  #shgToolbar > #shgLoanFilterToolbar > .loan-filter-field,
+  #shgToolbar > #interestRateField,
+  #shgToolbar > #addShgBtn{
+    flex:0 0 132px !important;
+    width:132px !important;
+    min-width:132px !important;
+    max-width:132px !important;
+    box-sizing:border-box !important;
+  }
+  #shgToolbar > #shgLoanFilterToolbar{
+    flex:0 0 auto !important;
+    min-width:0 !important;
+    gap:8px !important;
+  }
+  #shgToolbar > #addShgBtn{
+    min-height:38px !important;
+    padding-left:8px !important;
+    padding-right:8px !important;
+  }
+}
