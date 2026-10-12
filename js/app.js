@@ -296,7 +296,7 @@
       }catch(e){}
       return{vos:[]};
     }
-    function writeDb(){
+    function writeDb(skipCloudQueue=false){
       let localSaved=true, localError=null;
       try{
         localStorage.setItem(modeKey(),JSON.stringify(db));
@@ -308,9 +308,9 @@
       // Pass the local result to cloud sync so the UI never claims that both
       // destinations succeeded unless each one was actually confirmed.
       window.__appLocalSaveState={ok:localSaved,error:localError};
-      if(window.firebaseCloud && window.firebaseCloud.queueCloudSave){
+      if(!skipCloudQueue && window.firebaseCloud && window.firebaseCloud.queueCloudSave){
         window.firebaseCloud.queueCloudSave(db,localSaved,localError);
-      }else{
+      }else if(!skipCloudQueue){
         const status=document.getElementById("saveStatus");
         if(status){
           status.textContent=localSaved?"Saved locally only. Cloud sync is unavailable.":"Save failed locally; cloud sync is unavailable.";
@@ -588,11 +588,13 @@
       const principalEntered = hasValue(d.principalCollection);
       const interestEntered  = hasValue(d.interestCollection);
       const demandPrincipalEntered = hasValue(d.demandPrincipal);
+      const newLoan = Number(d.newLoan) || 0;
+      const opening = Number(d.opening) || 0;
 
-      // A saved Current Month Principal also makes the month reportable.
-      // This allows Save All SHGs to materialize every month and include
-      // every SHG/month in reports and PDFs even when no collection exists.
-      return principalEntered || interestEntered || demandPrincipalEntered;
+      // A mid-year loan makes its disbursement month reportable. From the
+      // following months onward, the carried opening balance keeps the loan
+      // visible even if no collection is entered in that month.
+      return principalEntered || interestEntered || demandPrincipalEntered || newLoan !== 0 || opening !== 0;
     }
     function lastConsideredMonth(shg,idx){
       if(!shg||!shg.months)return null;
@@ -1086,6 +1088,28 @@
       writeDb();
     }
 
+    function showSaveOutcome(localOk,localErr,cloudOk,cloudErr){
+      const el=document.getElementById("saveStatus");if(!el)return;
+      if(localOk&&cloudOk){el.textContent="Saved locally and to cloud.";el.title="Local storage and Firebase cloud save both completed successfully.";}
+      else if(localOk&&!cloudOk){el.textContent="Saved locally only. Cloud save failed: "+(cloudErr?.message||String(cloudErr||"Cloud save unavailable."));el.title=el.textContent;}
+      else if(!localOk&&cloudOk){el.textContent="Saved to cloud only. Local save failed: "+(localErr?.message||String(localErr||"Local storage failed."));el.title=el.textContent;}
+      else{el.textContent="Save failed locally and in cloud.";el.title="Local error: "+(localErr?.message||String(localErr||"Unknown local storage error"))+"\nCloud error: "+(cloudErr?.message||String(cloudErr||"Cloud save unavailable."));}
+    }
+    function saveLocalWithoutQueue(){
+      let error=null;try{localStorage.setItem(modeKey(),JSON.stringify(db));window.__appLocalSaveState={ok:true,error:null};return {ok:true,error:null};}
+      catch(err){error=err;console.error("Local save failed:",err);window.__appLocalSaveState={ok:false,error};return {ok:false,error};}
+    }
+    async function saveBothNow(){
+      const local=saveLocalWithoutQueue();let cloudOk=false,cloudErr=null;
+      const cloud=window.firebaseCloud;
+      if(cloud&&cloud.saveCloudDb&&cloud.currentUser){
+        try{const result=await cloud.saveCloudDb(db,cloud.activeMode);if(result!==true)throw new Error("Firebase did not confirm the save.");cloudOk=true;}
+        catch(err){cloudErr=err;console.error("Cloud save failed:",err);}
+      }else cloudErr=new Error("No active Firebase session or cloud service is unavailable.");
+      showSaveOutcome(local.ok,local.error,cloudOk,cloudErr);
+      return local.ok||cloudOk;
+    }
+
     window.saveRow=async function(i){
      const v=vo();if(!v)return;
      const entry=selectedEntryByRow(i);if(!entry)return;
@@ -1112,18 +1136,14 @@
      const hasSavingData=isSHGMode() && [raw.savingOpening,raw.savingCurrent,raw.savingDisbursed].some(n=>(Number(n)||0)!==0);
      const demandPrincipalEntered=hasValue(document.getElementById("demandP-"+i)?.value);
      if(monthIsConsidered(raw)||hasSavingData||demandPrincipalEntered)account.months[MONTHS[monthIndex][0]]=raw;else if(account.months[MONTHS[monthIndex][0]])delete account.months[MONTHS[monthIndex][0]];
-     writeDb();
+     const status=document.getElementById("saveStatus");if(status)status.textContent="Saving member and loan data…";
+     const local=saveLocalWithoutQueue();let cloudOk=false,cloudErr=null;
      if(window.firebaseCloud && window.firebaseCloud.saveCloudDb && window.firebaseCloud.currentUser){
-       try{
-         await window.firebaseCloud.saveCloudDb(db,window.firebaseCloud.activeMode);
-       }catch(err){
-         console.error("Row cloud sync failed:",err);
-         document.getElementById("saveStatus").textContent="Wait Data Saving...";
-         alert(window.firebaseCloud?.describeCloudSaveError ? window.firebaseCloud.describeCloudSaveError(err) : (err?.message || String(err)));
-         return;
-       }
-     }
-     markClean();
+       try{const result=await window.firebaseCloud.saveCloudDb(db,window.firebaseCloud.activeMode);if(result!==true)throw new Error("Firebase did not confirm the save.");cloudOk=true;}
+       catch(err){cloudErr=err;console.error("Row cloud sync failed:",err);}
+     }else cloudErr=new Error("No active Firebase session or cloud service is unavailable.");
+     showSaveOutcome(local.ok,local.error,cloudOk,cloudErr);
+     if(local.ok||cloudOk)markClean();
     };
 
 
@@ -1230,25 +1250,17 @@
           account.months[key]=d;
         });
       });
-      writeDb();
+      const status=document.getElementById("saveStatus");if(status)status.textContent="Saving member and loan data…";
+      const local=saveLocalWithoutQueue();let cloudOk=false,cloudErr=null;
       if(window.firebaseCloud && window.firebaseCloud.saveCloudDb && window.firebaseCloud.currentUser){
-        try{
-          document.getElementById("saveStatus").textContent="Saving to cloud…";
-          await window.firebaseCloud.saveCloudDb(db,window.firebaseCloud.activeMode);
-        }catch(err){
-          console.error("Save All cloud sync failed:",err);
-          document.getElementById("saveStatus").textContent="Wait Data Saving...";
-          alert(window.firebaseCloud?.describeCloudSaveError ? window.firebaseCloud.describeCloudSaveError(err) : (err?.message || String(err)));
-          return;
-        }
-      }
+        try{const result=await window.firebaseCloud.saveCloudDb(db,window.firebaseCloud.activeMode);if(result!==true)throw new Error("Firebase did not confirm the save.");cloudOk=true;}
+        catch(err){cloudErr=err;console.error("Save All cloud sync failed:",err);}
+      }else cloudErr=new Error("No active Firebase session or cloud service is unavailable.");
+      showSaveOutcome(local.ok,local.error,cloudOk,cloudErr);
+      if(!local.ok&&!cloudOk)return;
       refreshVOSelect();
       markClean();
-      const saveStatus=document.getElementById("saveStatus");
-      if(saveStatus) saveStatus.textContent=(window.__appLocalSaveState&&window.__appLocalSaveState.ok===false)
-        ?"Saved to cloud only. Local save failed."
-        :"Saved locally and to cloud.";
-      alert(`All ${modeConfig().childPlural} 's and it's months have been saved and synchronized.`);
+      if(local.ok&&cloudOk)alert(`All ${modeConfig().childPlural} 's and it's months have been saved locally and synchronized to cloud.`);
     }
 
     function rekeyMonthsForFinancialYear(v, oldFinancialYear, newFinancialYear){
@@ -3333,12 +3345,11 @@ html,body{
 .dcb-head-left,.dcb-head-right{
       text-align: center;
       vertical-align: middle;
-      font-size: 16pt !important;
+      font-size: 15pt !important;
       line-height: 2;
       display: flex;
       justify-content: center;
       position: relative;
-      border-right: 1px solid #555;
       border-bottom: 0;
       display: flex;
       align-items: center;
@@ -3355,7 +3366,6 @@ html,body{
       display: flex;
       justify-content: center;
       position: relative;
-      border-right: 1px solid #555;
       border-bottom: 0;
       display: flex;
       align-items: center;
@@ -3493,12 +3503,11 @@ html,body{
 .cumulative-dcb-head-left,.cumulative-dcb-head-right{
        text-align: center;
        vertical-align: middle;
-       font-size: 16pt !important;
+       font-size: 15pt !important;
        line-height: 2;
        display: flex;
        justify-content: center;
        position: relative;
-       border-right: 1px solid #555;
        border-bottom: 0;
        display: flex;
        align-items: center;
@@ -3515,7 +3524,6 @@ html,body{
       display: flex;
       justify-content: center;
       position: relative;
-      border-right: 1px solid #555;
       border-bottom: 0;
       display: flex;
       align-items: center;
@@ -3907,11 +3915,15 @@ html,body{
             String(m[0]).toLowerCase().startsWith("apr")
           )?.[0];
 
-          const aprilOpening=Number(
-            account.months?.[aprilKey]?.opening ?? 0
-          );
-
-          if(aprilOpening===0)return;
+          const aprilOpening=Number(account.months?.[aprilKey]?.opening ?? 0);
+          // Existing April loans qualify by opening balance. A loan first
+          // disbursed later in the financial year must also qualify from its
+          // first non-zero New Loan month onward.
+          const hasMidYearDisbursement=MONTHS.some(m=>{
+            const month=account.months?.[m[0]];
+            return month && (Number(month.newLoan)||0)!==0;
+          });
+          if(aprilOpening===0 && !hasMidYearDisbursement)return;
 
           out.push({member,account,loanKey:type.key});
         });
@@ -4653,6 +4665,7 @@ html,body{
     function openReportCenter(){
       const v=vo();
       if(!v){alert(`Select a ${pdfParentLabel()} first.`);return;}
+      prepareReportCalculations();
       reportPreviewActive=false;
       reportPreviewMemberId="ALL";
       reportPreviewLoanType="bankLinkage";
@@ -4694,9 +4707,93 @@ html,body{
       else openReportCenter();
     }
 
+    /* Recalculate report inputs in memory whenever a report is opened.
+       This intentionally does not call writeDb(), saveCurrentScreen(), or Firebase.
+       It captures the visible month values, then refreshes derived values for
+       already-entered months so reports do not depend on clicking Save All. */
+    function prepareReportCalculations(){
+      const v=vo();
+      if(!v)return;
+      ensureLoanData(v);
+      ensureIndividualLoanInterestRates(v);
+
+      // Capture currently visible inputs into memory only (no persistence).
+      const visibleEntries=filteredRowEntries(v);
+      visibleEntries.forEach((entry,rowIndex)=>{
+        const account=activeAccount(entry);
+        if(!account)return;
+        if(!account.months)account.months={};
+        const startIdx=Number.isInteger(account.startMonthIndex)?account.startMonthIndex:(Number.isInteger(entry.member.startMonthIndex)?entry.member.startMonthIndex:0);
+        if(monthIndex<startIdx)return;
+        const raw=getRowData(rowIndex);
+        const nameEl=document.getElementById("name-"+rowIndex);
+        if(nameEl&&nameEl.value.trim())entry.member.name=nameEl.value.trim();
+        account.name=entry.member.name;
+        const rateEl=document.getElementById("shgRateInput");
+        const rate=rateEl?Number(rateEl.value):Number(account.interestRate||v.interestRate||0);
+        if(Number.isFinite(rate)&&rate>=0&&rate<=100)account.interestRate=rate;
+        const key=MONTHS[monthIndex][0];
+        const old=account.months[key]||{};
+        const hasVisibleData=[raw.opening,raw.prevPrincipal,raw.prevInterest,raw.demandPrincipal,raw.demandInterest,raw.newLoan,raw.savingOpening,raw.savingCurrent,raw.savingDisbursed].some(x=>(Number(x)||0)!==0)||hasValue(raw.principalCollection)||hasValue(raw.interestCollection);
+        if(hasVisibleData){
+          raw.demandPrincipalManual=old.demandPrincipalManual===true;
+          account.months[key]={...old,...raw};
+        }
+      });
+
+      // Recalculate only existing months; never create a full set of empty months.
+      (v.shgs||[]).forEach(member=>{
+        loanTypesForMode().forEach(type=>{
+          const account=member.loans&&member.loans[type.key];
+          if(!account||!account.months)return;
+          const startIdx=Number.isInteger(account.startMonthIndex)?account.startMonthIndex:(Number.isInteger(member.startMonthIndex)?member.startMonthIndex:0);
+          const rate=Number(v.loanInterestRates?.[type.key]??account.interestRate??v.interestRate??0)||0;
+          let carriedDemandPrincipal=0;
+          let hasBaseline=false;
+          for(let mi=0;mi<MONTHS.length;mi++){
+            if(mi<startIdx)continue;
+            const key=MONTHS[mi][0];
+            const d=account.months[key];
+            if(!d)continue;
+            if(mi===startIdx&&startIdx>0){
+              d.opening=0;d.prevPrincipal=0;d.prevInterest=0;
+              d.demandPrincipal=0;d.demandInterest=monthlyInterest(0,rate);
+              carriedDemandPrincipal=0;hasBaseline=false;
+            }else{
+              const prev=lastConsideredMonth(account,mi);
+              if(prev){
+                const pc=calc(prev.data);
+                d.opening=pc.totalLoanBalance;
+                d.prevPrincipal=pc.balancePrincipal;
+                d.prevInterest=pc.balanceInterest;
+              }else if(mi>0){
+                // If no prior entered month exists, keep April's stored opening inputs;
+                // later months begin at zero rather than inheriting stale derived values.
+                d.opening=Number(d.opening)||0;
+                d.prevPrincipal=Number(d.prevPrincipal)||0;
+                d.prevInterest=Number(d.prevInterest)||0;
+              }
+              if(d.demandPrincipalManual===true){
+                carriedDemandPrincipal=Number(d.demandPrincipal)||0;
+                hasBaseline=true;
+              }else if(hasBaseline){
+                d.demandPrincipal=carriedDemandPrincipal;
+              }else{
+                carriedDemandPrincipal=Number(d.demandPrincipal)||0;
+                hasBaseline=hasValue(d.demandPrincipal);
+              }
+              d.demandInterest=monthlyInterest(d.opening,rate);
+            }
+            account.months[key]=d;
+          }
+        });
+      });
+    }
+
     function showReportInUi(type){
       const v=vo();
       if(!v){alert(`Select a ${pdfParentLabel()} first.`);return;}
+      prepareReportCalculations();
       reportPreviewMemberId=document.getElementById("reportMemberFilter")?.value||"ALL";
       reportPreviewLoanType=document.getElementById("reportLoanFilter")?.value||"bankLinkage";
       currentReportType=type;

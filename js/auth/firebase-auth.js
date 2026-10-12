@@ -435,8 +435,16 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/fireba
         const aprilKey=Object.keys(months).find(isAprilMonthKey);
         if(aprilKey){
           const april=months[aprilKey];
-          if(april && typeof april==="object") return openingBalanceNumber(april.opening);
+          const aprilOpening=april && typeof april==="object" ? openingBalanceNumber(april.opening) : 0;
+          if(aprilOpening!==0) return aprilOpening;
         }
+        // A loan opened during the year has a zero April opening balance but
+        // must still be saved if any month contains a non-zero disbursement.
+        const hasMidYearDisbursement=Object.keys(months).some(monthKey=>{
+          const month=months[monthKey];
+          return month && typeof month==="object" && openingBalanceNumber(month.newLoan)!==0;
+        });
+        if(hasMidYearDisbursement) return 1; // non-zero sentinel: this loan is eligible for cloud storage
       }
       // Support legacy loan shapes where opening is stored directly on loan.
       return openingBalanceNumber(loan.opening);
@@ -465,8 +473,9 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/fireba
             const loans={};
             Object.keys(child).forEach(loanKey=>{
               const sourceLoan=child[loanKey];
-              // Do not write the loan OR any of its month maps unless April's
-              // opening balance is positive or negative. Zero/missing = omit.
+              // Keep positive/negative April openings, and also loans whose
+              // first non-zero disbursement occurs in a later month. Omit a
+              // zero-opening loan only when no mid-year disbursement exists.
               if(getLoanOpeningBalance(sourceLoan)===0) return;
               const loan=visit(sourceLoan);
               if(loan && typeof loan==="object") delete loan.name;
