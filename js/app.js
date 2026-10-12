@@ -1140,7 +1140,15 @@
      if(monthIsConsidered(raw)||hasSavingData||demandPrincipalEntered)account.months[MONTHS[monthIndex][0]]=raw;else if(account.months[MONTHS[monthIndex][0]])delete account.months[MONTHS[monthIndex][0]];
      const status=document.getElementById("saveStatus");if(status)status.textContent="Saving member and loan data…";
      const local=saveLocalWithoutQueue();let cloudOk=false,cloudErr=null;
-     if(window.firebaseCloud && window.firebaseCloud.saveCloudDb && window.firebaseCloud.currentUser){
+     if(window.firebaseCloud && window.firebaseCloud.saveCloudRecord && window.firebaseCloud.currentUser){
+       try{
+         // Individual Save writes only the changed parent record; Save All
+         // continues to use the full-database diff/migration path.
+         const result=await window.firebaseCloud.saveCloudRecord(v,window.firebaseCloud.activeMode,db);
+         if(result!==true)throw new Error("Firebase did not confirm the save.");
+         cloudOk=true;
+       }catch(err){cloudErr=err;console.error("Row cloud sync failed:",err);}
+     }else if(window.firebaseCloud && window.firebaseCloud.saveCloudDb && window.firebaseCloud.currentUser){
        try{const result=await window.firebaseCloud.saveCloudDb(db,window.firebaseCloud.activeMode);if(result!==true)throw new Error("Firebase did not confirm the save.");cloudOk=true;}
        catch(err){cloudErr=err;console.error("Row cloud sync failed:",err);}
      }else cloudErr=new Error("No active Firebase session or cloud service is unavailable.");

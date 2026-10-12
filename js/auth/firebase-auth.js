@@ -746,6 +746,38 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/fireba
       return `Cloud synchronization failed even though the data was saved locally.\\n\\nFirebase error${code ? ` (${code})` : ''}: ${message}`;
     }
 
+    // Save a single changed parent record without serializing/comparing every
+    // parent in the database. Use the full save for the first legacy migration.
+    async function saveCloudRecord(record,mode,fullDb){
+      if(!currentUser) throw new Error("No active Firebase user. Sign in again before saving to Firebase.");
+      const saveMode=mode||activeMode;
+      if(!record || typeof record!=="object") throw new Error("No parent record was supplied for cloud save.");
+      if(!chunkedStorageReadyModes.has(saveMode)){
+        if(fullDb && Array.isArray(fullDb.vos)) return saveCloudDb(fullDb,saveMode);
+        throw new Error("Cloud storage is not initialized for this login mode. Please reload and retry.");
+      }
+      const uid=currentUser.uid;
+      const safeRecord=compactCloudRecord(cleanFirestoreValue(record));
+      const id=recordDocumentId(safeRecord,0);
+      const json=JSON.stringify(safeRecord);
+      const baseline=syncedRecordsByMode.get(saveMode)||new Map();
+      if(baseline.get(id)===json) return true;
+      const recordsRef=collection(firestore,"users",uid,"modeData",saveMode,"records");
+      const item={id,record:safeRecord,json};
+      const run=async()=>{
+        if(!currentUser || currentUser.uid!==uid) throw new Error("Your login session changed before the cloud save completed.");
+        await writeRecordSafely(recordsRef,item,uid,saveMode);
+        if(currentUser?.uid!==uid) throw new Error("Your login session changed before the cloud save completed.");
+        const next=new Map(syncedRecordsByMode.get(saveMode)||[]);
+        next.set(id,json);
+        syncedRecordsByMode.set(saveMode,next);
+        return true;
+      };
+      const task=saveQueue.then(run,run);
+      saveQueue=task.catch(()=>{});
+      return task;
+    }
+
     function saveCloudDb(db,mode){
       // Never report a successful save when Firebase Auth is not ready.
       // A false return was previously treated as "Saved" by the debounced UI.
@@ -965,6 +997,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/fireba
 
       loadCloudDb,
       saveCloudDb,
+      saveCloudRecord,
       queueCloudSave,
       saveNowBeforeLogout,
       describeCloudSaveError,
