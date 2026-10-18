@@ -1586,9 +1586,10 @@
      * 5. Never assign a different font size to individual cells.
      * DCB / Cumulative DCB exact fallback:
      * 1. 10 mm left/right + all data 13pt.
-     * 2. If insufficient, 8 mm left/right + all data 13pt.
-     * 3. If still insufficient, Child Name only becomes 10pt.
-     * 4. If still insufficient, only the SHG Name row/cell that needs it wraps.
+     * 2. If insufficient, reduce left/right margins one millimetre at a time
+     *    through 9, 8, 7, 6, 5, and 4 mm, keeping data at 13pt.
+     * 3. If still insufficient at 4 mm, only overflowing SHG name cells may
+     *    become 10pt; the final fallback wraps only cells that still overflow.
      * S.No is fixed and never donates space. All other columns donate spare
      * available width before any fallback stage.
      *
@@ -2095,28 +2096,31 @@
           const isLedger=table.matches(".ledger-table");
           const page=table.closest(".dcb-page,.cumulative-dcb-page,.ledger-page");
 
-          const M10=28.3465; // 10 mm
-          const M8=22.6772;  // 8 mm
-          const W10=A4_WIDTH-(M10*2);
-          const W8=A4_WIDTH-(M8*2);
+          const marginStages=[10,9,8,7,6,5,4].map(mm=>({
+            mm,
+            pt:mm*72/25.4,
+            width:A4_WIDTH-((mm*72/25.4)*2)
+          }));
+          const MIN_MARGIN=marginStages[marginStages.length-1].pt;
+          const MIN_WIDTH=marginStages[marginStages.length-1].width;
           const SHG_COL=1;   // S.No=0, SHG Name=1
 
           /*
            * EXACT FALLBACK ORDER
            * --------------------
            * DCB + Cumulative DCB:
-           *   1) 10 mm left/right + every DATA cell 13pt
-           *   2) only if stage 1 cannot fit -> 8 mm left/right + every DATA cell 13pt
-           *   3) only if stage 2 cannot fit -> SHG NAME ONLY becomes 10pt
-           *   4) only if stage 3 cannot fit -> wrap ONLY the SHG NAME cell(s)
+           *   1) Try 10, 9, 8, 7, 6, 5, then 4 mm left/right at 13pt
+           *   2) If 4 mm still cannot fit, only overflowing SHG cells may become 10pt
+           *   3) If still needed, wrap ONLY the individual overflowing cells
            *      whose own text still does not fit.
            *
            * S.No is permanently fixed and never donates space.
            * All columns except S.No may donate their spare width before any
            * fallback stage is triggered.
            *
-           * Loan Ledger has no SHG-name DATA column. It therefore uses stages
-           * 1 and 2 only, while all Ledger data remains 13pt.
+           * Loan Ledger has no SHG-name DATA column. It tries each margin
+           * from 10 mm down to 4 mm, keeping data at 13pt, then wraps only
+           * individual overflowing cells if needed.
            */
 
           function setStage(marginPt,widthPt){
@@ -2333,113 +2337,69 @@
 
           if(isDcb){
             clearDcbFallbackStyles();
-
-            /* =============================================================
-             * STAGE 1
-             * 10 mm left + right, ALL DATA at 13pt.
-             * =========================================================== */
             setDcbFonts();
-            let result=applyWidths(M10,W10);
 
-            if(fitsDcb(result.widths,13)){
-              setDcbRowHeight(table);
-              return;
+            /* Try each safe margin in 1 mm increments, stopping at the first
+             * margin where every data/total cell fits at 13pt. */
+            let result=null;
+            for(const stage of marginStages){
+              result=applyWidths(stage.pt,stage.width);
+              if(fitsDcb(result.widths,13)){
+                setDcbRowHeight(table);
+                return;
+              }
             }
 
-            /* =============================================================
-             * STAGE 2
-             * ONLY NOW reduce left + right margins to 8 mm.
-             * ALL DATA remains 13pt.
-             * =========================================================== */
-            setDcbFonts();
-            result=applyWidths(M8,W8);
-
-            if(fitsDcb(result.widths,13)){
-              setDcbRowHeight(table);
-              return;
-            }
-
-            /* =============================================================
-             * STAGE 3
-             * ONLY THE INDIVIDUAL SHG NAME CELL(S) THAT NEED IT become 10pt.
-             *
-             * The entire SHG Name column NEVER changes to 10pt.
-             * SHG cells that fit at 13pt stay at 13pt.
-             * =========================================================== */
+            /* All margin settings through 4 mm were tried. Keep the final
+             * 4 mm allocation and only now apply the established SHG-cell
+             * font-size fallback. */
             dataCells(table).forEach(td=>{
               if(td.cellIndex!==SHG_COL)return;
-
               const room=Math.max(
                 0,
                 result.widths[SHG_COL]-paddingPt(td)-borderPt(td)-2
               );
-
               if(measureTextPt(td,td.textContent||"",13)>room+EPS){
                 td.dataset.shgFont10="true";
               }
             });
 
             setDcbFonts();
-            result=applyWidths(M8,W8);
+            result=applyWidths(MIN_MARGIN,MIN_WIDTH);
 
-            /*
-             * Re-check after the mixed 13pt/10pt allocation. If moving
-             * space between columns makes another SHG cell become the
-             * limiting cell, reduce ONLY that particular cell to 10pt.
-             */
+            /* Re-check after mixed 13pt/10pt allocation. If redistribution
+             * makes another SHG cell the limiting cell, reduce only that cell. */
             let changed=true;
             let guard=0;
             while(changed && guard++<count){
               changed=false;
-
-              result.widths && dataCells(table).forEach(td=>{
-                if(td.cellIndex!==SHG_COL)return;
-                if(td.dataset.wrapShg==="true")return;
-
+              dataCells(table).forEach(td=>{
+                if(td.cellIndex!==SHG_COL || td.dataset.wrapShg==="true")return;
                 const size=(td.dataset.shgFont10==="true")?10:13;
                 const room=Math.max(
                   0,
                   result.widths[SHG_COL]-paddingPt(td)-borderPt(td)-2
                 );
-
-                if(size===13 &&
-                   measureTextPt(td,td.textContent||"",13)>room+EPS){
+                if(size===13 && measureTextPt(td,td.textContent||"",13)>room+EPS){
                   td.dataset.shgFont10="true";
                   changed=true;
                 }
               });
-
               if(changed){
                 setDcbFonts();
-                result=applyWidths(M8,W8);
+                result=applyWidths(MIN_MARGIN,MIN_WIDTH);
               }
             }
 
-            if(fitsDcb(result.widths,13)){
-              setDcbRowHeight(table);
-              return;
-            }
-
-            /*
-             * At this point only SHG cells marked above may use 10pt.
-             * All other data remains 13pt.
-             */
             if(fitsDcb(result.widths,10)){
               setDcbRowHeight(table);
               return;
             }
 
-            /* =============================================================
-             * STAGE 4
-             * FINAL LEVEL: if a data cell OR Total-row cell still cannot fit,
-             * wrap ONLY THAT PARTICULAR CELL. S.No is never wrapped. All other
-             * columns remain 13pt; SHG cells already selected for 10pt remain 10pt.
-             * ============================================================= */
+            /* Final fallback: wrap only cells that still overflow at 4 mm. */
             dataCells(table).forEach(td=>{
               const col=td.cellIndex;
-              if(col<=0 || col>=count)return;
-              if(td.dataset.wrapFinal==="true")return;
-
+              if(col<=0 || col>=count || td.dataset.wrapFinal==="true")return;
               const size=(col===SHG_COL && td.dataset.shgFont10==="true")?10:13;
               const room=Math.max(0,result.widths[col]-paddingPt(td)-borderPt(td)-2);
               if(measureTextPt(td,td.textContent||"",size)>room+EPS){
@@ -2456,46 +2416,38 @@
           }
 
           if(isLedger){
-            /*
-             * Loan Ledger: exact same first two margin stages, 13pt data.
-             * There is no SHG Name data column inside the ledger table, so
-             * stages 3/4 are not applicable.
-             */
+            /* Loan Ledger tries 10, 9, 8, 7, 6, 5, then 4 mm. Keep all
+             * data at 13pt; only wrap cells if the 4 mm layout still fails. */
             setCommonDataFont(table,13);
+            let widths=[];
+            let fits=false;
 
-            setStage(M10,W10);
-            let required=requiredByColumn(table,13);
-            /* W10 is the frame's outer width. The table is inside the frame,
-             * so reserve its 1px left + 1px right borders. */
-            let widths=redistribute(required,Math.max(0.1,W10-2));
-            setWidths(table,widths);
-            void table.offsetWidth;
-
-            if(allDataCellsFit(table,widths,13)){
-              return;
+            for(const stage of marginStages){
+              setStage(stage.pt,stage.width);
+              setCommonDataFont(table,13);
+              const required=requiredByColumn(table,13);
+              /* The table sits inside the frame, so reserve its two borders. */
+              widths=redistribute(required,Math.max(0.1,stage.width-2));
+              setWidths(table,widths);
+              void table.offsetWidth;
+              if(allDataCellsFit(table,widths,13)){
+                fits=true;
+                break;
+              }
             }
 
-            /* ONLY if 10 mm fails -> 8 mm. */
-            setStage(M8,W8);
-            setCommonDataFont(table,13);
-            required=requiredByColumn(table,13);
-            /* Same frame-content-width correction for the 8 mm fallback. */
-            widths=redistribute(required,Math.max(0.1,W8-2));
-            setWidths(table,widths);
-            void table.offsetWidth;
-
-            /* Never reduce Ledger data below 13pt. If still insufficient,
-             * wrap only the individual overflowing data cells; S.No remains
-             * fixed and is never wrapped. */
-            setCommonDataFont(table,13);
-            dataCells(table).forEach(td=>{
-              const col=td.cellIndex;
-              if(col<=0 || col>=widths.length)return;
-              const room=Math.max(0,widths[col]-paddingPt(td)-borderPt(td)-2);
-              if(measureTextPt(td,td.textContent||"",13)>room+EPS){
-                td.classList.add("pdf-final-wrap");
-              }
-            });
+            if(!fits){
+              /* Minimum margin reached: wrap only overflowing data cells. */
+              setCommonDataFont(table,13);
+              dataCells(table).forEach(td=>{
+                const col=td.cellIndex;
+                if(col<=0 || col>=widths.length)return;
+                const room=Math.max(0,widths[col]-paddingPt(td)-borderPt(td)-2);
+                if(measureTextPt(td,td.textContent||"",13)>room+EPS){
+                  td.classList.add("pdf-final-wrap");
+                }
+              });
+            }
             return;
           }
 
@@ -4975,7 +4927,7 @@ html,body{
       const readIndex=async(indexKey)=>{
         const snap=await window.firebaseCloud.getDoc(
           window.firebaseCloud.doc(db,"usernames",indexKey)
-        );
+      );
         return snap.exists()?(snap.data()||null):null;
       };
 
