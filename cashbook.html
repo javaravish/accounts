@@ -19,7 +19,7 @@
         /* Keep cashbook section headings consistent with the VO Selection heading. */
         .collection-panel>h3,.receipt-panel>h3,.payment-panel>h3{font-size:23px;line-height:1.25}
         /* Monthly save and reports actions share one row and equal widths. */
-        #saveMonthBottom,#toggleReports{flex:1 1 0;width:auto;min-width:0;max-width:none}
+        #saveMonthBottom,#toggleReports{width:auto;min-width:0;max-width:none}
         #saveMonthBottom~#toggleReports{margin-left:0}
         #saveMonthBottom{white-space:normal}
         #toggleReports{white-space:normal}
@@ -96,7 +96,7 @@
         #collectionTable tbody td[id^="ct"], #collectionTable tfoot td,
         #collectionTable tfoot th:not([colspan]), #receiptsTable tfoot #receiptTotal,
         #paymentsDetailTable tfoot #paymentDetailTotal, #paymentsDetailTable #endingCash,
-        #paymentsDetailTable #endingBank {background:transparent !important;box-shadow:none!important;border-color:#cbd5e1!important;}
+        #paymentsDetailTable #endingBank {box-shadow:none!important;border-color:#cbd5e1!important;}
         .calculated-value-box, .calculated-value-cell-box {
           display:flex; align-items:center; justify-content:center;
           width:calc(100% - 8px); min-width:0; max-width:none; min-height:42px; margin:0 auto;
@@ -152,10 +152,10 @@
         <div id="homeVoSelectionPanel" class="panel hidden"><h2>VO Selection &amp; Creation</h2><div class="vo-top-row"><div class="field"><label for="homeMsSelect">Existing VO</label><select id="homeMsSelect"><option value="">-- Select Existing VO --</option></select></div><button id="homeShowCreateVO" type="button">Create New VO</button></div><div id="homeCreateVOForm" class="vo-create-form hidden"><div class="field"><label for="homeNewMsName">New VO Name</label><input id="homeNewMsName" placeholder="Enter new VO name"></div><div class="field"><label for="homeCreateFinancialYear">Financial Year <span class="required-mark">*</span></label><select id="homeCreateFinancialYear" required aria-required="true"><option value="">-- Select Financial Year --</option><option>2024 - 25</option><option>2025 - 26</option><option>2026 - 27</option><option>2027 - 28</option><option>2028 - 29</option><option>2029 - 30</option><option>2030 - 35</option></select></div><div class="vo-create-actions"><button id="homeCreateMs" type="button" style="background:#16884b">Create VO</button><button id="homeCancelCreateVO" type="button" class="secondary">Cancel</button></div></div></div>
         <div class="panel"><h2>Data Management</h2><div class="notice">Back up your ledger regularly. Data is saved in this browser on this device; export a backup before clearing browser data or changing devices.</div><div class="actions"><button id="downloadBackup" class="secondary">Download Backup</button><button id="restoreBtn" class="secondary">Restore Backup</button><input id="restoreFile" type="file" accept="application/json" class="hidden"><button id="mergeBackup">Merge Backup</button></div><p id="backupStatus" class="small muted"></p></div>
     </section>
-    <section id="page-profile" class="hidden"><div class="panel"><h3>SHG member rows</h3><p class="muted">Edit SHG names here. The monthly entry screen uses the same list for all months.</p><div class="table-wrap"><table><thead><tr><th>S N</th><th>SHG Name</th><th>Action</th></tr></thead><tbody id="shgList"></tbody></table></div><div class="row" style="margin-top:10px"><input id="newShg" placeholder="New SHG name"><button id="addShg">Add SHG</button></div></div></section>
+    <section id="page-profile" class="hidden"><div class="panel"><h3>SHG member rows</h3><p class="muted">Edit SHG names here. The monthly entry screen uses the same list for all months.</p><div class="table-wrap"><table><thead><tr><th>SN</th><th>SHG Name</th><th>Action</th></tr></thead><tbody id="shgList"></tbody></table></div><div class="row" style="margin-top:10px"><input id="newShg" placeholder="New SHG name"><button id="addShg">Add SHG</button></div></div></section>
     <section id="page-monthly" class="hidden">
         <div class="panel"><h2>VO Selection &amp; Creation</h2><div class="vo-top-row"><div class="field"><label for="msSelect">Existing VO</label><select id="msSelect"></select></div><button id="showCreateVO" type="button">Create New VO</button></div><div id="createVOForm" class="vo-create-form hidden"><div class="field"><label for="newMsName">New VO Name</label><input id="newMsName" placeholder="Enter new VO name"></div><div class="field"><label for="createFinancialYear">Financial Year <span class="required-mark">*</span></label><select id="createFinancialYear" required aria-required="true"><option value="">-- Select Financial Year --</option><option>2024 - 25</option><option>2025 - 26</option><option>2026 - 27</option><option>2027 - 28</option><option>2028 - 29</option><option>2029 - 30</option><option>2030 - 35</option></select></div><div class="vo-create-actions"><button id="createMs" type="button" style="background:#16884b">Create VO</button><button id="cancelCreateVO" type="button" class="secondary">Cancel</button></div></div></div><div class="panel"><h2>VO Details</h2><div class="vo-profile-grid"><div class="field"><label for="editVoName">VO Name</label><input id="editVoName" placeholder="VO Name"></div><div class="field"><label for="financialYearSelect">Financial Year <span class="required-mark">*</span></label><select id="financialYearSelect"><option>2024 - 25</option><option>2025 - 26</option><option>2026 - 27</option><option>2027 - 28</option><option>2028 - 29</option><option>2029 - 30</option><option>2030 - 35</option></select></div><div class="field"><label for="village">Village <span class="required-mark">*</span></label><input id="village" placeholder="Village" required aria-required="true"></div><div class="field"><label for="mandal">Mandal <span class="required-mark">*</span></label><input id="mandal" placeholder="Mandal" required aria-required="true"></div><div class="field"><label for="district">District</label><input id="district" placeholder="District"></div></div><div class="vo-details-actions"><button id="saveProfile" type="button" style="background:#16884b">Save VO</button><button id="deleteVO" type="button">Delete VO</button><span id="voProfileStatus" class="muted small">Data loaded</span></div></div><div class="panel"><h2>Monthly Cashbook Entry</h2><div class="row monthly-entry-grid"><div class="field month-select-fallback"><label>Month</label><select id="monthSelect"></select></div><input id="openingCash" type="hidden" value="0"><input id="openingBank" type="hidden" value="0"><div class="field"><label>Opening Loan (₹)</label><input id="openingLoanBalanceMonthly" type="number" min="0"></div><div class="field"><label>Opening Savings (₹)</label><input id="openingSavingsBalanceMonthly" type="number" min="0"></div><div class="field"><label>Opening VO Loan (₹)</label><input id="openingMSLoanBalanceMonthly" type="number" min="0"></div><div class="field"><label>Opening VO Savings (₹)</label><input id="openingMSSavingsBalanceMonthly" type="number" min="0"></div><div class="field"><label>Opening VOA Salary (SERP) (₹)</label><input id="openingVOASalarySERPMonthly" type="number" min="0"></div><div class="field"><label>Opening Incentive (₹)</label><input id="openingIncentiveBalanceMonthly" type="number" min="0"></div><div class="field"><label>Opening Market Commission (₹)</label><input id="openingMarketCommissionBalanceMonthly" type="number" min="0"></div><div class="field"><label>Opening VO Share Capital (₹)</label><input id="openingMSShareCapitalBalanceMonthly" type="number" min="0"></div><div class="field"><label>Opening Asset (₹)</label><input id="openingAssetBalanceMonthly" type="number" min="0"></div><div class="field"><label>Previous Year Profit (₹)</label><input id="previousYearProfitMonthly" type="number" min="0"></div><div class="field"><label>Previous Year Loss (₹)</label><input id="previousYearLossMonthly" type="number" min="0"></div><span id="monthStatus" class="status"></span></div><div class="notice">Enter only the monthly figures. Reports use the saved values and recalculate automatically. Amounts are in rupees.</div></div>
-        <div id="collectionsByShgPanel" class="panel collection-panel"><h3>Collections by SHG</h3><div id="monthTabs" class="month-tabs" role="tablist" aria-label="Select collection month"></div><p class="muted small">Enter SHG-wise amounts below. Scroll horizontally to view all columns; the SHG name stays visible while scrolling.</p><div class="table-wrap collection-wrap"><table id="collectionTable"><thead><tr><th>S N</th><th>SHG Name</th><th>పొదుపు</th><th>అసలు</th><th>వడ్డీ</th><th>జరిమానా</th><th>ప్రారంభ రుణ బకాయి</th><th>కొత్త రుణం</th><th>సభ్యత్వం</th><th>ప్రారంభ వాటా ధనం</th><th>ప్రస్తుత వాటా ధనం</th><th>వాటా ధనం వాపసు</th><th>ప్రారంభ పొదుపు</th><th>పొదుపు వాపసు</th><th>మొత్తం వసూళ్లు</th><th class="no-print">Action</th></tr></thead><tbody></tbody><tfoot><tr><th colspan="2">మొత్తం</th><th id="sumSavings"><span class="calculated-value-box">0</span></th><th id="sumPrincipal"><span class="calculated-value-box">0</span></th><th id="sumInterest"><span class="calculated-value-box">0</span></th><th id="sumFine"><span class="calculated-value-box">0</span></th><th id="sumOpeningLoanBalance"><span class="calculated-value-box">0</span></th><th id="sumNewLoan"><span class="calculated-value-box">0</span></th><th id="sumMembership"><span class="calculated-value-box">0</span></th><th id="sumOpeningShareCapital"><span class="calculated-value-box">0</span></th><th id="sumCurrentShareCapital"><span class="calculated-value-box">0</span></th><th id="sumShareRefund"><span class="calculated-value-box">0</span></th><th id="sumOpeningSavings"><span class="calculated-value-box">0</span></th><th id="sumSavingsRefund"><span class="calculated-value-box">0</span></th><th id="sumCollections"><span class="calculated-value-box">0</span></th><th class="no-print"></th></tr></tfoot></table></div><div class="actions no-print"><button type="button" id="addCollectionShg">+ Add SHG</button></div></div>
+        <div id="collectionsByShgPanel" class="panel collection-panel"><h3>Collections by SHG</h3><div id="monthTabs" class="month-tabs" role="tablist" aria-label="Select collection month"></div><p class="muted small">Enter SHG-wise amounts below. Scroll horizontally to view all columns; the SHG name stays visible while scrolling.</p><div class="table-wrap collection-wrap"><table id="collectionTable"><thead><tr><th>SN</th><th>SHG Name</th><th>పొదుపు</th><th>అసలు</th><th>వడ్డీ</th><th>జరిమానా</th><th>ప్రారంభ రుణ బకాయి</th><th>కొత్త రుణం</th><th>సభ్యత్వం</th><th>ప్రారంభ వాటా ధనం</th><th>ప్రస్తుత వాటా ధనం</th><th>వాటా ధనం వాపసు</th><th>ప్రారంభ పొదుపు</th><th>పొదుపు వాపసు</th><th>మొత్తం వసూళ్లు</th><th class="no-print">Action</th></tr></thead><tbody></tbody><tfoot><tr><th colspan="2">మొత్తం</th><th id="sumSavings"><span class="calculated-value-box">0</span></th><th id="sumPrincipal"><span class="calculated-value-box">0</span></th><th id="sumInterest"><span class="calculated-value-box">0</span></th><th id="sumFine"><span class="calculated-value-box">0</span></th><th id="sumOpeningLoanBalance"><span class="calculated-value-box">0</span></th><th id="sumNewLoan"><span class="calculated-value-box">0</span></th><th id="sumMembership"><span class="calculated-value-box">0</span></th><th id="sumOpeningShareCapital"><span class="calculated-value-box">0</span></th><th id="sumCurrentShareCapital"><span class="calculated-value-box">0</span></th><th id="sumShareRefund"><span class="calculated-value-box">0</span></th><th id="sumOpeningSavings"><span class="calculated-value-box">0</span></th><th id="sumSavingsRefund"><span class="calculated-value-box">0</span></th><th id="sumCollections"><span class="calculated-value-box">0</span></th><th class="no-print"></th></tr></tfoot></table></div><div class="actions no-print"><button type="button" id="addCollectionShg">+ Add SHG</button></div></div>
         <div id="receiptsPaymentsPanel" class="receipts-payments-grid"><div class="panel receipt-panel"><h3>1. Receipts (రాబడులు)</h3><div class="table-wrap"><table id="receiptsTable"><thead><tr><th>వివరాలు</th><th>Amount (₹)</th></tr></thead><tbody></tbody><tfoot><tr><th>మొత్తం రూ.</th><th><span id="receiptTotal" class="calculated-value-box">0</span></th></tr></tfoot></table></div></div>
             <div class="panel payment-panel"><h3>2. Payments (చెల్లింపులు)</h3><div class="table-wrap"><table id="paymentsDetailTable"><thead><tr><th>వివరాలు</th><th>Amount (₹)</th></tr></thead><tbody></tbody><tfoot><tr><th>మొత్తం రూ.</th><th><span id="paymentDetailTotal" class="calculated-value-box">0</span></th></tr></tfoot></table></div></div></div>
         <div id="receiptsByMonthsPanel" class="panel hidden"><h2>Receipts by Months</h2><div class="monthly-report-wrap"><table id="receiptsByMonthsTable" class="month-report-table"></table></div></div>
@@ -381,10 +381,10 @@
      return `<div class="table-wrap"><table class="report-table${isBalanceSheet?' balance-sheet-table':isIncomeExpenditure?' income-expenditure-table':isReceiptsPayments?' receipts-payments-table':''}"><thead><tr>${headers.map(h=>`<th>${esc(displayText(h))}</th>`).join("")}</tr></thead><tbody>${body}</tbody></table></div>`
     }
     function makeReport(name){let rows=[],headers=[],sumAll=(key)=>MONTHS.reduce((a,m)=>a+ms().months[m].collections.reduce((s,c)=>s+(+c[key]||0),0),0);
-    if(name==="Collection Month Wise"){headers=["S N","SHG Name",...MONTH_LABELS.flatMap(m=>[m+" Principal",m+" Interest"]),"Annual Principal","Annual Interest"];ms().shgs.forEach((s,i)=>{let vals=MONTHS.flatMap(m=>{let c=ms().months[m].collections[i]||{};return [money(c.principal),money(c.interest)]});let p=MONTHS.reduce((a,m)=>a+(+ms().months[m].collections[i]?.principal||0),0),it=MONTHS.reduce((a,m)=>a+(+ms().months[m].collections[i]?.interest||0),0);rows.push([i+1,s,...vals,money(p),money(it)])})}
-    else if(name==="Month Wise Savings"){const teluguMonths=["ఏప్రిల్","మే","జూన్","జూలై","ఆగస్టు","సెప్టెంబర్","అక్టోబర్","నవంబర్","డిసెంబర్","జనవరి","ఫిబ్రవరి","మార్చి"];headers=["S N","SHG Name",...teluguMonths,"Total"];ms().shgs.forEach((s,i)=>{let vals=MONTHS.map(m=>+ms().months[m].collections[i]?.savings||0);rows.push([i+1,s,...vals.map(money),money(vals.reduce((a,b)=>a+b,0))])})}
+    if(name==="Collection Month Wise"){headers=["SN","SHG Name",...MONTH_LABELS.flatMap(m=>[m+" Principal",m+" Interest"]),"Annual Principal","Annual Interest"];ms().shgs.forEach((s,i)=>{let vals=MONTHS.flatMap(m=>{let c=ms().months[m].collections[i]||{};return [money(c.principal),money(c.interest)]});let p=MONTHS.reduce((a,m)=>a+(+ms().months[m].collections[i]?.principal||0),0),it=MONTHS.reduce((a,m)=>a+(+ms().months[m].collections[i]?.interest||0),0);rows.push([i+1,s,...vals,money(p),money(it)])})}
+    else if(name==="Month Wise Savings"){const teluguMonths=["ఏప్రిల్","మే","జూన్","జూలై","ఆగస్టు","సెప్టెంబర్","అక్టోబర్","నవంబర్","డిసెంబర్","జనవరి","ఫిబ్రవరి","మార్చి"];headers=["SN","SHG Name",...teluguMonths,"Total"];ms().shgs.forEach((s,i)=>{let vals=MONTHS.map(m=>+ms().months[m].collections[i]?.savings||0);rows.push([i+1,s,...vals.map(money),money(vals.reduce((a,b)=>a+b,0))])})}
     else if(name==="Cumulative DCB"){headers=["క్ర.సం.","SHG పేరు","ప్రారంభ అప్పు నిల్వ","కొత్త అప్పులు","మొత్తం అప్పు నిల్వ","వసూలైన అసలు","వసూలైన వడ్డీ","బకాయి అసలు"];ms().shgs.forEach((s,i)=>{const opening=+(ms().months.APR.collections[i]?.openingLoanBalance||0);const newLoan=MONTHS.reduce((a,m)=>a+(+ms().months[m].collections[i]?.newLoan||0),0);const totalLoan=opening+newLoan;const principal=MONTHS.reduce((a,m)=>a+(+ms().months[m].collections[i]?.principal||0),0);const interest=MONTHS.reduce((a,m)=>a+(+ms().months[m].collections[i]?.interest||0),0);const outstanding=totalLoan-principal;rows.push([i+1,s,money(opening),money(newLoan),money(totalLoan),money(principal),money(interest),money(outstanding)])})}
-    else if(name==="Podupu & Vatadhanam"){headers=["S N","SHG Name","Opening Share Capital","Current Share Capital","Share Refund","Closing Share Capital","Opening Savings","Current Savings","Savings Refund","Closing Savings"];ms().shgs.forEach((s,i)=>{const get=(m,k)=>+(ms().months[m].collections[i]?.[k]||0);const openingShare=get("APR","openingShareCapital");const currentShare=MONTHS.reduce((a,m)=>a+get(m,"currentShareCapital"),0);const shareRefund=MONTHS.reduce((a,m)=>a+get(m,"shareRefund"),0);const closingShare=openingShare+currentShare-shareRefund;const openingSavings=get("APR","openingSavings");const currentSavings=MONTHS.reduce((a,m)=>a+get(m,"savings"),0);const savingsRefund=MONTHS.reduce((a,m)=>a+get(m,"savingsRefund"),0);const closingSavings=openingSavings+currentSavings-savingsRefund;rows.push([i+1,s,money(openingShare),money(currentShare),money(shareRefund),money(closingShare),money(openingSavings),money(currentSavings),money(savingsRefund),money(closingSavings)])})}
+    else if(name==="Podupu & Vatadhanam"){headers=["SN","SHG Name","Opening Share Capital","Current Share Capital","Share Refund","Closing Share Capital","Opening Savings","Current Savings","Savings Refund","Closing Savings"];ms().shgs.forEach((s,i)=>{const get=(m,k)=>+(ms().months[m].collections[i]?.[k]||0);const openingShare=get("APR","openingShareCapital");const currentShare=MONTHS.reduce((a,m)=>a+get(m,"currentShareCapital"),0);const shareRefund=MONTHS.reduce((a,m)=>a+get(m,"shareRefund"),0);const closingShare=openingShare+currentShare-shareRefund;const openingSavings=get("APR","openingSavings");const currentSavings=MONTHS.reduce((a,m)=>a+get(m,"savings"),0);const savingsRefund=MONTHS.reduce((a,m)=>a+get(m,"savingsRefund"),0);const closingSavings=openingSavings+currentSavings-savingsRefund;rows.push([i+1,s,money(openingShare),money(currentShare),money(shareRefund),money(closingShare),money(openingSavings),money(currentSavings),money(savingsRefund),money(closingSavings)])})}
     else if(name.startsWith("GL -")){headers=["తేది / Month","వివరములు","జమ (Receipts)","చెల్లింపు (Payments)","నిల్వ (Balance)"];const glDetailTelugu={"GL - Loan Principal":"అప్పు అసలు","GL - Loan Interest":"అప్పు వడ్డీ","GL - VOA Salary (VO)":"VOA వేతనం (VO)","GL - Bank Interest":"బ్యాంకు వడ్డీ","GL - Stationery":"స్టేషనరీ ఖర్చులు","GL - Meeting Expenses":"సమావేశ ఖర్చులు","GL - Bank Charges":"బ్యాంకు ఛార్జీలు","GL - Travel Expenses":"ప్రయాణ ఖర్చులు","GL - Audit Fee":"ఆడిట్ ఫీజు","GL - MS Membership":"MS సభ్యత్వం","GL - Other Expenses":"ఇతర ఖర్చులు","GL - Other paymts":"ఇతర చెల్లింపులు","GL - Other recipts":"ఇతర రాబడులు","GL - Savings":"పొదుపు","GL - MS Loan Principal":"MS అప్పు అసలు","GL - MS Loan Interest":"MS అప్పు వడ్డీ","GL - MS Savings":"MS పొదుపు","GL - VOA Salary (SERP)":"VOA వేతనం (SERP)","GL - SN Incentive":"స్త్రీనిధి ప్రోత్సాహకం","GL - Market Commission":"మార్కెటింగ్ కమీషన్","GL - MS Share Capital":"MS వాటాధనం","GL - Asset Purchase":"ఆస్తుల కొనుగోలు"};let payHead=glDetailTelugu[name]||"ఇతర వివరాలు";const openingBalanceKey={"GL - Loan Principal":"openingLoanBalance","GL - Loan Interest":null,"GL - VOA Salary (VO)":null,"GL - Bank Interest":null,"GL - Stationery":null,"GL - Meeting Expenses":null,"GL - Bank Charges":null,"GL - Travel Expenses":null,"GL - Audit Fee":null,"GL - MS Membership":null,"GL - Other Expenses":null,"GL - Other paymts":null,"GL - Other recipts":null,"GL - Savings":"openingSavingsBalance","GL - MS Loan Principal":"openingMSLoanBalance","GL - MS Loan Interest":null,"GL - MS Savings":"openingMSSavingsBalance","GL - VOA Salary (SERP)":"openingVOASalarySERP","GL - SN Incentive":"openingIncentiveBalance","GL - Market Commission":"openingMarketCommissionBalance","GL - MS Share Capital":"openingMSShareCapitalBalance","GL - Asset Purchase":"openingAssetBalance"};const startBalance=Object.prototype.hasOwnProperty.call(openingBalanceKey,name)?(openingBalanceKey[name]===null?0:(+ms().months.APR[openingBalanceKey[name]]||0)):(+ms().months.APR.openingCash||0);let balance=startBalance;const financialYearStart=(String(selectedFinancialYear()).match(/\d{4}/)||["2026"])[0];rows.push([`01.04.${financialYearStart}`,"ప్రారంభ నిల్వ","—","—",money(startBalance)]);const sum=(arr,key)=> (arr||[]).reduce((a,x)=>a+(+x[key]||0),0);const receiptSource={"GL - Loan Interest":"వడ్డీ","GL - Savings":"పొదుపు","GL - VOA Salary (SERP)":"VOA వేతనం జమ (DRDA నుండి)","GL - SN Incentive":"స్త్రీనిధి ఇన్సెంటివ్ జమ","GL - Market Commission":"మార్కెటింగ్ కమీషన్ జమ","GL - Bank Interest":"బ్యాంక్ నుండి వడ్డీ జమ","GL - MS Savings":"MS నుండి పొదుపు జమ","GL - MS Share Capital":"MS నుండి వాటాధనం వాపస్","GL - MS Loan Principal":"MS నుండి CIFజమ"};const paymentSource={"GL - Loan Interest":null,"GL - MS Loan Interest":"MS వడ్డీ","GL - MS Loan Principal":"MS అసలు","GL - MS Savings":"MS పొదుపు","GL - VOA Salary (SERP)":"VOA వేతనం (SERP)","GL - VOA Salary (VO)":"VOA వేతనం (VO)","GL - SN Incentive":"స్త్రీనిధి ఇన్సెంటివ్ చెల్లింపు","GL - Market Commission":"మార్కెటింగ్ కమీషన్ చెల్లింపు","GL - Stationery":"స్టేషనరీ","GL - Meeting Expenses":"సమావేశ ఖర్చులు","GL - Bank Charges":"బ్యాంకు ఛార్జీలు","GL - Travel Expenses":"ప్రయాణ ఖర్చులు","GL - Audit Fee":"ఆడిట్ ఫీజు","GL - MS Membership":"సభ్యత్వం","GL - MS Share Capital":"వాటాధనం","GL - Asset Purchase":null,"GL - Other Expenses":"ఇతర ఖర్చులు","GL - Other paymts":null};MONTHS.forEach((m,idx)=>{const d=ms().months[m],r=d.receipts||{},pd=d.paymentDetails||{};let receipt=0,payment=0;if(name==="GL - Loan Principal"){receipt=sum(d.collections,"principal");payment=sum(d.collections,"newLoan");}else if(name==="GL - Loan Interest"){receipt=sum(d.collections,"interest");}else if(name==="GL - Other recipts"){receipt=sum(d.otherReceipts,"amount");}else if(name==="GL - Other paymts"){payment=sum(d.otherPayments,"amount");}else if(name==="GL - Savings"){receipt=sum(d.collections,"savings");payment=sum(d.collections,"savingsRefund");}else if(name==="GL - MS Loan Interest"){payment=+pd["MS వడ్డీ"]||0;}else if(name==="GL - MS Loan Principal"){receipt=+r["MS నుండి CIFజమ"]||0;payment=+pd["MS అసలు"]||0;}else if(name==="GL - MS Savings"){receipt=+r["MS నుండి పొదుపు జమ"]||0;payment=+pd["MS పొదుపు"]||0;}else if(name==="GL - MS Share Capital"){receipt=+r["MS నుండి వాటాధనం వాపస్"]||0;payment=+pd["వాటాధనం"]||0;}else if(name==="GL - Asset Purchase"){payment=sum(d.assetPurchases,"amount");}else if(name==="GL - Other Expenses"){payment=sum(d.otherExpenses,"amount");}else{const rk=receiptSource[name];if(rk)receipt=+r[rk]||0;const pk=paymentSource[name];if(pk)payment=+pd[pk]||0;if(name==="GL - Bank Interest"||name==="GL - Loan Interest")payment=0;}let next;if(["GL - Loan Principal","GL - MS Savings","GL - MS Share Capital"].includes(name))next=balance-receipt+payment;else if(["GL - Loan Interest","GL - MS Loan Interest","GL - VOA Salary (VO)","GL - Bank Interest","GL - Stationery","GL - Meeting Expenses","GL - Bank Charges","GL - Travel Expenses","GL - Audit Fee","GL - MS Membership","GL - Other Expenses","GL - Other paymts","GL - Other recipts"].includes(name))next=balance+receipt+payment;else if(["GL - Savings","GL - MS Loan Principal","GL - VOA Salary (SERP)","GL - SN Incentive","GL - Market Commission"].includes(name))next=balance+receipt-payment;else if(name==="GL - Asset Purchase")next=balance+payment;else next=balance+receipt-payment;rows.push([MONTH_LABELS[idx],payHead,money(receipt),money(payment),money(next)]);balance=next;});}
     else if(name==="Receipts & Payments"){
     headers=["క్ర.సం","వసూళ్ళు","మొత్తము రూ.","క్ర.సం.","చెల్లింపులు","మొత్తము రూ."];
@@ -717,16 +717,70 @@
     .podupu-vatadhanam-pdf .report-table th:nth-child(1),.podupu-vatadhanam-pdf .report-table td:nth-child(1){width:5%}
     .podupu-vatadhanam-pdf .report-table th:nth-child(2),.podupu-vatadhanam-pdf .report-table td:nth-child(2){width:15%;overflow-wrap:anywhere;word-break:break-word;text-align:center}
 
+    .collection-month-wise-page{width:100%;break-after:page;page-break-after:always}
+    .collection-month-wise-page .report-table{width:100%!important;table-layout:fixed!important}
+    .collection-month-wise-page .report-table colgroup col{min-width:0!important;max-width:none!important}
+
+    .collection-month-wise-page:last-child{break-after:auto;page-break-after:auto}
     .collection-month-wise-pdf{page:collectionMonthWise}
     .cumulative-dcb-pdf .report-table thead tr:not(.pdf-table-title):not(.pdf-table-details) th,.month-wise-savings-pdf .report-table thead tr:not(.pdf-table-title):not(.pdf-table-details) th,.gl-report-pdf .report-table thead tr:not(.pdf-table-title):not(.pdf-table-details) th{background:#cfe2f3!important;color:#073763!important;border-color:#8ab4d8!important}
-    .cumulative-dcb-pdf .report-table,.month-wise-savings-pdf .report-table{table-layout:fixed}
+
+    /* Cumulative DCB: retain SN. and SHG columns, and make the six
+       requested financial columns equal-width. Keep all report headers. */
+    .cumulative-dcb-pdf .report-table{width:100%!important;table-layout:fixed!important}
+    .cumulative-dcb-pdf .report-table thead tr:not(.pdf-table-title):not(.pdf-table-details) th,
+    .cumulative-dcb-pdf .report-table tbody td{min-width:0!important;max-width:none!important;box-sizing:border-box!important;overflow-wrap:anywhere!important;white-space:normal!important}
+    .cumulative-dcb-pdf .report-table thead tr:not(.pdf-table-title):not(.pdf-table-details) th:nth-child(1),
+    .cumulative-dcb-pdf .report-table tbody td:nth-child(1){width:5%!important}
+    .cumulative-dcb-pdf .report-table thead tr:not(.pdf-table-title):not(.pdf-table-details) th:nth-child(2),
+    .cumulative-dcb-pdf .report-table tbody td:nth-child(2){width:15%!important}
+    .cumulative-dcb-pdf .report-table thead tr:not(.pdf-table-title):not(.pdf-table-details) th:nth-child(n+3),
+    .cumulative-dcb-pdf .report-table tbody td:nth-child(n+3){width:13.333333%!important}
+
+    /* Podupu & Vatadhanam: preserve SN. and SHG columns; distribute the
+       eight share-capital/savings columns equally across the remaining width. */
+    .podupu-vatadhanam-pdf .report-table{width:100%!important;table-layout:fixed!important}
+    .podupu-vatadhanam-pdf .report-table thead tr.podupu-subheaders th,
+    .podupu-vatadhanam-pdf .report-table tbody td{min-width:0!important;max-width:none!important;box-sizing:border-box!important;overflow-wrap:anywhere!important;white-space:normal!important}
+    .podupu-vatadhanam-pdf .report-table thead tr.podupu-subheaders th:nth-child(1),
+    .podupu-vatadhanam-pdf .report-table tbody td:nth-child(1){width:5%!important}
+    .podupu-vatadhanam-pdf .report-table thead tr.podupu-subheaders th:nth-child(2),
+    .podupu-vatadhanam-pdf .report-table tbody td:nth-child(2){width:15%!important}
+    .podupu-vatadhanam-pdf .report-table thead tr.podupu-subheaders th:nth-child(n+3),
+    .podupu-vatadhanam-pdf .report-table tbody td:nth-child(n+3){width:10%!important}
+
+    /* Month Wise Savings: retain SN. and SHG Name, and make April–March
+       plus Total thirteen equal-width individual columns. */
+    .month-wise-savings-pdf .report-table{width:100%!important;table-layout:fixed!important;border-collapse:collapse!important}
+    .month-wise-savings-pdf .report-table colgroup col{min-width:0!important;max-width:none!important}
+    .month-wise-savings-pdf .report-table th,.month-wise-savings-pdf .report-table td{min-width:0!important;max-width:none!important;box-sizing:border-box!important;overflow-wrap:anywhere!important;white-space:normal!important}
+    .month-wise-savings-pdf .report-table thead tr:not(.pdf-table-title):not(.pdf-table-details) th,
+    .month-wise-savings-pdf .report-table tbody td{min-width:0!important;max-width:none!important;box-sizing:border-box!important;overflow-wrap:anywhere!important;white-space:normal!important}
+    .month-wise-savings-pdf .report-table thead tr:not(.pdf-table-title):not(.pdf-table-details) th:nth-child(1),
+    .month-wise-savings-pdf .report-table tbody td:nth-child(1){width:1%!important}
+    .month-wise-savings-pdf .report-table thead tr:not(.pdf-table-title):not(.pdf-table-details) th:nth-child(2),
+    .month-wise-savings-pdf .report-table tbody td:nth-child(2){width:15%!important}
+    .month-wise-savings-pdf .report-table thead tr:not(.pdf-table-title):not(.pdf-table-details) th:nth-child(n+3):nth-child(-n+15),
+    .month-wise-savings-pdf .report-table tbody td:nth-child(n+3):nth-child(-n+15){
+      width:6.4615384615%!important;
+      min-width:0!important;
+      max-width:none!important;
+      padding-left:2px!important;
+      padding-right:2px!important;
+      box-sizing:border-box!important;
+      text-align:center!important;
+      overflow-wrap:anywhere!important;
+      white-space:normal!important;
+    }
+.cumulative-dcb-pdf .report-table,.month-wise-savings-pdf .report-table{table-layout:fixed}
     .cumulative-dcb-pdf .report-table th,.cumulative-dcb-pdf .report-table td,.month-wise-savings-pdf .report-table th,.month-wise-savings-pdf .report-table td{overflow-wrap:anywhere;white-space:normal}
     .collection-month-wise-pdf .report-table{table-layout:fixed;width:100%;font-size:7.5pt}
     .collection-month-wise-pdf .report-table th,.collection-month-wise-pdf .report-table td{padding:3px 2px;white-space:nowrap;overflow-wrap:normal;text-align:center}
     .collection-month-wise-pdf .report-table th:nth-child(1),.collection-month-wise-pdf .report-table td:nth-child(1){width:2.2%;max-width:2.2%;padding-left:1px;padding-right:1px}
     .collection-month-wise-pdf .report-table th:nth-child(2),.collection-month-wise-pdf .report-table td:nth-child(2){width:12%;white-space:normal;overflow-wrap:anywhere;word-break:break-word;line-break:anywhere}
     .collection-month-wise-pdf .report-table thead tr.collection-month-groups th{background:#d9e2f3;color:#18395f;font-size:8pt;padding:4px 1px;white-space:wrap}
-    .collection-month-wise-pdf .report-table thead tr.collection-month-subheaders th{background:#e7edf7;color:#18395f;font-size:7pt;padding:3px 1px;white-space:nowrap}
+
+.collection-month-wise-pdf .report-table thead tr.collection-month-subheaders th{background:#e7edf7;color:#18395f;font-size:7pt;padding:3px 1px;white-space:nowrap}
     .collection-month-wise-pdf .report-table thead tr.pdf-table-title th{font-size:15pt;padding:5px}
     .collection-month-wise-pdf .report-table thead tr.pdf-table-details th{font-size:13pt;padding:4px}
     @media print{html{margin:0!important;padding:0!important}body{margin:0!important;padding:10mm!important;box-sizing:border-box}body.all-pdf{padding:0!important}body.collection-month-wise-pdf{padding:10mm 5mm!important}body.gl-report-pdf{padding:10mm 15mm!important}body.cumulative-dcb-pdf{padding:15mm!important}body.month-wise-savings-pdf{padding:10mm 5mm!important}body.podupu-vatadhanam-pdf{padding:10mm!important}body.financial-summary-pdf{padding:10mm!important}.toolbar{display:none!important}.all-report{break-after:page;page-break-after:always;padding:0!important}.all-report.collection-month-wise-pdf{padding:10mm 5mm!important}.all-report.gl-report-pdf{padding:15mm!important}.all-report.cumulative-dcb-pdf{padding:15mm!important}.all-report.month-wise-savings-pdf{padding:10mm 5mm!important}.all-report.podupu-vatadhanam-pdf{padding:10mm!important}.all-report.financial-summary-pdf{padding:10mm!important}.all-report:last-child{break-after:auto;page-break-after:auto}thead{display:table-header-group}tr{break-inside:avoid;page-break-inside:avoid}table{font-size:8pt}th,td{padding:3px 4px;-webkit-print-color-adjust:exact;print-color-adjust:exact}}
@@ -734,7 +788,7 @@
     html,body,.pdf-heading,.report-table,.report-table th,.report-table td{
       font-family:"Gidugu",sans-serif!important;
     }
-    /* S.N. widths for Income & Expenditure and Balance Sheet come from their PDF colgroups. */
+    /* SN. widths for Income & Expenditure and Balance Sheet come from their PDF colgroups. */
     .pdf-heading h2,
     .report-table thead tr.pdf-table-title th{font-size:18pt!important}
     .pdf-heading p,
@@ -915,12 +969,12 @@
     }
 
 
-    // USER SETTING: change this one number to adjust S.N. width in the
+    // USER SETTING: change this one number to adjust SN. width in the
     // Income & Expenditure and Balance Sheet PDFs. Value is a percentage.
     const PDF_SN_WIDTH_PERCENT = 4;
 
     function getPdfSerialWidth(tableHtml, columnNumber) {
-      // Size the S.N. column to its longest actual data value; keep a 1% minimum.
+      // Size the SN. column to its longest actual data value; keep a 1% minimum.
       const tbody = (tableHtml.match(/<tbody\b[^>]*>([\s\S]*?)<\/tbody>/i) || [,""])[1];
       const cellTexts = [...tbody.matchAll(/<tr\b[^>]*>([\s\S]*?)<\/tr>/gi)].map(match => {
         const cells = [...match[1].matchAll(/<td\b[^>]*>([\s\S]*?)<\/td>/gi)];
@@ -954,7 +1008,7 @@
     }
 
     function addIncomeExpenditureColumnGroup(tableHtml) {
-      // Derive each S.N. width from the longest actual serial value in that side.
+      // Derive each SN. width from the longest actual serial value in that side.
       // Keep each half exactly 50%; Particulars absorbs the remaining width.
       if (!/class="report-table[^"]*\bincome-expenditure-table\b[^"]*"/i.test(tableHtml)) return tableHtml;
       if (/<colgroup\b/i.test(tableHtml)) return tableHtml;
@@ -1046,20 +1100,89 @@
       return tableHtml;
     }
 
+    function addMonthWiseSavingsColumnGroup(tableHtml) {
+      // 15 columns: SN. 1%, SHG Name 15%, and 13 equal month/Total columns.
+      const widths = [2, 15, ...Array(13).fill(83 / 13)];
+      const colgroup = `<colgroup>${widths.map(width => `<col style="width:${width.toFixed(10)}%">`).join("")}</colgroup>`;
+      return tableHtml.replace(/(<table\b[^>]*>)/i, `$1${colgroup}`);
+    }
+
     function addCollectionMonthWiseSubheaders(tableHtml) {
       const months = ["ఏప్రిల్","మే","జూన్","జూలై","ఆగస్టు","సెప్టెంబర్","అక్టోబర్","నవంబర్","డిసెంబర్","జనవరి","ఫిబ్రవరి","మార్చి"];
       const groupCells = `<th rowspan="2">SN</th><th rowspan="2">SHG పేరు</th>` +
         months.map(month => `<th colspan="2">${month}</th>`).join("") + `<th colspan="2">మొత్తం</th>`;
       const subCells = Array.from({length:13}, () => `<th>అసలు</th><th>వడ్డీ</th>`).join("");
       const groupedHeader = `<tr class="collection-month-groups">${groupCells}</tr><tr class="collection-month-subheaders">${subCells}</tr>`;
-      return tableHtml.replace(/<tr><th>S N<\/th><th>SHG Name<\/th>[\s\S]*?<\/tr>/i, groupedHeader)
+      return tableHtml.replace(/<tr><th>SN<\/th><th>SHG Name<\/th>[\s\S]*?<\/tr>/i, groupedHeader)
         .replace(/<table class="report-table(?=[ "])/i, '<table class="report-table collection-month-wise-table');
     }
 
+    function splitCollectionMonthWisePdf(tableHtml) {
+      // Two landscape PDF pages: first six months, then the remaining six months.
+      // Keep annual totals with the second half to avoid duplicating them.
+      const tableOpen = tableHtml.match(/<table\b[^>]*>/i);
+      const thead = tableHtml.match(/<thead>([\s\S]*?)<\/thead>/i);
+      const tbody = tableHtml.match(/<tbody>([\s\S]*?)<\/tbody>/i);
+      if (!tableOpen || !thead || !tbody) return tableHtml;
+
+      const headerRows = [...thead[1].matchAll(/<tr\b[^>]*>[\s\S]*?<\/tr>/gi)].map(m => m[0]);
+      if (headerRows.length < 2) return tableHtml;
+      const bodyRows = [...tbody[1].matchAll(/<tr\b[^>]*>[\s\S]*?<\/tr>/gi)].map(m => m[0]);
+
+      const makePage = (monthStart, pageNumber) => {
+        // Each month occupies TWO data columns: అసలు and వడ్డీ.
+        const monthIndexes = Array.from({length: 6}, (_, i) => {
+          const firstColumn = 2 + (monthStart + i) * 2;
+          return [firstColumn, firstColumn + 1];
+        }).flat();
+        const selectedIndexes = pageNumber === 1
+          ? [0, 1, ...monthIndexes]
+          : [0, 1, ...monthIndexes, 26, 27];
+
+        const groupCells = [
+          '<th rowspan="2">SN</th>',
+          '<th rowspan="2">SHG పేరు</th>',
+          ...Array.from({length: 6}, (_, i) => {
+            const month = ["ఏప్రిల్","మే","జూన్","జూలై","ఆగస్టు","సెప్టెంబర్","అక్టోబర్","నవంబర్","డిసెంబర్","జనవరి","ఫిబ్రవరి","మార్చి"][monthStart+i];
+            return `<th colspan="2">${month}</th>`;
+          }),
+          ...(pageNumber === 2 ? ['<th colspan="2">మొత్తం</th>'] : [])
+        ].join("");
+        const subCells = Array.from({length: pageNumber === 1 ? 6 : 7}, () =>
+          '<th>అసలు</th><th>వడ్డీ</th>'
+        ).join("");
+        const newThead = `<thead><tr class="collection-month-groups">${groupCells}</tr><tr class="collection-month-subheaders">${subCells}</tr></thead>`;
+
+        const newBody = bodyRows.map(row => {
+          const cells = [...row.matchAll(/<td\b[^>]*>[\s\S]*?<\/td>/gi)].map(m => m[0]);
+          if (cells.length < 28) return row;
+          const selected = selectedIndexes.map(index => cells[index]).join("");
+          const rowOpen = (row.match(/^<tr\b[^>]*>/i) || ["<tr>"])[0];
+          const rowClose = "</tr>";
+          return `${rowOpen}${selected}${rowClose}`;
+        }).join("");
+
+        // Explicit colgroup makes every individual numeric column identical in width,
+        // including each അസలు / వడ్డీ pair. Page 2 also includes the two annual-total columns.
+        const numericColumnCount = pageNumber === 1 ? 12 : 14;
+        const numericWidth = (85.8 / numericColumnCount).toFixed(4);
+        const colWidths = ["2.2%", "12%", ...Array(numericColumnCount).fill(`${numericWidth}%`)];
+        const colgroup = `<colgroup>${colWidths.map(width => `<col style="width:${width}!important">`).join("")}</colgroup>`;
+        // Add the report title and VO details while <thead> immediately follows
+        // the table opening tag; then insert the colgroup after the opening tag.
+        const table = `${tableOpen[0]}${newThead}<tbody>${newBody}</tbody></table>`;
+        const titledTable = addPdfTableHeader(table, "Collection Month Wise");
+        const tableWithWidths = titledTable.replace(/(<table\b[^>]*>)/i, `$1${colgroup}`);
+        return `<div class="collection-month-wise-page collection-month-wise-page-${pageNumber}">${tableWithWidths}</div>`;
+      };
+
+      return makePage(0, 1) + makePage(6, 2);
+    }
+
     function addPodupuVatadhanamSubheaders(tableHtml) {
-      const groupedHeader = `<tr class="podupu-groups"><th rowspan="2">S N</th><th rowspan="2">SHG పేరు</th><th colspan="4">వాటాధనము</th><th colspan="4">పొదుపులు</th></tr>` +
+      const groupedHeader = `<tr class="podupu-groups"><th rowspan="2">SN</th><th rowspan="2">SHG పేరు</th><th colspan="4">వాటాధనము</th><th colspan="4">పొదుపులు</th></tr>` +
         `<tr class="podupu-subheaders"><th>ప్రారంభ నిల్వ</th><th>ప్రస్తుత సం</th><th>వాటాధనం వాపస్</th><th>ముగింపు నిల్వ</th><th>ప్రారంభ నిల్వ</th><th>ప్రస్తుత సం</th><th>పొదుపు వాపస్</th><th>ముగింపు నిల్వ</th></tr>`;
-      return tableHtml.replace(/<tr><th>S N<\/th><th>SHG Name<\/th><th>Opening Share Capital<\/th><th>Current Share Capital<\/th><th>Share Refund<\/th><th>Closing Share Capital<\/th><th>Opening Savings<\/th><th>Current Savings<\/th><th>Savings Refund<\/th><th>Closing Savings<\/th><\/tr>/i, groupedHeader)
+      return tableHtml.replace(/<tr><th>SN<\/th><th>SHG Name<\/th><th>Opening Share Capital<\/th><th>Current Share Capital<\/th><th>Share Refund<\/th><th>Closing Share Capital<\/th><th>Opening Savings<\/th><th>Current Savings<\/th><th>Savings Refund<\/th><th>Closing Savings<\/th><\/tr>/i, groupedHeader)
         .replace(/<table class="report-table(?=[ "])/i, '<table class="report-table podupu-vatadhanam-pdf');
     }
 
@@ -1075,13 +1198,15 @@
         if (isCollectionMonthWise) table = addCollectionMonthWiseSubheaders(table);
         if (isPodupuVatadhanam) table = addPodupuVatadhanamSubheaders(table);
         table = preparePdfTable(table, name);
+        if (isCollectionMonthWise) table = splitCollectionMonthWisePdf(table);
+        else table = addPdfTableHeader(table, name);
+        if (isMonthWiseSavings) table = addMonthWiseSavingsColumnGroup(table);
         if (name.startsWith("GL -")) table = addGlPdfColumnGroup(table);
-        table = addPdfTableHeader(table, name);
         table = addReceiptsPaymentsColumnGroup(table);
         table = addBalanceSheetColumnGroup(table);
         table = addIncomeExpenditureColumnGroup(table);
         const isFinancialSummary = ["Receipts & Payments", "Income & Expenditure", "Balance Sheet"].includes(name);
-        const pdfBodyClass = ["Collection Month Wise","Cumulative DCB","Month Wise Savings","Podupu & Vatadhanam"].includes(name) ? "landscape-pdf" : (name.startsWith("GL -") ? "gl-report-pdf" : (isFinancialSummary ? "financial-summary-pdf" : ""));
+        const pdfBodyClass = name === "Month Wise Savings" ? "landscape-pdf month-wise-savings-pdf" : (["Collection Month Wise","Cumulative DCB","Podupu & Vatadhanam"].includes(name) ? "landscape-pdf" : (name.startsWith("GL -") ? "gl-report-pdf" : (isFinancialSummary ? "financial-summary-pdf" : "")));
         openPdfPreview(safeFilename(ms().name) + "_" + safeFilename(displayText(name)), table, pdfBodyClass);
       } catch (error) {
         console.error("PDF preview failed:", error);
@@ -1102,13 +1227,15 @@
           if (isCollectionMonthWise) table = addCollectionMonthWiseSubheaders(table);
           if (isPodupuVatadhanam) table = addPodupuVatadhanamSubheaders(table);
           table = preparePdfTable(table, name);
+          if (isCollectionMonthWise) table = splitCollectionMonthWisePdf(table);
+          else table = addPdfTableHeader(table, name);
+          if (isMonthWiseSavings) table = addMonthWiseSavingsColumnGroup(table);
           if (name.startsWith("GL -")) table = addGlPdfColumnGroup(table);
-          table = addPdfTableHeader(table, name);
           table = addReceiptsPaymentsColumnGroup(table);
         table = addBalanceSheetColumnGroup(table);
         table = addIncomeExpenditureColumnGroup(table);
           const isFinancialSummary = ["Receipts & Payments", "Income & Expenditure", "Balance Sheet"].includes(name);
-          const reportClass = ["Collection Month Wise","Cumulative DCB","Month Wise Savings","Podupu & Vatadhanam"].includes(name) ? " landscape-pdf" : (name.startsWith("GL -") ? " gl-report-pdf" : (isFinancialSummary ? " financial-summary-pdf" : ""));
+          const reportClass = name === "Month Wise Savings" ? " landscape-pdf month-wise-savings-pdf" : (["Collection Month Wise","Cumulative DCB","Podupu & Vatadhanam"].includes(name) ? " landscape-pdf" : (name.startsWith("GL -") ? " gl-report-pdf" : (isFinancialSummary ? " financial-summary-pdf" : "")));
           return `<section class="all-report${reportClass}">${table}</section>`;
         }).join("");
         openPdfPreview(safeFilename(ms().name) + "_All_Reports", sections, "all-pdf");
