@@ -351,7 +351,7 @@
     }
     function reportTable(headers,rows){
      const isBalanceSheet=headers.length===8&&rows.some(r=>r.length>=8&&String(r[0]??"").trim()!==""&&String(r[1]??"").trim()!==""&&(r[2]===null||r[2]==="")&&(r[3]===null||r[3]===""));
-     const isReceiptsPayments=String(headers[1]||"").includes("వసూళ్ళు")&&String(headers[5]||"").includes("చెల్లింపులు");
+     const isReceiptsPayments=String(headers[1]||"").includes("వసూళ్ళు")&&String(headers[4]||"").includes("చెల్లింపులు");
      const isIncomeExpenditure=String(headers[1]||"").includes("ఖర్చులు")&&String(headers[4]||"").includes("ఆదాయాలు");
      let leftSectionNo=0,rightSectionNo=0;
      const body=rows.map((r,rowIndex)=>{
@@ -370,24 +370,24 @@
        if(leftLabel==="TOTAL"||rightLabel==="TOTAL")rowClass="ie-total-row";
       }
       if(isReceiptsPayments){
-       const leftGroup=String(r[1]??"").trim()!==""&&(r[2]===null||r[2]==="")&&(r[3]===null||r[3]==="");
-       const rightGroup=String(r[5]??"").trim()!==""&&(r[6]===null||r[6]==="")&&(r[7]===null||r[7]==="");
+       const leftGroup=String(r[1]??"").trim()!==""&&(r[2]===null||r[2]==="");
+       const rightGroup=String(r[4]??"").trim()!==""&&(r[5]===null||r[5]==="");
        if(leftGroup||rightGroup)rowClass="rp-section-row";
-       if(String(r[1]??"").trim()==="மொత్తము"||String(r[5]??"").trim()==="மొత్తము")rowClass="rp-total-row";
+       if(String(r[1]??"").trim()==="మొత్తము"||String(r[4]??"").trim()==="మొత్తము")rowClass="rp-total-row";
        if(String(r[1]??"").trim()==="స్థలము:"||String(r[1]??"").trim()==="తేది:"||String(r[1]??"").includes("బుక్ కీపర్"))rowClass="rp-signature-row";
       }
       return `<tr${rowClass?` class="${rowClass}"`:""}>${r.map(v=>`<td>${esc(displayText(v??""))}</td>`).join("")}</tr>`;
      }).join("");
-     return `<div class="table-wrap"><table class="report-table${isBalanceSheet?' balance-sheet-table':isIncomeExpenditure?' income-expenditure-table':''}"><thead><tr>${headers.map(h=>`<th>${esc(displayText(h))}</th>`).join("")}</tr></thead><tbody>${body}</tbody></table></div>`
+     return `<div class="table-wrap"><table class="report-table${isBalanceSheet?' balance-sheet-table':isIncomeExpenditure?' income-expenditure-table':isReceiptsPayments?' receipts-payments-table':''}"><thead><tr>${headers.map(h=>`<th>${esc(displayText(h))}</th>`).join("")}</tr></thead><tbody>${body}</tbody></table></div>`
     }
     function makeReport(name){let rows=[],headers=[],sumAll=(key)=>MONTHS.reduce((a,m)=>a+ms().months[m].collections.reduce((s,c)=>s+(+c[key]||0),0),0);
     if(name==="Collection Month Wise"){headers=["S N","SHG Name",...MONTH_LABELS.flatMap(m=>[m+" Principal",m+" Interest"]),"Annual Principal","Annual Interest"];ms().shgs.forEach((s,i)=>{let vals=MONTHS.flatMap(m=>{let c=ms().months[m].collections[i]||{};return [money(c.principal),money(c.interest)]});let p=MONTHS.reduce((a,m)=>a+(+ms().months[m].collections[i]?.principal||0),0),it=MONTHS.reduce((a,m)=>a+(+ms().months[m].collections[i]?.interest||0),0);rows.push([i+1,s,...vals,money(p),money(it)])})}
     else if(name==="Month Wise Savings"){const teluguMonths=["ఏప్రిల్","మే","జూన్","జూలై","ఆగస్టు","సెప్టెంబర్","అక్టోబర్","నవంబర్","డిసెంబర్","జనవరి","ఫిబ్రవరి","మార్చి"];headers=["S N","SHG Name",...teluguMonths,"Total"];ms().shgs.forEach((s,i)=>{let vals=MONTHS.map(m=>+ms().months[m].collections[i]?.savings||0);rows.push([i+1,s,...vals.map(money),money(vals.reduce((a,b)=>a+b,0))])})}
     else if(name==="Cumulative DCB"){headers=["క్ర.సం.","SHG పేరు","ప్రారంభ అప్పు నిల్వ","కొత్త అప్పులు","మొత్తం అప్పు నిల్వ","వసూలైన అసలు","వసూలైన వడ్డీ","బకాయి అసలు"];ms().shgs.forEach((s,i)=>{const opening=+(ms().months.APR.collections[i]?.openingLoanBalance||0);const newLoan=MONTHS.reduce((a,m)=>a+(+ms().months[m].collections[i]?.newLoan||0),0);const totalLoan=opening+newLoan;const principal=MONTHS.reduce((a,m)=>a+(+ms().months[m].collections[i]?.principal||0),0);const interest=MONTHS.reduce((a,m)=>a+(+ms().months[m].collections[i]?.interest||0),0);const outstanding=totalLoan-principal;rows.push([i+1,s,money(opening),money(newLoan),money(totalLoan),money(principal),money(interest),money(outstanding)])})}
     else if(name==="Podupu & Vatadhanam"){headers=["S N","SHG Name","Opening Share Capital","Current Share Capital","Share Refund","Closing Share Capital","Opening Savings","Current Savings","Savings Refund","Closing Savings"];ms().shgs.forEach((s,i)=>{const get=(m,k)=>+(ms().months[m].collections[i]?.[k]||0);const openingShare=get("APR","openingShareCapital");const currentShare=MONTHS.reduce((a,m)=>a+get(m,"currentShareCapital"),0);const shareRefund=MONTHS.reduce((a,m)=>a+get(m,"shareRefund"),0);const closingShare=openingShare+currentShare-shareRefund;const openingSavings=get("APR","openingSavings");const currentSavings=MONTHS.reduce((a,m)=>a+get(m,"savings"),0);const savingsRefund=MONTHS.reduce((a,m)=>a+get(m,"savingsRefund"),0);const closingSavings=openingSavings+currentSavings-savingsRefund;rows.push([i+1,s,money(openingShare),money(currentShare),money(shareRefund),money(closingShare),money(openingSavings),money(currentSavings),money(savingsRefund),money(closingSavings)])})}
-    else if(name.startsWith("GL -")){headers=["తేది / Month","వివరములు","జమ (Receipts)","చెల్లింపు (Payments)","నిల్వ (Balance)"];let payHead=name.replace("GL - ","");const openingBalanceKey={"GL - Loan Principal":"openingLoanBalance","GL - Loan Interest":null,"GL - VOA Salary (VO)":null,"GL - Bank Interest":null,"GL - Stationery":null,"GL - Meeting Expenses":null,"GL - Bank Charges":null,"GL - Travel Expenses":null,"GL - Audit Fee":null,"GL - MS Membership":null,"GL - Other Expenses":null,"GL - Other paymts":null,"GL - Other recipts":null,"GL - Savings":"openingSavingsBalance","GL - MS Loan Principal":"openingMSLoanBalance","GL - MS Loan Interest":null,"GL - MS Savings":"openingMSSavingsBalance","GL - VOA Salary (SERP)":"openingVOASalarySERP","GL - SN Incentive":"openingIncentiveBalance","GL - Market Commission":"openingMarketCommissionBalance","GL - MS Share Capital":"openingMSShareCapitalBalance","GL - Asset Purchase":"openingAssetBalance"};const startBalance=Object.prototype.hasOwnProperty.call(openingBalanceKey,name)?(openingBalanceKey[name]===null?0:(+ms().months.APR[openingBalanceKey[name]]||0)):(+ms().months.APR.openingCash||0);let balance=startBalance;const financialYearStart=(String(selectedFinancialYear()).match(/\d{4}/)||["2026"])[0];rows.push([`01.04.${financialYearStart}`,"ప్రారంభ నిల్వ","—","—",money(startBalance)]);const sum=(arr,key)=> (arr||[]).reduce((a,x)=>a+(+x[key]||0),0);const receiptSource={"GL - Loan Interest":"వడ్డీ","GL - Savings":"పొదుపు","GL - VOA Salary (SERP)":"VOA వేతనం జమ (DRDA నుండి)","GL - SN Incentive":"స్త్రీనిధి ఇన్సెంటివ్ జమ","GL - Market Commission":"మార్కెటింగ్ కమీషన్ జమ","GL - Bank Interest":"బ్యాంక్ నుండి వడ్డీ జమ","GL - MS Savings":"MS నుండి పొదుపు జమ","GL - MS Share Capital":"MS నుండి వాటాధనం వాపస్","GL - MS Loan Principal":"MS నుండి CIFజమ"};const paymentSource={"GL - Loan Interest":null,"GL - MS Loan Interest":"MS వడ్డీ","GL - MS Loan Principal":"MS అసలు","GL - MS Savings":"MS పొదుపు","GL - VOA Salary (SERP)":"VOA వేతనం (SERP)","GL - VOA Salary (VO)":"VOA వేతనం (VO)","GL - SN Incentive":"స్త్రీనిధి ఇన్సెంటివ్ చెల్లింపు","GL - Market Commission":"మార్కెటింగ్ కమీషన్ చెల్లింపు","GL - Stationery":"స్టేషనరీ","GL - Meeting Expenses":"సమావేశ ఖర్చులు","GL - Bank Charges":"బ్యాంకు ఛార్జీలు","GL - Travel Expenses":"ప్రయాణ ఖర్చులు","GL - Audit Fee":"ఆడిట్ ఫీజు","GL - MS Membership":"సభ్యత్వం","GL - MS Share Capital":"వాటాధనం","GL - Asset Purchase":null,"GL - Other Expenses":"ఇతర ఖర్చులు","GL - Other paymts":null};MONTHS.forEach((m,idx)=>{const d=ms().months[m],r=d.receipts||{},pd=d.paymentDetails||{};let receipt=0,payment=0;if(name==="GL - Loan Principal"){receipt=sum(d.collections,"principal");payment=sum(d.collections,"newLoan");}else if(name==="GL - Loan Interest"){receipt=sum(d.collections,"interest");}else if(name==="GL - Other recipts"){receipt=sum(d.otherReceipts,"amount");}else if(name==="GL - Other paymts"){payment=sum(d.otherPayments,"amount");}else if(name==="GL - Savings"){receipt=sum(d.collections,"savings");payment=sum(d.collections,"savingsRefund");}else if(name==="GL - MS Loan Interest"){payment=+pd["MS వడ్డీ"]||0;}else if(name==="GL - MS Loan Principal"){receipt=+r["MS నుండి CIFజమ"]||0;payment=+pd["MS అసలు"]||0;}else if(name==="GL - MS Savings"){receipt=+r["MS నుండి పొదుపు జమ"]||0;payment=+pd["MS పొదుపు"]||0;}else if(name==="GL - MS Share Capital"){receipt=+r["MS నుండి వాటాధనం వాపస్"]||0;payment=+pd["వాటాధనం"]||0;}else if(name==="GL - Asset Purchase"){payment=sum(d.assetPurchases,"amount");}else if(name==="GL - Other Expenses"){payment=sum(d.otherExpenses,"amount");}else{const rk=receiptSource[name];if(rk)receipt=+r[rk]||0;const pk=paymentSource[name];if(pk)payment=+pd[pk]||0;if(name==="GL - Bank Interest"||name==="GL - Loan Interest")payment=0;}let next;if(["GL - Loan Principal","GL - MS Savings","GL - MS Share Capital"].includes(name))next=balance-receipt+payment;else if(["GL - Loan Interest","GL - MS Loan Interest","GL - VOA Salary (VO)","GL - Bank Interest","GL - Stationery","GL - Meeting Expenses","GL - Bank Charges","GL - Travel Expenses","GL - Audit Fee","GL - MS Membership","GL - Other Expenses","GL - Other paymts","GL - Other recipts"].includes(name))next=balance+receipt+payment;else if(["GL - Savings","GL - MS Loan Principal","GL - VOA Salary (SERP)","GL - SN Incentive","GL - Market Commission"].includes(name))next=balance+receipt-payment;else if(name==="GL - Asset Purchase")next=balance+payment;else next=balance+receipt-payment;rows.push([MONTH_LABELS[idx],payHead,money(receipt),money(payment),money(next)]);balance=next;});}
+    else if(name.startsWith("GL -")){headers=["తేది / Month","వివరములు","జమ (Receipts)","చెల్లింపు (Payments)","నిల్వ (Balance)"];const glDetailTelugu={"GL - Loan Principal":"అప్పు అసలు","GL - Loan Interest":"అప్పు వడ్డీ","GL - VOA Salary (VO)":"VOA వేతనం (VO)","GL - Bank Interest":"బ్యాంకు వడ్డీ","GL - Stationery":"స్టేషనరీ ఖర్చులు","GL - Meeting Expenses":"సమావేశ ఖర్చులు","GL - Bank Charges":"బ్యాంకు ఛార్జీలు","GL - Travel Expenses":"ప్రయాణ ఖర్చులు","GL - Audit Fee":"ఆడిట్ ఫీజు","GL - MS Membership":"MS సభ్యత్వం","GL - Other Expenses":"ఇతర ఖర్చులు","GL - Other paymts":"ఇతర చెల్లింపులు","GL - Other recipts":"ఇతర రాబడులు","GL - Savings":"పొదుపు","GL - MS Loan Principal":"MS అప్పు అసలు","GL - MS Loan Interest":"MS అప్పు వడ్డీ","GL - MS Savings":"MS పొదుపు","GL - VOA Salary (SERP)":"VOA వేతనం (SERP)","GL - SN Incentive":"స్త్రీనిధి ప్రోత్సాహకం","GL - Market Commission":"మార్కెటింగ్ కమీషన్","GL - MS Share Capital":"MS వాటాధనం","GL - Asset Purchase":"ఆస్తుల కొనుగోలు"};let payHead=glDetailTelugu[name]||"ఇతర వివరాలు";const openingBalanceKey={"GL - Loan Principal":"openingLoanBalance","GL - Loan Interest":null,"GL - VOA Salary (VO)":null,"GL - Bank Interest":null,"GL - Stationery":null,"GL - Meeting Expenses":null,"GL - Bank Charges":null,"GL - Travel Expenses":null,"GL - Audit Fee":null,"GL - MS Membership":null,"GL - Other Expenses":null,"GL - Other paymts":null,"GL - Other recipts":null,"GL - Savings":"openingSavingsBalance","GL - MS Loan Principal":"openingMSLoanBalance","GL - MS Loan Interest":null,"GL - MS Savings":"openingMSSavingsBalance","GL - VOA Salary (SERP)":"openingVOASalarySERP","GL - SN Incentive":"openingIncentiveBalance","GL - Market Commission":"openingMarketCommissionBalance","GL - MS Share Capital":"openingMSShareCapitalBalance","GL - Asset Purchase":"openingAssetBalance"};const startBalance=Object.prototype.hasOwnProperty.call(openingBalanceKey,name)?(openingBalanceKey[name]===null?0:(+ms().months.APR[openingBalanceKey[name]]||0)):(+ms().months.APR.openingCash||0);let balance=startBalance;const financialYearStart=(String(selectedFinancialYear()).match(/\d{4}/)||["2026"])[0];rows.push([`01.04.${financialYearStart}`,"ప్రారంభ నిల్వ","—","—",money(startBalance)]);const sum=(arr,key)=> (arr||[]).reduce((a,x)=>a+(+x[key]||0),0);const receiptSource={"GL - Loan Interest":"వడ్డీ","GL - Savings":"పొదుపు","GL - VOA Salary (SERP)":"VOA వేతనం జమ (DRDA నుండి)","GL - SN Incentive":"స్త్రీనిధి ఇన్సెంటివ్ జమ","GL - Market Commission":"మార్కెటింగ్ కమీషన్ జమ","GL - Bank Interest":"బ్యాంక్ నుండి వడ్డీ జమ","GL - MS Savings":"MS నుండి పొదుపు జమ","GL - MS Share Capital":"MS నుండి వాటాధనం వాపస్","GL - MS Loan Principal":"MS నుండి CIFజమ"};const paymentSource={"GL - Loan Interest":null,"GL - MS Loan Interest":"MS వడ్డీ","GL - MS Loan Principal":"MS అసలు","GL - MS Savings":"MS పొదుపు","GL - VOA Salary (SERP)":"VOA వేతనం (SERP)","GL - VOA Salary (VO)":"VOA వేతనం (VO)","GL - SN Incentive":"స్త్రీనిధి ఇన్సెంటివ్ చెల్లింపు","GL - Market Commission":"మార్కెటింగ్ కమీషన్ చెల్లింపు","GL - Stationery":"స్టేషనరీ","GL - Meeting Expenses":"సమావేశ ఖర్చులు","GL - Bank Charges":"బ్యాంకు ఛార్జీలు","GL - Travel Expenses":"ప్రయాణ ఖర్చులు","GL - Audit Fee":"ఆడిట్ ఫీజు","GL - MS Membership":"సభ్యత్వం","GL - MS Share Capital":"వాటాధనం","GL - Asset Purchase":null,"GL - Other Expenses":"ఇతర ఖర్చులు","GL - Other paymts":null};MONTHS.forEach((m,idx)=>{const d=ms().months[m],r=d.receipts||{},pd=d.paymentDetails||{};let receipt=0,payment=0;if(name==="GL - Loan Principal"){receipt=sum(d.collections,"principal");payment=sum(d.collections,"newLoan");}else if(name==="GL - Loan Interest"){receipt=sum(d.collections,"interest");}else if(name==="GL - Other recipts"){receipt=sum(d.otherReceipts,"amount");}else if(name==="GL - Other paymts"){payment=sum(d.otherPayments,"amount");}else if(name==="GL - Savings"){receipt=sum(d.collections,"savings");payment=sum(d.collections,"savingsRefund");}else if(name==="GL - MS Loan Interest"){payment=+pd["MS వడ్డీ"]||0;}else if(name==="GL - MS Loan Principal"){receipt=+r["MS నుండి CIFజమ"]||0;payment=+pd["MS అసలు"]||0;}else if(name==="GL - MS Savings"){receipt=+r["MS నుండి పొదుపు జమ"]||0;payment=+pd["MS పొదుపు"]||0;}else if(name==="GL - MS Share Capital"){receipt=+r["MS నుండి వాటాధనం వాపస్"]||0;payment=+pd["వాటాధనం"]||0;}else if(name==="GL - Asset Purchase"){payment=sum(d.assetPurchases,"amount");}else if(name==="GL - Other Expenses"){payment=sum(d.otherExpenses,"amount");}else{const rk=receiptSource[name];if(rk)receipt=+r[rk]||0;const pk=paymentSource[name];if(pk)payment=+pd[pk]||0;if(name==="GL - Bank Interest"||name==="GL - Loan Interest")payment=0;}let next;if(["GL - Loan Principal","GL - MS Savings","GL - MS Share Capital"].includes(name))next=balance-receipt+payment;else if(["GL - Loan Interest","GL - MS Loan Interest","GL - VOA Salary (VO)","GL - Bank Interest","GL - Stationery","GL - Meeting Expenses","GL - Bank Charges","GL - Travel Expenses","GL - Audit Fee","GL - MS Membership","GL - Other Expenses","GL - Other paymts","GL - Other recipts"].includes(name))next=balance+receipt+payment;else if(["GL - Savings","GL - MS Loan Principal","GL - VOA Salary (SERP)","GL - SN Incentive","GL - Market Commission"].includes(name))next=balance+receipt-payment;else if(name==="GL - Asset Purchase")next=balance+payment;else next=balance+receipt-payment;rows.push([MONTH_LABELS[idx],payHead,money(receipt),money(payment),money(next)]);balance=next;});}
     else if(name==="Receipts & Payments"){
-    headers=["క్ర.సం","వసూళ్ళు","GL నెంబర్","మొత్తము రూ.","క్ర.సం.","చెల్లింపులు","GL నెంబర్","మొత్తము రూ."];
+    headers=["క్ర.సం","వసూళ్ళు","మొత్తము రూ.","క్ర.సం.","చెల్లింపులు","మొత్తము రూ."];
     const receiptItems=[],paymentItems=[];
     const addItem=(list,label,amount)=>{amount=+amount||0;if(!label||(!amount&&amount!==0))return;const existing=list.find(x=>x[0]===label);if(existing)existing[1]+=amount;else list.push([label,amount]);};
     // Opening balances are shown on the receipts side; year-end balances on the payments side.
@@ -435,15 +435,15 @@
     rows=[];
     sections.forEach(s=>{
      const n=Math.max(s.r.length,s.p.length);
-     rows.push([s.rn,s.pl,"","",s.rn,s.rl,"",""]);
-     for(let i=0;i<n;i++){const r=s.r[i],p=s.p[i];rows.push(["",r?.label||"","",r?money(r.amount):"", "",p?.label||"","",p?money(p.amount):""]);}
+     rows.push([s.rn,s.pl,"",s.rn,s.rl,""]);
+     for(let i=0;i<n;i++){const r=s.r[i],p=s.p[i];rows.push(["",r?.label||"",r?money(r.amount):"", "",p?.label||"",p?money(p.amount):""]);}
     });
     const totalReceipts=receiptItems.reduce((a,x)=>a+(receiptSummaryLabels.has(x[0])?0:(+x[1]||0)),0);
     const totalPayments=paymentItems.reduce((a,x)=>a+(subtotalRows.includes(x[0])?0:(+x[1]||0)),0);
-    rows.push(["","మొత్తము","",money(totalReceipts),"","మొత్తము","",money(totalPayments)]);
-    rows.push(["","స్థలము:","","","","","",""]);
-    rows.push(["","తేది:","","","","","",""]);
-    rows.push(["","బుక్ కీపర్                                     కార్యదర్శి","","","","అధ్యక్షులు                                             ఆడిటర్","",""]);
+    rows.push(["","మొత్తము",money(totalReceipts),"","మొత్తము",money(totalPayments)]);
+    rows.push(["","స్థలము:","","","",""]);
+    rows.push(["","తేది:","","","",""]);
+    rows.push(["","బుక్ కీపర్ కార్యదర్శి","","","అధ్యక్షులు ఆడిటర్",""]);
     }
     else if(name==="Income & Expenditure"){
     headers=["క్ర.సం.","ఖర్చులు","మొత్తము రూ.","క్ర.సం.","ఆదాయాలు","మొత్తము రూ."];
@@ -511,7 +511,7 @@
     rows.push(["","TOTAL",money(totalExp+profit),"","TOTAL",money(totalInc+loss)]);
     }
     else if(name==="Balance Sheet"){
-    headers=["S.N","బాధ్యతలు","గత సం.","ప్రస్తుత సం.","S.N","ఆస్తులు","గత సం.","ప్రస్తుత సం."];
+    headers=["SN","బాధ్యతలు","గత సం.","ప్రస్తుత సం.","SN","ఆస్తులు","గత సం.","ప్రస్తుత సం."];
     const annualReceipt=(key)=>MONTHS.reduce((a,m)=>a+(+(ms().months[m].receipts||{})[key]||0),0);
     const annualPayment=(key)=>MONTHS.reduce((a,m)=>a+(+(ms().months[m].paymentDetails||{})[key]||0),0);
     const annualCollection=(key)=>MONTHS.reduce((a,m)=>a+(ms().months[m].collections||[]).reduce((b,c)=>b+(+c[key]||0),0),0);
@@ -634,7 +634,12 @@
     }
     else {headers=["Section","Particulars","Amount (₹)"];let allReceipts=0,allPayments=0;MONTHS.forEach((m,i)=>{let t=totals(ms().months[m]);allReceipts+=t.collectionTotal+t.receiptsBank;allPayments+=t.payCash+t.payBank;rows.push([MONTH_LABELS[i],"Total collections",money(t.collectionTotal)]);rows.push([MONTH_LABELS[i],"Total payments",money(t.payCash+t.payBank)]);rows.push([MONTH_LABELS[i],"Closing cash + bank",money(t.closingCash+t.closingBank)])});rows.push(["YEAR TOTAL","Collections",money(allReceipts)]);rows.push(["YEAR TOTAL","Payments",money(allPayments)])}
     return {headers,rows}}
-    function renderReportList(){el("reportList").innerHTML=REPORTS.map((r,i)=>`<div class="report-item"><span>${esc(displayText(r))}</span><div class="actions" style="margin:0;justify-content:flex-end"><button data-preview="${i}" class="secondary">Preview</button><button data-pdf="${i}">Download PDF</button><button data-csv="${i}" class="secondary">Download CSV</button></div></div>`).join("");el("reportList").querySelectorAll("[data-preview]").forEach(b=>b.onclick=()=>previewReport(REPORTS[+b.dataset.preview]));el("reportList").querySelectorAll("[data-pdf]").forEach(b=>b.onclick=()=>downloadReportPdf(REPORTS[+b.dataset.pdf]));el("reportList").querySelectorAll("[data-csv]").forEach(b=>b.onclick=()=>csvReport(REPORTS[+b.dataset.csv]))}
+    function visibleReports(){
+     // Report by Months does not use the GL detail reports; keep them for Report by SHG.
+     const monthsMode = ms() ? voReportType(ms()) === "cumulative" : currentReportType() === "cumulative";
+     return monthsMode ? REPORTS.filter(name => !name.startsWith("GL -")) : REPORTS;
+    }
+    function renderReportList(){const reports=visibleReports();el("reportList").innerHTML=reports.map((r,i)=>`<div class="report-item"><span>${esc(displayText(r))}</span><div class="actions" style="margin:0;justify-content:flex-end"><button data-preview="${i}" class="secondary">Preview</button><button data-pdf="${i}">Download PDF</button><button data-csv="${i}" class="secondary">Download CSV</button></div></div>`).join("");el("reportList").querySelectorAll("[data-preview]").forEach(b=>b.onclick=()=>previewReport(reports[+b.dataset.preview]));el("reportList").querySelectorAll("[data-pdf]").forEach(b=>b.onclick=()=>downloadReportPdf(reports[+b.dataset.pdf]));el("reportList").querySelectorAll("[data-csv]").forEach(b=>b.onclick=()=>csvReport(reports[+b.dataset.csv]))}
     function previewReport(name){
      currentReport=name;
      const title=el("reportTitle"),content=el("reportContent");
@@ -663,8 +668,11 @@
     function csvReport(name=currentReport){if(!name)return alert("Choose a report first.");let x=makeReport(name);let csv=[x.headers,...x.rows].map(r=>r.map(csvEscape).join(",")).join("\r\n");downloadText(safeFilename(ms().name)+"_"+safeFilename(displayText(name))+".csv","\ufeff"+csv,"text/csv;charset=utf-8")}
 
     const PDF_PREVIEW_STYLES = `
-    @page{size:A4 landscape;margin:0}
-    @page collectionMonthWise{size:A4 landscape;margin:0}
+    @import url('https://fonts.googleapis.com/css2?family=Gidugu&display=swap');
+    @page{size:A4 portrait;margin:0}
+    @page landscapeReport{size:A4 landscape;margin:0}
+    @page collectionMonthWise{size:A4 portrait;margin:0}
+    .landscape-pdf{page:landscapeReport!important}
     *{box-sizing:border-box}
     html,body{margin:0;padding:0;background:#fff;color:#182a40;font:10pt Arial,"Noto Sans Telugu","Gidugu",sans-serif}
     body{padding:12px}
@@ -722,6 +730,40 @@
     .collection-month-wise-pdf .report-table thead tr.pdf-table-title th{font-size:15pt;padding:5px}
     .collection-month-wise-pdf .report-table thead tr.pdf-table-details th{font-size:13pt;padding:4px}
     @media print{html{margin:0!important;padding:0!important}body{margin:0!important;padding:10mm!important;box-sizing:border-box}body.all-pdf{padding:0!important}body.collection-month-wise-pdf{padding:10mm 5mm!important}body.gl-report-pdf{padding:10mm 15mm!important}body.cumulative-dcb-pdf{padding:15mm!important}body.month-wise-savings-pdf{padding:10mm 5mm!important}body.podupu-vatadhanam-pdf{padding:10mm!important}body.financial-summary-pdf{padding:10mm!important}.toolbar{display:none!important}.all-report{break-after:page;page-break-after:always;padding:0!important}.all-report.collection-month-wise-pdf{padding:10mm 5mm!important}.all-report.gl-report-pdf{padding:15mm!important}.all-report.cumulative-dcb-pdf{padding:15mm!important}.all-report.month-wise-savings-pdf{padding:10mm 5mm!important}.all-report.podupu-vatadhanam-pdf{padding:10mm!important}.all-report.financial-summary-pdf{padding:10mm!important}.all-report:last-child{break-after:auto;page-break-after:auto}thead{display:table-header-group}tr{break-inside:avoid;page-break-inside:avoid}table{font-size:8pt}th,td{padding:3px 4px;-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+    /* PDF-only typography and serial-number column sizing across every generated report. */
+    html,body,.pdf-heading,.report-table,.report-table th,.report-table td{
+      font-family:"Gidugu",sans-serif!important;
+    }
+    /* S.N. widths for Income & Expenditure and Balance Sheet come from their PDF colgroups. */
+    .pdf-heading h2,
+    .report-table thead tr.pdf-table-title th{font-size:18pt!important}
+    .pdf-heading p,
+    .report-table thead tr.pdf-table-details th{font-size:17pt!important}
+    .report-table th:not(.pdf-table-title th):not(.pdf-table-details th),
+    .report-table td{font-size:16pt!important}
+    /* Balance Sheet only: emphasize the financial-year subheading and keep both halves equal. */
+    .balance-sheet-table{table-layout:fixed!important;width:100%!important}
+    .balance-sheet-table thead tr.pdf-table-details th:last-child{font-size:19pt!important}
+    .balance-sheet-table th,.balance-sheet-table td{min-width:0!important;max-width:none!important}
+    /* PDF-only alignment: center all headings and table headers; left-align data cells. */
+    .report-table th{ text-align:center!important }
+    .report-table td{ text-align:left!important } .gl-report-pdf .report-table td.sn-column{text-align:center!important}
+    .financial-summary-pdf .report-table{width:100%!important;table-layout:fixed!important;border-collapse:collapse!important}
+     .financial-summary-pdf .report-table colgroup col{min-width:0!important;max-width:none!important}
+ .income-expenditure-table{width:100%!important;table-layout:fixed!important}
+    .income-expenditure-table th,.income-expenditure-table td{min-width:0!important;max-width:none!important}
+    .pdf-heading,.pdf-heading h2,.pdf-heading p,
+    .report-table thead tr.pdf-table-title th,
+    .report-table thead tr.pdf-table-details th{ text-align:center!important }
+    /* GL PDFs: enforce a fixed 50/50 split using the six-column colgroup. */
+    .gl-report-pdf .report-table{width:100%!important;table-layout:fixed!important;border-collapse:collapse!important}
+    .gl-report-pdf .report-table colgroup col:nth-child(1){width:5%!important}
+    .gl-report-pdf .report-table colgroup col:nth-child(2){width:20%!important}
+    .gl-report-pdf .report-table colgroup col:nth-child(3){width:25%!important}
+    .gl-report-pdf .report-table colgroup col:nth-child(4){width:16.6667%!important}
+    .gl-report-pdf .report-table colgroup col:nth-child(5){width:16.6667%!important}
+    .gl-report-pdf .report-table colgroup col:nth-child(6){width:16.6666%!important}
+    .gl-report-pdf .report-table th,.gl-report-pdf .report-table td{min-width:0!important;max-width:none!important;box-sizing:border-box!important;overflow-wrap:anywhere!important}
     `;
     function openPdfPreview(title, sections, bodyClass = "") {
       // Open the preview synchronously from the button click so browsers do not block it.
@@ -873,6 +915,65 @@
     }
 
 
+    // USER SETTING: change this one number to adjust S.N. width in the
+    // Income & Expenditure and Balance Sheet PDFs. Value is a percentage.
+    const PDF_SN_WIDTH_PERCENT = 4;
+
+    function getPdfSerialWidth(tableHtml, columnNumber) {
+      // Size the S.N. column to its longest actual data value; keep a 1% minimum.
+      const tbody = (tableHtml.match(/<tbody\b[^>]*>([\s\S]*?)<\/tbody>/i) || [,""])[1];
+      const cellTexts = [...tbody.matchAll(/<tr\b[^>]*>([\s\S]*?)<\/tr>/gi)].map(match => {
+        const cells = [...match[1].matchAll(/<td\b[^>]*>([\s\S]*?)<\/td>/gi)];
+        const cell = cells[columnNumber-1];
+        return cell ? cell[1].replace(/<[^>]*>/g,"").replace(/&nbsp;|&#160;/gi," ").trim() : "";
+      }).filter(Boolean);
+      const longest = cellTexts.reduce((max,value)=>Math.max(max,[...value].length),0);
+      return Math.max(1, Math.min(8, longest));
+    }
+
+    function addBalanceSheetColumnGroup(tableHtml) {
+      // Fixed table layout calculates widths from the first row. The PDF title/details
+      // rows use colspan, so define the eight Balance Sheet columns before thead.
+      if (!/class="report-table[^"]*\bbalance-sheet-table\b[^"]*"/i.test(tableHtml)) return tableHtml;
+      if (tableHtml.includes("<colgroup")) return tableHtml;
+      const sn = Math.max(1, Math.min(15, Number(PDF_SN_WIDTH_PERCENT) || 1));
+      const particulars = 30 - sn;
+      const widths = [`${sn}%`, `${particulars}%`, "10%", "10%", `${sn}%`, `${particulars}%`, "10%", "10%"];
+      const colgroup = `<colgroup>${widths.map(width => `<col style="width:${width} !important">`).join("")}</colgroup>`;
+      return tableHtml.replace(/(<table[^>]*>)/i, `$1${colgroup}`);
+    }
+
+    function addReceiptsPaymentsColumnGroup(tableHtml) {
+      if (!/class="report-table[^"]*\breceipts-payments-table\b[^"]*"/i.test(tableHtml)) return tableHtml;
+      if (/<colgroup\b/i.test(tableHtml)) return tableHtml;
+      const sn = Math.max(1, Math.min(15, Number(PDF_SN_WIDTH_PERCENT) || 1));
+      const particulars = 31 - sn;
+      const widths = [`${sn}%`, `${particulars}%`, "19%", `${sn}%`, `${particulars}%`, "19%"];
+      const colgroup = `<colgroup>${widths.map(width => `<col style="width:${width} !important">`).join("")}</colgroup>`;
+      return tableHtml.replace(/(<table\b[^>]*>)/i, `$1${colgroup}`);
+    }
+
+    function addIncomeExpenditureColumnGroup(tableHtml) {
+      // Derive each S.N. width from the longest actual serial value in that side.
+      // Keep each half exactly 50%; Particulars absorbs the remaining width.
+      if (!/class="report-table[^"]*\bincome-expenditure-table\b[^"]*"/i.test(tableHtml)) return tableHtml;
+      if (/<colgroup\b/i.test(tableHtml)) return tableHtml;
+      const leftSn = 4;
+      const rightSn = 4;
+      const widths = [`${leftSn}%`, `${31-leftSn}%`, "19%", `${rightSn}%`, `${31-rightSn}%`, "19%"];
+      const colgroup = `<colgroup>${widths.map(width => `<col style="width:${width} !important">`).join("")}</colgroup>`;
+      return tableHtml.replace(/(<table\b[^>]*>)/i, `$1${colgroup}`);
+    }
+
+    function addGlPdfColumnGroup(tableHtml) {
+      // GL PDF: SN + Date/Month + Details occupy 50%; the three amount columns share 50%.
+      if (!tableHtml.includes('<th class="sn-column">SN</th>')) return tableHtml;
+      if (/<colgroup\b/i.test(tableHtml)) return tableHtml;
+      const widths = ["5%", "20%", "25%", "16.6667%", "16.6667%", "16.6666%"];
+      const colgroup = `<colgroup>${widths.map(width => `<col style="width:${width} !important">`).join("")}</colgroup>`;
+      return tableHtml.replace(/(<table\b[^>]*>)/i, `$1${colgroup}`);
+    }
+
     function addGlSerialColumn(tableHtml) {
       // Add a serial-number column to GL PDF tables only; keep report data/CSV logic untouched.
       if (!/class="report-table[^\"]*"/.test(tableHtml) || !/<th>తేది \/ Month<\/th>/i.test(tableHtml)) return tableHtml;
@@ -974,9 +1075,13 @@
         if (isCollectionMonthWise) table = addCollectionMonthWiseSubheaders(table);
         if (isPodupuVatadhanam) table = addPodupuVatadhanamSubheaders(table);
         table = preparePdfTable(table, name);
+        if (name.startsWith("GL -")) table = addGlPdfColumnGroup(table);
         table = addPdfTableHeader(table, name);
+        table = addReceiptsPaymentsColumnGroup(table);
+        table = addBalanceSheetColumnGroup(table);
+        table = addIncomeExpenditureColumnGroup(table);
         const isFinancialSummary = ["Receipts & Payments", "Income & Expenditure", "Balance Sheet"].includes(name);
-        const pdfBodyClass = isCollectionMonthWise ? "collection-month-wise-pdf" : (isCumulativeDcb ? "cumulative-dcb-pdf" : (isMonthWiseSavings ? "month-wise-savings-pdf" : (name.startsWith("GL -") ? "gl-report-pdf" : (isPodupuVatadhanam ? "podupu-vatadhanam-pdf" : (isFinancialSummary ? "financial-summary-pdf" : "")))));
+        const pdfBodyClass = ["Collection Month Wise","Cumulative DCB","Month Wise Savings","Podupu & Vatadhanam"].includes(name) ? "landscape-pdf" : (name.startsWith("GL -") ? "gl-report-pdf" : (isFinancialSummary ? "financial-summary-pdf" : ""));
         openPdfPreview(safeFilename(ms().name) + "_" + safeFilename(displayText(name)), table, pdfBodyClass);
       } catch (error) {
         console.error("PDF preview failed:", error);
@@ -985,7 +1090,8 @@
     }
     function downloadAllPdf() {
       try {
-        const sections = REPORTS.map((name, i) => {
+        const reports = visibleReports();
+        const sections = reports.map((name, i) => {
           const x = makeReport(name);
           const heading = `<div class="pdf-heading"><h2>${esc(ms().name)} — ${esc(displayText(name))}</h2><p>${esc(ms().village ? "Village: " + ms().village + " | " : "")}${esc(ms().mandal ? "Mandal: " + ms().mandal + " | " : "")}Financial Year ${esc(selectedFinancialYear().replace(" - ", "–"))}</p></div>`;
           let table = reportTable(x.headers, x.rows);
@@ -996,9 +1102,13 @@
           if (isCollectionMonthWise) table = addCollectionMonthWiseSubheaders(table);
           if (isPodupuVatadhanam) table = addPodupuVatadhanamSubheaders(table);
           table = preparePdfTable(table, name);
+          if (name.startsWith("GL -")) table = addGlPdfColumnGroup(table);
           table = addPdfTableHeader(table, name);
+          table = addReceiptsPaymentsColumnGroup(table);
+        table = addBalanceSheetColumnGroup(table);
+        table = addIncomeExpenditureColumnGroup(table);
           const isFinancialSummary = ["Receipts & Payments", "Income & Expenditure", "Balance Sheet"].includes(name);
-          const reportClass = isCollectionMonthWise ? " collection-month-wise-pdf" : (isCumulativeDcb ? " cumulative-dcb-pdf" : (isMonthWiseSavings ? " month-wise-savings-pdf" : (name.startsWith("GL -") ? " gl-report-pdf" : (isPodupuVatadhanam ? " podupu-vatadhanam-pdf" : (isFinancialSummary ? " financial-summary-pdf" : "")))));
+          const reportClass = ["Collection Month Wise","Cumulative DCB","Month Wise Savings","Podupu & Vatadhanam"].includes(name) ? " landscape-pdf" : (name.startsWith("GL -") ? " gl-report-pdf" : (isFinancialSummary ? " financial-summary-pdf" : ""));
           return `<section class="all-report${reportClass}">${table}</section>`;
         }).join("");
         openPdfPreview(safeFilename(ms().name) + "_All_Reports", sections, "all-pdf");
@@ -1007,7 +1117,7 @@
         alert("The combined PDF could not be generated. Please save the current month and try again.");
       }
     }
-    function downloadAllCsv(){let out=[];REPORTS.forEach(name=>{const x=makeReport(name);out.push([displayText(name)],x.headers,...x.rows,[])});const csv=out.map(r=>r.map(csvEscape).join(",")).join("\r\n");downloadText(safeFilename(ms().name)+"_All_Reports.csv","\ufeff"+csv,"text/csv;charset=utf-8")}
+    function downloadAllCsv(){let out=[];visibleReports().forEach(name=>{const x=makeReport(name);out.push([displayText(name)],x.headers,...x.rows,[])});const csv=out.map(r=>r.map(csvEscape).join(",")).join("\r\n");downloadText(safeFilename(ms().name)+"_All_Reports.csv","\ufeff"+csv,"text/csv;charset=utf-8")}
     function backup(){downloadText("charys-dcb-backup.json",JSON.stringify(db,null,2),"application/json")}
     // Apply a lightweight press + ripple animation to every button, including dynamically rendered report/table buttons.
     document.addEventListener("click",event=>{const b=event.target.closest("button,.btn");if(!b||b.disabled)return;const r=b.getBoundingClientRect();b.style.setProperty("--ripple-x",`${Math.max(0,Math.min(r.width,event.clientX-r.left))}px`);b.style.setProperty("--ripple-y",`${Math.max(0,Math.min(r.height,event.clientY-r.top))}px`);b.classList.remove("click-animate");void b.offsetWidth;b.classList.add("click-animate");clearTimeout(b._clickAnimationTimer);b._clickAnimationTimer=setTimeout(()=>b.classList.remove("click-animate"),520)});
